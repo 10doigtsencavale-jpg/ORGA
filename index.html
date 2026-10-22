@@ -177,13 +177,25 @@ footer .wrap{padding-block:0 32px;display:grid;gap:4px}
 .setlist h2{margin:0;font-size:17px}
 .setlist ol{margin:0;padding-left:24px;columns:2;column-gap:20px;font-size:15px;line-height:1.6}
 @media (max-width:420px){.setlist ol{columns:1}}
+.feed{border-radius:18px;background:var(--t-pub);padding:14px 16px;display:grid;gap:8px}
+.feed h2{margin:0;font-size:22px}
+.feed ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.nv{font:inherit;color:inherit;text-align:left;width:100%;background:#fff;border:0;border-radius:12px;padding:10px 12px;display:grid;gap:4px;cursor:pointer}
+.nv:hover{box-shadow:0 0 0 2px var(--electrique) inset}
+.nv-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;font-weight:700}
+.nv-who{padding:2px 8px;border-radius:999px}
+.w-orga{background:var(--soleil);color:var(--encre)} .w-10dec{background:var(--electrique);color:#fff}
+.nv-q{padding:2px 8px;border-radius:999px;background:var(--turquoise);color:#0b1a3a}
+.nv-new{padding:2px 8px;border-radius:999px;background:var(--encre);color:#fff}
+.nv-d{color:var(--muted);margin-left:auto;font-weight:600}
+.nv-t{font-size:14px;line-height:1.4}
 </style>
 </head>
 <body>
 
 <div class="topbar"><div class="wrap" id="topbar"></div></div>
 <div class="preview" id="previewBanner"><div class="wrap">
-  <span><strong>Aperçu interne.</strong> Les réponses restent sur cet appareil.</span>
+  <span><strong>Vue équipe 10DEC.</strong> Ce bandeau n'est visible qu'avec votre lien équipe.</span>
   <span>Voir comme :<span class="seg" role="group" aria-label="Choisir la vue">
     <button type="button" data-mode="orga" aria-pressed="true">Organisateur</button>
     <button type="button" data-mode="equipe" aria-pressed="false">Équipe 10DEC</button></span></span>
@@ -223,12 +235,42 @@ const ICONS = {
 
 /* ===== État ===== */
 const PREVIEW = false;
-let TOKEN = "", LS = "orga";
+let TOKEN = "", LS = "orga", FILEID = "", ADMIN = false, ADMINPART = "", LASTSEEN = "";
+/* Formulaire Google qui reçoit les réponses (rempli à la mise en service). */
+const FORM = { url: "", ev: "", pt: "", rep: "", src: "" };
+function post(point, texte, source) {
+  const j = sent.__journal = sent.__journal || [];
+  j.push({ date: new Date().toISOString(), point, texte, source, local: true }); save();
+  if (!FORM.url) return;
+  const body = new URLSearchParams();
+  body.append("entry." + FORM.ev, FILEID); body.append("entry." + FORM.pt, point);
+  body.append("entry." + FORM.rep, texte); body.append("entry." + FORM.src, source);
+  fetch(FORM.url, { method: "POST", mode: "no-cors", body }).catch(() => toast("La réponse n'a pas pu partir. Vérifiez votre connexion et réessayez."));
+}
+const SOURCE = () => ADMIN && MODE === "equipe" ? "10DEC" : "orga";
 let MODE = "orga", CURRENT = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 let sent = {};
-function loadLocal() { try { sent = JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { sent = {}; } }
+function loadLocal() {
+  try { sent = JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) { sent = {}; }
+  try { LASTSEEN = localStorage.getItem(LS + "-vu") || ""; localStorage.setItem(LS + "-vu", new Date().toISOString()); } catch (e) {}
+}
+/* Les réponses déjà synchronisées (dans le fichier de l'événement) priment sur l'appareil, sauf saisie plus récente ici. */
+function mergeServer() {
+  Object.entries(EVENT.reponses || {}).forEach(([id, r]) => {
+    if (String(r.source || "").startsWith("10DEC")) {
+      const cur = sent["team-" + id]; if (!cur || (cur.date || "") < r.date) sent["team-" + id] = { texte: r.texte || "", statut: r.statut || "ok", date: r.date, srv: true };
+    } else {
+      const cur = sent[id]; if (cur && (cur.date || "") >= r.date) return;
+      const p = allPoints().find(x => x.id === id) || EVENT.topics.filter(t => t.confirm).map(confirmItem).find(x => x.id === id);
+      const extra = {};
+      if (p && p.type === "ouinon" && r.texte === p.oui) extra.oui = true;
+      if (p && p.type === "choix") { const o = p.options.find(o => o.texte === r.texte); if (o && o.fichier) extra.fichier = o.fichier; }
+      sent[id] = Object.assign({ texte: r.texte, date: r.date, srv: true }, extra);
+    }
+  });
+}
 function save() { try { localStorage.setItem(LS, JSON.stringify(sent)); } catch (e) {} }
 
 function contactItem(cid, extra) {
@@ -306,12 +348,32 @@ function renderTop() {
   $("#topbar").innerHTML = CURRENT
     ? `<button class="back" type="button" data-home>← Tous les sujets</button><img src="${LOGO}" alt="10 Doigts en Cavale" style="height:32px">`
     : `<img src="${LOGO}" alt="10 Doigts en Cavale"><span class="chip">Espace organisateur</span>`;
-  $("#previewBanner").hidden = !PREVIEW;
+  $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
   $("#foot").innerHTML = `<div>Page mise à jour le ${esc(EVENT.maj)}. Les réponses sont vérifiées par l'équipe de 10 Doigts en Cavale, et la page est actualisée toutes les heures.</div>
     <div>Pour toute question : ${esc(r.nom)}, ${esc(r.tel)}, ${esc(r.mail)}.</div>`;
 }
 
+const fmt = d => { try { const x = new Date(d); return x.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) + " " + x.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
+function topicOf(point) {
+  if (point.startsWith("question:")) return EVENT.topics.find(t => t.id === point.slice(9));
+  return EVENT.topics.find(t => pointsOf(t).some(p => p.id === point) || (t.confirm && t.confirm.id === point));
+}
+function feedHTML() {
+  const srv = EVENT.journal || [];
+  const loc = (sent.__journal || []).filter(l => !srv.some(x => x.point === l.point && x.texte === l.texte));
+  const all = [...srv, ...loc].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 8);
+  const items = all.map(x => {
+    const tp = topicOf(x.point || ""), q = (x.point || "").startsWith("question:");
+    const who = String(x.source || "").startsWith("10DEC") ? "10 Doigts en Cavale" : EVENT.lieu;
+    const isNew = !x.local && LASTSEEN && (x.date || "") > LASTSEEN;
+    return `<li><button type="button" class="nv" ${tp ? `data-topic="${tp.id}"` : ""}>
+      <span class="nv-h"><span class="nv-who ${who === EVENT.lieu ? "w-orga" : "w-10dec"}">${esc(who)}</span>${q ? `<span class="nv-q">Question</span>` : ""}${isNew ? `<span class="nv-new">Nouveau</span>` : ""}<span class="nv-d">${x.local ? "à l'instant" : esc(fmt(x.date))}</span></span>
+      <span class="nv-t"><b>${esc(tp ? tp.label : "Général")}</b> · ${esc(String(x.texte || "").slice(0, 140))}</span></button></li>`;
+  }).join("");
+  return `<section class="feed" aria-labelledby="feedT"><h2 class="disp" id="feedT">Les nouveautés</h2>
+    ${items ? `<ul>${items}</ul>` : `<p class="det">Aucune nouveauté pour l'instant. Les réponses, questions et mises à jour apparaîtront ici.</p>`}</section>`;
+}
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
   const msg = pr.full ? "Bravo, tout est complet ! L'équipe de 10 Doigts en Cavale vérifie les informations."
@@ -326,6 +388,7 @@ function homeHTML() {
         ${barHTML(pr, `${pr.d} points complétés sur ${pr.n}`)}<p>${esc(msg)}</p></div>
     </div></section>
     <main><div class="wrap">
+      ${feedHTML()}
       <section class="team" aria-labelledby="teamT"><h2 class="disp" id="teamT">Les chansigneurs : ${esc(EVENT.chansigneurs)}</h2>
         <ul class="arr">${EVENT.arrivees.map(a => `<li><span class="t">${esc(a.quand)}</span><span>${esc(a.detail)}</span></li>`).join("")}</ul>
         <div class="contact"><b>${esc(r.nom)}, ${esc(r.role)}</b>
@@ -446,9 +509,10 @@ function groupHTML(gk, titreTag, where) {
 }
 function quiHTML(t) { return `<div class="blk">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`, "Contacts régie et production")}</div>`; }
 function questionHTML(t) {
-  const q = sent["q-" + t.id];
-  return `<div class="blk"><h3>J'ai une question</h3>
-    ${q ? `<p class="val">${esc(q.texte)}</p><span class="byteam">Question envoyée. Les chansigneurs vous répondent rapidement.</span>` : ""}
+  const q = sent["q-" + t.id], srv = (EVENT.questions || {})[t.id] || [];
+  const list = srv.map(x => `<div class="val"><b>${x.source === "10DEC" ? "10 Doigts en Cavale" : "Question"} · ${esc(fmt(x.date))}</b><br>${esc(x.texte)}${x.reponse ? `<br><br><b>Réponse :</b> ${esc(x.reponse)}` : ""}</div>`).join("");
+  const pending = q && !srv.some(x => x.texte === q.texte) ? `<p class="val">${esc(q.texte)}</p><span class="byteam">Question envoyée. Les chansigneurs vous répondent rapidement.</span>` : "";
+  return `<div class="blk"><h3>J'ai une question</h3>${list}${pending}
     <form class="form" data-question="${t.id}"><label class="small" for="q-${t.id}">Votre question sera transmise directement aux chansigneurs.</label>
       <textarea id="q-${t.id}" name="q-${t.id}"></textarea><div class="actions"><button class="btn btn-main" type="submit">Envoyer ma question</button></div></form></div>`;
 }
@@ -500,7 +564,7 @@ function render(scrollTop) {
 }
 function go(id, fromHistory) {
   CURRENT = id || null;
-  if (!fromHistory) { try { history.pushState({ t: id || "" }, "", "#" + TOKEN + (id ? "~" + id : "")); } catch (e) {} }
+  if (!fromHistory) { try { history.pushState({ t: id || "" }, "", "#" + TOKEN + ADMINPART + (id ? "~" + id : "")); } catch (e) {} }
   render(true);
 }
 /* Retour : bouton « précédent » du navigateur ou du téléphone, et glissement du doigt vers la droite. */
@@ -520,7 +584,7 @@ function submit(id, texte, extra, origin) {
   const tops = topicsOfPoint(id);
   const before = tops.map(t => progress(pointsOf(t)).full), beforeAll = progress(allPoints()).full;
   sent[id] = Object.assign({ texte, date: new Date().toISOString() }, extra || {}); delete sent["draft-" + id]; save();
-  /* À la mise en ligne : envoi vers le formulaire de réponses (événement, point, texte). */
+  post(id, texte, SOURCE());
   const r = origin ? origin.getBoundingClientRect() : null;
   render(false);
   burst(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top : innerHeight / 2, 36, 1.2);
@@ -535,10 +599,12 @@ document.addEventListener("submit", e => {
   if (f) { e.preventDefault(); submit(f.dataset.form, f.querySelector("textarea,input").value, null, f.querySelector("[type=submit]")); return; }
   const q = e.target.closest("[data-question]");
   if (q) { e.preventDefault(); const v = q.querySelector("textarea").value.trim(); if (!v) { toast("Merci d'écrire votre question."); return; }
-    sent["q-" + q.dataset.question] = { texte: v, date: new Date().toISOString() }; save(); render(false); toast("Question envoyée. Merci !"); return; }
+    sent["q-" + q.dataset.question] = { texte: v, date: new Date().toISOString() }; save(); post("question:" + q.dataset.question, v, SOURCE()); render(false); toast("Question envoyée. Merci !"); return; }
   const t = e.target.closest("[data-team]");
-  if (t) { e.preventDefault(); sent["team-" + t.dataset.team] = { texte: t.querySelector("textarea").value.trim(), statut: t.querySelector("select").value }; save();
-    toast("Aperçu : modification gardée sur cet appareil."); render(false); }
+  if (t) { e.preventDefault(); const tx = t.querySelector("textarea").value.trim(), st = t.querySelector("select").value;
+    sent["team-" + t.dataset.team] = { texte: tx, statut: st, date: new Date().toISOString() }; save();
+    post(t.dataset.team, tx || (st === "ok" ? "Validé par 10 Doigts en Cavale." : "À compléter."), "10DEC:" + st);
+    toast("Enregistré. Visible par l'organisateur après la prochaine mise à jour."); render(false); }
 });
 document.addEventListener("input", e => { if (e.target.matches("[data-form] textarea, [data-form] input")) { sent["draft-" + e.target.name] = e.target.value; save(); } });
 document.addEventListener("click", e => {
@@ -625,10 +691,11 @@ function fail(msg) {
     <p>Pour toute question : 10doigtsencavale@gmail.com</p></section></div></main>`;
 }
 (async () => {
-  const h = decodeURIComponent((location.hash || "").slice(1)).split("~")[0];
+  const full = decodeURIComponent((location.hash || "").slice(1)).split("~")[0];
+  const [h, code] = full.split("!");
   const m = h.match(/^([A-Za-z0-9_-]{8,64})\.([A-Za-z0-9_-]{40,64})$/);
   if (!m) return fail("Ce lien ne permet pas d'ouvrir un événement. Merci d'utiliser le lien reçu par mail, en entier.");
-  TOKEN = h; LS = "orga-" + m[1];
+  TOKEN = h; FILEID = m[1]; LS = "orga-" + m[1];
   try {
     const r = await fetch("e/" + m[1] + ".json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("introuvable");
@@ -638,7 +705,11 @@ function fail(msg) {
     EVENT = JSON.parse(new TextDecoder().decode(plain));
   } catch (err) { return fail("Cet événement n'a pas pu être ouvert. Le lien est peut-être incomplet ou n'est plus actif."); }
   document.title = `${EVENT.artiste} · ${EVENT.lieu} · Espace organisateur`;
-  loadLocal();
+  if (code && EVENT.adminHash) {
+    const dg = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code));
+    if ([...new Uint8Array(dg)].map(b => b.toString(16).padStart(2, "0")).join("") === EVENT.adminHash) { ADMIN = true; ADMINPART = "!" + code; }
+  }
+  loadLocal(); mergeServer();
   const t0 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t0) ? t0 : null;
   render(false);
 })();
