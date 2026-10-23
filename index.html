@@ -1002,8 +1002,8 @@ function topicHTML(t) {
   if (t.alerte) body += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); body += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) body += `<p class="intro">${esc(t.intro)}</p>`;
-  if (t.setlist) body += `<div class="setlist"><h2>${esc(t.setlist.titre)}</h2><p class="det">${esc(t.setlist.note)}</p>
-    <ol>${t.setlist.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`;
+  if (t.setlist) body += [].concat(t.setlist).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
+    <ol>${sl.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("");
   if (checks.length) {
     body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
     if (t.note) body += `<p class="det">${esc(t.note)}</p>`;
