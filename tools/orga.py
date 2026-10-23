@@ -85,6 +85,63 @@ def appliquer(fichier, cle, lignes_json):
         ecrire(fichier, cle, data)
     print(json.dumps({"evenement": data.get("artiste", "") + " - " + data.get("lieu", ""), "nouveautes": nouveau}, ensure_ascii=False, indent=1))
 
+def manquants(fichier, cle):
+    """Liste, sujet par sujet, ce qui n'est pas encore complété (même logique que la page),
+    et les adresses mail saisies dans la page pour chaque sujet. Sert aux relances."""
+    import re
+    d = lire(fichier, cle)
+    rep = {k: v for k, v in d.get("reponses", {}).items() if not str(v.get("texte", "")).startswith("✗")}
+    mail = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+    def team(pid):
+        r = d.get("reponses", {}).get("team-" + pid) or {}
+        return r.get("statut") if str(r.get("source", "")).startswith("10DEC") else None
+    def fait(pid, statut="todo"):
+        r = d.get("reponses", {}).get(pid) or {}
+        if str(r.get("source", "")).startswith("10DEC"):
+            return r.get("statut", "ok") != "todo"
+        return statut in ("ok", "info") or pid in rep
+    def contact_fait(cid):
+        return d["contacts"].get(cid, {}).get("statut") == "ok" or cid in rep
+    def groupe_fait(g):
+        g = d["groups"][g]
+        return any(g[s] and all(contact_fait(c) for c in g[s]) for s in ("festival", "artiste"))
+    def mails(cids):
+        out = []
+        for c in cids:
+            txt = str((rep.get(c) or {}).get("texte", "")) + " " + str(d["contacts"].get(c, {}).get("valeur", ""))
+            out += mail.findall(txt)
+        return out
+    sujets = []
+    for t in d["topics"]:
+        reste, cids = [], []
+        for i, b in enumerate(t.get("besoins", [])):
+            if not fait(f'{t["id"]}-b{i}'): reste.append(b["t"] if isinstance(b, dict) else b)
+        imp = t.get("important")
+        if imp and not t.get("importantTop") and not fait(t["id"] + "-imp"):
+            reste.append(imp["t"] if isinstance(imp, dict) else imp)
+        for it in t.get("items", []):
+            if "contact" in it:
+                cids.append(it["contact"])
+                if not contact_fait(it["contact"]): reste.append(d["contacts"][it["contact"]]["role"])
+            elif not fait(it["id"], it.get("statut", "todo")):
+                reste.append(it["titre"])
+        if t.get("confirm") and not t.get("besoins") and not fait(t["confirm"]["id"]):
+            reste.append("Confirmation : " + t["label"])
+        gs = ([t["qui"]] if t.get("qui") else []) + [e[2:] for e in t.get("contactsList", []) if e.startswith("g:")]
+        for g in gs:
+            cids += d["groups"][g]["festival"] + d["groups"][g]["artiste"]
+            if not groupe_fait(g): reste.append(d["groups"][g]["titre"])
+        for e in t.get("contactsList", []):
+            if not e.startswith("g:"):
+                cids.append(e)
+                if not contact_fait(e): reste.append(d["contacts"][e]["role"])
+        if reste:
+            sujets.append({"id": t["id"], "label": t["label"], "pour": t.get("pour", ""), "echeance": t.get("iso"),
+                           "lien": "~" + t["id"], "manque": reste, "mails": sorted(set(mails(cids)))})
+    tous = sorted(set(mail.findall(json.dumps(rep, ensure_ascii=False))))
+    print(json.dumps({"evenement": d.get("artiste", "") + " · " + d.get("lieu", ""), "date": d.get("iso"),
+                      "sujets": sujets, "mails_saisis": tous}, ensure_ascii=False, indent=1))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -92,4 +149,4 @@ def dechiffrer(fichier, cle):
 if __name__ == "__main__":
     a = sys.argv[1:]
     {"nouveau": lambda: nouveau(), "chiffrer": lambda: chiffrer(*a[1:4]), "dechiffrer": lambda: dechiffrer(*a[1:3]),
-     "appliquer": lambda: appliquer(*a[1:4])}[a[0]]()
+     "appliquer": lambda: appliquer(*a[1:4]), "manquants": lambda: manquants(*a[1:3])}[a[0]]()
