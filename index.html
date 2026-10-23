@@ -912,7 +912,8 @@ function contactsListHTML(t) {
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
   const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
   const all = [...singles, ...roles];
-  const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
+  const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
+  const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
     <p class="hint">Les lignes orangées sont à compléter.</p>
     <div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>
