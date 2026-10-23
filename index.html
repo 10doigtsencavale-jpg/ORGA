@@ -535,10 +535,11 @@ function prioHTML() {
   if (tpA && itA && statusOf(itA) === "todo") items.push({ t: tpA, e: "🧏", titre: "Places PSH : indiquer le stock prévu", sous: "Le public sourd est souvent prévenu tardivement.", due: { cls: "urg", txt: "Urgent" }, k: -999 });
   EVENT.topics.forEach(t => {
     const pts = pointsOf(t), left = pts.filter(p => !isDone(p)).length, du = dueOf(t);
-    if (!left || !du || du.days > 21) return;
+    const top = t.id === "setlist" || t.id === "public"; /* demandés dès la signature du devis : toujours en premier */
+    if (!left || !du || (du.days > 21 && !top)) return;
     if (t.id === "photos" && EVENT.iso && new Date(EVENT.iso + "T23:59:00") > new Date()) return;
     if (items.some(x => x.t === t)) return;
-    items.push({ t, e: roleOf(t.id).e, titre: t.label, sous: `${left} point${left > 1 ? "s" : ""} à confirmer`, due: du, k: du.days });
+    items.push({ t, e: roleOf(t.id).e, titre: t.label, sous: `${left} point${left > 1 ? "s" : ""} à confirmer`, due: du, k: top ? du.days - 500 : du.days });
   });
   items.sort((a, b) => a.k - b.k);
   const top = items.slice(0, 3);
