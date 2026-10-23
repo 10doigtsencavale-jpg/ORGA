@@ -212,6 +212,10 @@ body::before{background:#ffffff}
 .bcard .cs-logo{background:#fff;border-radius:14px;padding:3px;width:56px;height:56px}
 .bcard .where{font-weight:800;font-size:17px}
 .bcard .sub{font-size:15px;opacity:.95}
+.bc-contact{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.bc-contact b{margin-right:4px}
+.bc-btn{font:inherit;font-size:14px;font-weight:800;background:#fff;color:var(--encre);border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
+.bc-btn:hover{background:#eef0ff}
 .bcard .pct{background:#fff;color:var(--encre);border-radius:18px;padding:10px 14px;text-align:center;align-self:center}
 .bcard .pct b{display:block;font-family:var(--display);font-weight:600;font-size:32px;line-height:1}
 .bcard .pct span{font-size:12px;font-weight:800}
@@ -650,8 +654,7 @@ function famDueHTML(rs) {
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
   const msg = pr.full ? "Bravo, tout est complet ! L'équipe de 10 Doigts en Cavale vérifie les informations."
-    : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.`
-    : "Choisissez ce dont vous êtes en charge : vous ne voyez que ce qui vous concerne.";
+    : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.` : "";
   const r = EVENT.referente;
   const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(Boolean) })).filter(ro => ro.tps.length);
   const fams = Object.keys(FAM).map(k => ({ k, f: FAM[k], rs: roles.filter(ro => ro.fam === k) })).filter(x => x.rs.length);
@@ -660,10 +663,13 @@ function homeHTML() {
       <div class="bc-main">
         <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
         <div class="where">${esc(EVENT.lieu)} · ${esc(EVENT.ville)} · ${esc(EVENT.date)} · ${esc(EVENT.heure)}</div>
-        <div class="sub">Première partie : ${esc(EVENT.premiere)} · Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
+        <div class="sub">${EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
+        <div class="bc-contact"><b>${esc(r.nom)}, ${esc(r.role)}</b>
+          <button class="bc-btn" type="button" data-copy="${esc(r.tel)}" data-msg="Numéro copié.">📞 ${esc(r.tel)}</button>
+          <button class="bc-btn" type="button" data-copy="${esc(r.mail)}" data-msg="Adresse copiée.">✉️ ${esc(r.mail)}</button></div>
       </div>
       <div class="pct" role="img" aria-label="${pr.d} points complétés sur ${pr.n}"><b>${pr.n ? Math.round(pr.d / pr.n * 100) : 0}%</b><span>complété</span></div>
-      <p class="msg">${esc(msg)}</p>
+      ${msg ? `<p class="msg">${esc(msg)}</p>` : ""}
     </section>
     <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
     ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span>${famDueHTML(x.rs)}<div class="roles">${x.rs.map(ro => {
@@ -675,12 +681,6 @@ function homeHTML() {
     }).join("")}</div></section>`).join("")}
     <button type="button" class="ball" data-topic="${tabOrder()[0]}">Tout voir, sujet par sujet →</button>
     ${feedHTML()}
-    <section class="bout" aria-labelledby="teamT"><h2 class="disp" id="teamT">Les chansigneurs : ${esc(EVENT.chansigneurs)}</h2>
-      <ul class="arr">${EVENT.arrivees.map(a => `<li><span class="t">${esc(a.quand)}</span><span>${esc(a.detail)}</span></li>`).join("")}</ul>
-      <div class="actions"><b style="align-self:center">${esc(r.nom)}, ${esc(r.role)}</b>
-        <button class="btn btn-ghost" type="button" data-copy="${esc(r.tel)}" data-msg="Numéro copié.">📞 ${esc(r.tel)}</button>
-        <button class="btn btn-ghost" type="button" data-copy="${esc(r.mail)}" data-msg="Adresse copiée.">✉️ ${esc(r.mail)}</button></div>
-    </section>
     <section class="bout" aria-labelledby="fdrT"><h2 class="disp" id="fdrT">La feuille de route</h2>
       <p style="margin:0">Toutes les informations du concert dans un seul PDF, avec vos réponses.</p>
       <div class="actions"><button class="btn btn-turq" type="button" data-pdf>Télécharger le PDF</button></div></section>
