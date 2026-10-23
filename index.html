@@ -537,7 +537,7 @@ function prioHTML() {
     const pts = pointsOf(t), left = pts.filter(p => !isDone(p)).length, du = dueOf(t);
     const top = t.id === "setlist" || t.id === "public"; /* demandés dès la signature du devis : toujours en premier */
     if (!left || !du || (du.days > 21 && !top)) return;
-    if (t.id === "photos" && EVENT.iso && new Date(EVENT.iso + "T23:59:00") > new Date()) return;
+    if (t.id === "photos") return; /* après le concert : jamais dans les priorités */
     if (items.some(x => x.t === t)) return;
     items.push({ t, e: roleOf(t.id).e, titre: t.label, sous: `${left} point${left > 1 ? "s" : ""} à confirmer`, due: du, k: top ? du.days - 500 : du.days });
   });

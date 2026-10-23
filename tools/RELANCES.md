@@ -70,6 +70,7 @@ Merci beaucoup,
 - Émojis par sujet : setlist 🎵 · son 🎧 · talkback 🎤 · lumière 💡 · emplacement 🎭 · écran 📺 · contacts 📋 · sécurité 🛡️ ·
   accueil 🍽️ · parking 🚗 · pass 🎫 · horaires ⏰ · public 🧏 · presse 📣 · photos 📸.
 - Échéance dépassée : écrire « à compléter dès que possible » au lieu de « avant le … ».
+- **Ne jamais relancer le sujet « photos »** (après le concert) : ignore-le dans le JSON de `manquants`. Aucune relance après l'événement.
 - **Ordre des sujets : la setlist et la com / public sourd TOUJOURS en premier** (demandées dès la signature du devis, les plus urgentes pour l'équipe), puis les autres par échéance.
 - Places PSH (point « Stock de places PSH ») encore vides : les mettre en premier, avec la phrase
   « Le public sourd est souvent prévenu tardivement : il doit pouvoir réserver dès qu'il est informé. »
