@@ -57,11 +57,36 @@ def appliquer(fichier, cle, lignes_json, code=""):
     vus = set(data.get("vus", []))
     data.setdefault("reponses", {}); data.setdefault("questions", {}); data.setdefault("journal", [])
     nouveau = []
+    # Événements jumeaux (ex. deux artistes le même soir, un espace chacun) : une réponse sur un sujet commun
+    # (accueil, horaires, com…) pré-remplit l'autre espace, sauf si celui-ci a déjà sa propre réponse.
+    jum = data.get("jumeaux") or {}
+    jf = {j["fichier"]: j.get("nom", "") for j in jum.get("fichiers", [])}
+    ids = set(jum.get("contacts", []))
+    def collect(x):
+        if isinstance(x, dict):
+            if isinstance(x.get("id"), str): ids.add(x["id"])
+            for v in x.values(): collect(v)
+        elif isinstance(x, list):
+            for v in x: collect(v)
+    for t in data.get("topics", []):
+        if t.get("id") in jum.get("sujets", []):
+            collect(t.get("items", [])); collect(t.get("besoins", []))
+            ids.update(f'{t["id"]}-b{i}' for i in range(len(t.get("besoins", [])))); ids.add(t["id"] + "-imp")
+            if t.get("confirm"): ids.add(t["confirm"]["id"])
+    partage = lambda pt: any(pt == i or pt.startswith(i + "-") for i in ids)
     for row in json.load(open(lignes_json))[1:]:
         row = (row + [""] * 5)[:5]
         horo, ev, point, texte, source = [str(x).strip() for x in row]
-        if ev != fichier or not point:
+        miroir = ""
+        if not point:
             continue
+        if ev != fichier:
+            if ev not in jf or point.startswith("question:") or not partage(point):
+                continue
+            deja = data["reponses"].get(point)
+            if deja and not deja.get("miroir"):
+                continue
+            miroir = jf[ev] or "l'autre espace"
         sig = hashlib.sha256("|".join([horo, point, texte, source]).encode()).hexdigest()[:16]
         if sig in vus:
             continue
@@ -81,12 +106,16 @@ def appliquer(fichier, cle, lignes_json, code=""):
         else:
             src = "orga"
             auteur = source[5:].strip()[:60] if source.startswith("orga:") else ""
+        if miroir:
+            auteur = (auteur + " · " if auteur else "") + "repris de l'espace " + miroir
         if point.startswith("question:"):
             data["questions"].setdefault(point[9:], []).append({"texte": texte, "date": date, "source": src, "auteur": auteur})
         else:
             r = {"texte": texte, "date": date, "source": src, "auteur": auteur}
             if src == "10DEC":
                 r["statut"] = statut
+            if miroir:
+                r["miroir"] = miroir
             data["reponses"][point] = r
         e = {"date": date, "point": point, "texte": texte, "source": src, "auteur": auteur}
         data["journal"].append(e)

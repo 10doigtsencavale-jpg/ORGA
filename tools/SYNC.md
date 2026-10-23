@@ -30,6 +30,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `python3 -I tools/orga.py recu <fichier> <clé> <point> "<noms des fichiers, séparés par des virgules>"` → le point passe à « Reçu » sur la page.
    Puis compte-le comme une nouveauté : dans la FDR, une ligne « 📎 <titre> reçu : <noms> » (dossiers « Documents organisateur » :
    partie « 📝 INFOS & REMARQUES » ; dossier « Visuels » : idem). Ne déplace, ne renomme, ne supprime rien dans Dropbox.
+   Événements jumeaux (deux artistes le même soir, un espace chacun, champ `jumeaux` dans le fichier chiffré) : rien à faire de plus.
+   `appliquer` lancé sur chaque espace reprend tout seul les réponses des sujets communs de l'autre espace (accueil, runs, pass, horaires, com, presse, photos, sécurité, contacts du festival),
+   sauf si l'espace a déjà sa propre réponse. Ces reprises portent « repris de l'espace … » dans `auteur` : ne les reporte qu'une fois dans la FDR (même fiche FDR pour les deux espaces).
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
