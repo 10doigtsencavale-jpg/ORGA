@@ -225,6 +225,38 @@ def recu(fichier, cle, point, noms):
     d["maj"] = now.strftime("%d/%m/%Y"); ecrire(fichier, cle, d)
     print(json.dumps({"point": point, "texte": texte}, ensure_ascii=False))
 
+def accueil(liens_json, fichier, cle, code):
+    """Accueil équipe : liste chiffrée de tous les événements du tableau privé des liens.
+    Chiffrée avec une clé dérivée du lien (#fichier.clé) ET du code équipe : le lien seul ne suffit pas."""
+    import hashlib
+    from datetime import datetime, timezone
+    evs = []
+    for row in json.load(open(liens_json))[1:]:
+        row = (list(row) + [""] * 13)[:13]
+        nom, date, f, k, lorga, statut, lequipe, fdr, envoye, mail, relances, derniere = [str(x).strip() for x in row[:12]]
+        if not (f and k):
+            continue
+        e = {"nom": nom, "date": date, "fichier": f, "lienOrga": lorga, "lienEquipe": lequipe, "fdr": fdr,
+             "statut": statut, "envoye": envoye, "contact": mail, "relances": relances, "derniereRelance": derniere}
+        try:
+            d = lire(f, k)
+            e.update(artiste=d.get("artiste", ""), lieu=d.get("lieu", ""), ville=d.get("ville", ""), iso=d.get("iso", ""),
+                     chansigneurs=d.get("chansigneurs", ""), heure=d.get("heure", ""))
+            dos = next((it.get("dossier") for t in d.get("topics", []) for it in t.get("items", []) if it.get("dossier")), "")
+            if dos:
+                e["dropbox"] = "https://www.dropbox.com/home" + "/".join(dos.split("/")[:3]).replace(" ", "%20")
+        except Exception as ex:
+            e["erreur"] = "Espace illisible : " + type(ex).__name__
+        evs.append(e)
+    evs.sort(key=lambda e: e.get("iso") or "9999")
+    data = {"maj": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "evenements": evs}
+    key = hashlib.pbkdf2_hmac("sha256", code.encode(), unb64(cle), 200000, 32)
+    iv = os.urandom(12)
+    raw = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode()
+    json.dump({"v": 2, "kdf": "pbkdf2-sha256-200000", "iv": b64(iv), "ct": b64(AESGCM(key).encrypt(iv, raw, None))},
+              open(os.path.join(ROOT, "e", fichier + ".json"), "w"))
+    print(json.dumps({"evenements": [e["nom"] for e in evs]}, ensure_ascii=False))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -233,4 +265,5 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     {"nouveau": lambda: nouveau(), "chiffrer": lambda: chiffrer(*a[1:4]), "dechiffrer": lambda: dechiffrer(*a[1:3]),
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
-     "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5])}[a[0]]()
+     "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
+     "accueil": lambda: accueil(*a[1:5])}[a[0]]()

@@ -46,7 +46,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    - **Google Agenda** (événement ✅ de la même date, calendrier principal, notificationLevel NONE) : seulement pour un horaire,
      un lieu de parking, un lien GPS ou un référent sur place. Ajoute à la fin de la description, sans rien effacer :
      « 📋 Espace orga (JJ/MM) : <info> ».
-5. Si `appliquer` ou `recu` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
+4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
+   (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
+   Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
+5. Si `appliquer` ou `recu` ou `accueil` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
    Vérifie avant le commit qu'aucune clé ni aucun code n'apparaît dans les fichiers modifiés (grep).
 6. Fin :
    - Rien de nouveau → écris seulement « ORGA : à jour ». Pas de notification.

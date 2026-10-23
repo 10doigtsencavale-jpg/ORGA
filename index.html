@@ -1348,7 +1348,18 @@ function fail(msg) {
   loadLocal(); mergeServer();
   const t0 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t0) ? t0 : null;
   render(false);
+  if (ADMIN && window.parent !== window) postStats();
 })();
+/* Accueil équipe (equipe.html, même site) : la page, ouverte en arrière-plan avec le lien équipe, renvoie son avancement exact. */
+function postStats() {
+  const pr = progress(allPoints());
+  const qs = Object.entries(EVENT.questions || {}).filter(([, l]) => l.length && l[l.length - 1].source !== "10DEC").map(([k]) => (topicById(k) || {}).label || k);
+  const late = EVENT.topics.filter(t => { const d = dueOf(t); return d && d.days < 0 && t.id !== "photos" && pointsOf(t).some(p => !isDone(p)); }).map(t => t.label);
+  const next = EVENT.topics.map(t => ({ t, d: dueOf(t) })).filter(x => x.d && x.d.days >= 0 && x.t.id !== "photos" && pointsOf(x.t).some(p => !isDone(p))).sort((a, b) => a.d.days - b.d.days)[0];
+  const recus = Object.values(EVENT.reponses || {}).filter(r => String(r.texte || "").startsWith("Reçu")).length;
+  const journal = (EVENT.journal || []).filter(j => j.source !== "10DEC").slice(-15).map(j => ({ date: j.date, point: j.point, texte: String(j.texte || "").slice(0, 120), auteur: j.auteur || "" }));
+  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal }, location.origin);
+}
 </script>
 
 </body>
