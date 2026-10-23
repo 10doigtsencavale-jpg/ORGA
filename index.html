@@ -285,6 +285,21 @@ body::before{background:#ffffff}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px}
+.bas{border-top:2px dashed var(--line);padding-top:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.btn-ask{background:#ffe7d1;color:#a34a08}
+.btn-ask:hover{background:#ffdcbd}
+.subs.in{padding:0}
+.subs.col{flex-direction:column;align-items:flex-start}
+.sub input:disabled+span{cursor:default;opacity:1}
+.tab-w{overflow-x:auto}
+.ttab{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;background:#fff;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.ttab th{text-align:left;font-size:13px;font-weight:800;color:var(--muted);background:var(--soft);padding:8px 12px}
+.ttab td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.ttab.hor td:first-child{width:46%;font-weight:800;font-variant-numeric:tabular-nums}
+.ttab tr.vide td{background:#fff1e3}
+.ttab tr.vide input{border-color:#ffc89a}
+.ttab .fwrap input[type=text]{padding-right:70px;min-height:42px}
+.tv{font-weight:800}
 .fwrap{position:relative}
 .fwrap input[type=text]{padding-right:132px}
 .fwrap textarea{padding-bottom:54px}
@@ -471,6 +486,7 @@ function pointsOf(t) {
 const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsOf(t).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
+  if (p.type === "tableau") return rowsOf(p).every(r => rowVal(r)) ? (rowsOf(p).some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   const t = sent["team-" + p.id]; if (t) return t.statut;
   if (p.statut === "todo" && sent[p.id]) return "sent";
   return p.statut === "info" ? "ok" : p.statut;
@@ -634,6 +650,53 @@ function fileButtons(p, label, noDone) {
 function fw(ctl, val, label, ta) {
   return `<div class="fwrap ${ta ? "ta" : ""} ${String(val || "").trim() ? "has" : ""}">${ctl}<button class="send" type="submit">${label || "Envoyer →"}</button></div>`;
 }
+/* Repas (rempli par l'équipe 10DEC) : midi / soir par intervenant + régime alimentaire. */
+const valOf = id => { const t = sent["team-" + id], r = sent[id]; return (t && t.texte) || (r && r.texte) || ""; };
+function repasRows(p) { return p.rows.map((r, i) => {
+  const g = k => { const v = valOf(`${p.id}-${i}-${k}`); return v ? v === "oui" : r[k]; };
+  return { nom: r.nom, date: r.date, midi: g("midi"), soir: g("soir"), regime: valOf(`${p.id}-${i}-regime`) || r.regime || "", i };
+}); }
+const repasHas = k => EVENT.topics.some(t => (t.items || []).some(it => it.type === "repas" && repasRows(it).some(r => r[k])));
+function repasHTML(p) {
+  const eq = MODE === "equipe";
+  const box = (r, k) => `<label class="sub"><input type="checkbox" ${r[k] ? "checked" : ""} ${eq ? `data-repas="${p.id}-${r.i}-${k}"` : "disabled"}><span>${k === "midi" ? "Midi" : "Soir"}</span></label>`;
+  return `<div class="item is-done" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${eq ? `<span class="pill p-sent">Rempli par l'équipe</span>` : ""}</div>
+    ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}
+    <div class="tab-w"><table class="ttab"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
+    ${repasRows(p).map(r => `<tr><td><b>${esc(r.nom)}</b></td><td>${esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
+      <td>${eq ? `<form class="form" data-form="${p.id}-${r.i}-regime">${fw(`<input type="text" id="f-${p.id}-${r.i}-regime" name="${p.id}-${r.i}-regime" value="${esc(r.regime)}" placeholder="Aucun">`, r.regime, "OK")}</form>` : esc(r.regime || "Aucun")}</td></tr>`).join("")}
+    </tbody></table></div>
+    ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
+}
+/* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
+const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
+const rowVal = r => valOf(r.id) || r.a || "";
+function tableauHTML(p) {
+  const st = statusOf(p);
+  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    <p class="det">Les cases orangées sont à compléter.</p>
+    <div class="tab-w"><table class="ttab hor"><thead><tr><th>${esc(p.colA)}</th><th>${esc(p.colB)}</th></tr></thead><tbody>
+    ${rowsOf(p).map(r => { const v = rowVal(r), mine = sent[r.id];
+      return `<tr class="${v ? "" : "vide"}"><td>${v
+        ? `<span class="tv">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
+        : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(r.ph || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
+        <td>${esc(r.b)}</td></tr>`; }).join("")}
+    </tbody></table></div></div>`;
+}
+/* Plusieurs cases + un champ, en un seul envoi (pass, accréditations, tickets). */
+function multiHTML(p) {
+  const st = statusOf(p);
+  if (MODE === "equipe" || st !== "todo") return null;
+  const sel = (sent["draft-sel-" + p.id] || "").split("|");
+  return `<div class="item" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}
+    <form class="form" data-form="${p.id}" data-multi="1">
+      <div class="subs in col">${p.options.map(o => `<label class="sub"><input type="checkbox" name="opt" value="${esc(o)}" ${sel.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>
+      <label class="small" for="f-${p.id}">${esc(p.aide)}</label>
+      ${fw(`<input type="text" id="f-${p.id}" name="${p.id}" placeholder="Lieu et personne à contacter" value="${esc(sent["draft-" + p.id] || "")}">`, sent["draft-" + p.id])}
+    </form>
+    ${p.fichier ? fileButtons(p, p.fichier, true) : ""}</div>`;
+}
 function fieldHTML(p) {
   const draft = sent["draft-" + p.id] || "";
   const one = ["lien", "lienfichier", "contact", "court"].includes(p.type);
@@ -662,6 +725,9 @@ function answerHTML(p) {
   return h;
 }
 function itemHTML(p) {
+  if (p.type === "repas") return repasHTML(p);
+  if (p.type === "tableau") return tableauHTML(p);
+  if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
   const st = statusOf(p);
   let body = "";
   if (p.detail && (st === "todo" || MODE === "equipe")) body += `<p class="det">${esc(p.detail)}</p>`;
@@ -789,9 +855,9 @@ function topicHTML(t) {
   const acts = [];
   if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
   if (reste && t.confirm && t.confirm.nonConcerne) acts.push(`<button class="btn btn-ghost btn-big" type="button" data-allok="${t.id}" data-label="Non concerné">Non concerné</button>`);
-  if (MODE === "orga") acts.push(`<button class="btn btn-line btn-big" type="button" data-ask="${t.id}">J'ai une question</button>`);
   if (acts.length) body += `<div class="actions">${acts.join("")}</div>`;
-  if (MODE === "orga") body += `<p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p>` + questionHTML(t);
+  if (MODE === "orga") body += `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
+    <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t);
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(SHORT[next.id] || next.label)} →</button>` : ""}</div>`;
   return `${tabsHTML()}<main><div class="wrap topic">
     <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${roleOf(t.id).e}</span>
@@ -824,7 +890,7 @@ document.addEventListener("touchend", e => {
 }, { passive: true });
 
 /* ===== Réponses ===== */
-function topicsOfPoint(id) { return EVENT.topics.filter(t => pointsOf(t).some(p => p.id === id)); }
+function topicsOfPoint(id) { return EVENT.topics.filter(t => pointsOf(t).some(p => p.id === id || (p.rows || []).some(r => r.id === id))); }
 function submit(id, texte, extra, origin) {
   texte = String(texte || "").trim(); if (!texte) { toast("Merci d'écrire une réponse avant d'envoyer."); return; }
   const tops = topicsOfPoint(id);
@@ -859,6 +925,10 @@ function confirmAll(tid, label, origin) {
   save(); render(false); celebrate(tops, before, beforeAll, origin);
 }
 document.addEventListener("change", e => {
+  if (e.target.matches && e.target.matches("[data-repas]")) { const id = e.target.dataset.repas, v = e.target.checked ? "oui" : "non";
+    sent[id] = { texte: v, date: new Date().toISOString() }; save(); post(id, v, SOURCE()); toast("Enregistré."); return; }
+  if (e.target.matches && e.target.matches("[data-multi] input[name=opt]")) { const f = e.target.closest("form");
+    sent["draft-sel-" + f.dataset.form] = [...f.querySelectorAll("input[name=opt]:checked")].map(x => x.value).join("|"); save(); return; }
   const sb = e.target.matches && e.target.matches("[data-sub]") ? e.target : null;
   if (sb) { const id = sb.dataset.sub, now = new Date().toISOString();
     document.querySelectorAll(`[data-sub="${id}"]`).forEach(x => { if (x !== sb) x.checked = false; });
@@ -883,6 +953,9 @@ document.addEventListener("submit", e => {
   const f = e.target.closest("[data-form]");
   if (f) { e.preventDefault();
     let v = f.querySelector("textarea,input[type=text]").value;
+    if (f.dataset.multi) { const ch = [...f.querySelectorAll("input[name=opt]:checked")].map(x => x.value);
+      if (!ch.length) { toast("Merci de cocher au moins une case."); return; }
+      v = ch.join(" · ") + (v.trim() ? " · Où les récupérer : " + v.trim() : ""); }
     if (f.dataset.prefix) { if (!v.trim()) { toast("Merci d'indiquer le nombre."); return; } v = f.dataset.prefix + " " + v.trim(); }
     if (f.dataset.role) { const r = f.querySelector("input[type=radio]:checked");
       if (!r) { toast("Merci d'indiquer l'équipe : festival/salle ou artiste."); return; }
@@ -920,7 +993,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.oui) { const p = find(b.dataset.oui); submit(p.id, p.oui || "Oui.", { oui: true }, b); }
   else if (b.dataset.non) { const p = find(b.dataset.non); submit(p.id, p.non || "Non.", null, b); }
   else if (b.dataset.open) { const f = document.querySelector(`[data-form="${b.dataset.open}"]`); f.hidden = false; f.querySelector("textarea,input").focus(); }
-  else if (b.dataset.edit) { const id = b.dataset.edit, p = find(id); if (!p || p.type !== "confirm-big") sent["draft-" + id] = sent[id].texte; delete sent[id]; save(); render(false); document.getElementById("f-" + id)?.focus(); }
+  else if (b.dataset.edit) { const id = b.dataset.edit, p = find(id); if (!sent[id]) return; if (!p || p.type !== "confirm-big") sent["draft-" + id] = sent[id].texte; delete sent[id]; save(); render(false); document.getElementById("f-" + id)?.focus(); }
   else if (b.dataset.fwd) copy(location.href.split("#")[0] + "#" + TOKEN + "~" + b.dataset.fwd, "Lien copié. Collez-le dans un mail à la personne concernée.");
   else if (b.dataset.mode) { MODE = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.mode === MODE))); render(false); }
 });
@@ -959,6 +1032,8 @@ function buildPdf() {
         g.roles.forEach(r => { const v = contactValue(r.c); if (v) text(`${r.q} ${v}`, 10, "normal", null, 6); });
         y += .8; return;
       }
+      if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "repas") { text(p.titre, 10.5, "bold", BLEU, 2); repasRows(p).forEach(r => text(`${r.nom} · ${r.date} · ${[r.midi && "midi", r.soir && "soir"].filter(Boolean).join(" et ") || "aucun repas"} · régime : ${r.regime || "aucun"}`, 10, "normal", null, 6)); y += .8; return; }
       text(`${p.titre}${p.type === "check" && p.detail ? " - " + p.detail : ""}${etat}`, 10.5, "bold", BLEU, 2);
       const v = ans(p); if (v) text(v, 10, "normal", null, 6);
       y += .8;
