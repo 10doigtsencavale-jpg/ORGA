@@ -285,6 +285,19 @@ body::before{background:#ffffff}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px}
+/* Zones à compléter : orangé pâle tant que rien n'est envoyé. */
+.item:not(.is-done):not(.chk-w){background:#fff4e8;border-color:#ffd6b0}
+.cf.form{background:#fff4e8;border-radius:14px;padding:12px 14px}
+.qui .cf.form{background:#fff4e8}
+.fwrap input[type=text],.fwrap textarea{border-color:#ffc89a;background:#fff}
+.fwrap.has input[type=text],.fwrap.has textarea{border-color:#b9bdf7}
+.ttab.fiche th{width:42%;font-size:15px;color:var(--encre);background:transparent;border-top:1px solid var(--line);vertical-align:middle}
+.ttab.fiche tr:first-child th,.ttab.fiche tr:first-child td{border-top:0}
+.ttab.fiche tr.vide th,.ttab.fiche tr.vide td{background:#fff1e3}
+.yn{display:flex;flex-wrap:wrap;gap:8px}
+.ynb{font:inherit;font-weight:800;font-size:15px;border:2px solid #d6d9ec;background:#fff;color:var(--encre);border-radius:999px;padding:6px 16px;cursor:pointer}
+.ynb.on{border-color:#12a596;background:#e3f7f4;color:#0b6b5f}
+.pic{display:inline-block;vertical-align:middle}.pic svg{width:100%;height:100%;display:block}
 .bas{border-top:2px dashed var(--line);padding-top:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
 .btn-ask{background:#ffe7d1;color:#a34a08}
 .btn-ask:hover{background:#ffdcbd}
@@ -384,9 +397,9 @@ const FAM = {
 };
 const ROLES = [
   { fam: "tech", e: "🎧", label: "Les retours son", topics: ["son", "talkback"] },
-  { fam: "tech", e: "💡", label: "La lumière", topics: ["lumiere"] },
-  { fam: "tech", e: "🎭", label: "Le plateau", topics: ["emplacement"] },
-  { fam: "tech", e: "📺", label: "Retransmission sur écrans", topics: ["ecran"] },
+  { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
+  { fam: "tech", e: "scene", label: "Le plateau", topics: ["emplacement"] },
+  { fam: "tech", e: "camera", label: "Retransmission sur écrans", topics: ["ecran"] },
   { fam: "tech", e: "📋", label: "Régie générale et production", topics: ["contacts", "securite"] },
   { fam: "logi", e: "🍽️", label: "Loge et catering", topics: ["accueil"] },
   { fam: "logi", e: "🚗", label: "Parking et runs", topics: ["parking"] },
@@ -397,6 +410,13 @@ const ROLES = [
   { fam: "com", e: "🎵", label: "La setlist", topics: ["setlist"] },
   { fam: "com", e: "📸", label: "Après le concert", topics: ["photos"] }
 ];
+/* Pictos propres à la scène (dessinés) ; les autres restent des émojis. */
+const PICTOS = {
+  spot: `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 14 46 6v30L27 22z" fill="#ffc629" opacity=".55"/><rect x="9" y="10" width="20" height="14" rx="4" transform="rotate(-18 19 17)" fill="#10153d"/><circle cx="27.5" cy="15" r="4.5" fill="#ffe08a" stroke="#10153d" stroke-width="2"/><path d="M14 24v8m-6 0h12M11 40h6m-3-8v8" stroke="#10153d" stroke-width="3" stroke-linecap="round"/></svg>`,
+  scene: `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="5" width="42" height="5" rx="2" fill="#c0392b"/><path d="M4 10c0 14 3 22 9 26H4z" fill="#e0453a"/><path d="M44 10c0 14-3 22-9 26h9z" fill="#e0453a"/><path d="M24 12 16 34h16z" fill="#ffc629" opacity=".5"/><rect x="3" y="36" width="42" height="7" rx="2" fill="#8a5a2b"/><circle cx="24" cy="31" r="3.5" fill="#10153d"/></svg>`,
+  camera: `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="15" width="28" height="19" rx="4" fill="#10153d"/><path d="M32 21l12-6v19l-12-6z" fill="#2f3cff"/><circle cx="12" cy="11" r="5" fill="#10153d"/><circle cx="23" cy="11" r="5" fill="#10153d"/><circle cx="14" cy="24.5" r="4" fill="#18c3b0"/><path d="M14 34l-5 10m5-10 5 10" stroke="#10153d" stroke-width="3" stroke-linecap="round"/></svg>`
+};
+const emo = (e, px) => PICTOS[e] ? `<span class="pic" style="width:${px}px;height:${px}px">${PICTOS[e]}</span>` : e;
 const roleOf = id => ROLES.find(r => r.topics.includes(id)) || { fam: "com", e: "📌", label: "" };
 const famOf = id => FAM[roleOf(id).fam];
 /* Échéances : « iso » (AAAA-MM-JJ) dans chaque sujet. */
@@ -486,6 +506,7 @@ function pointsOf(t) {
 const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsOf(t).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
+  if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   if (p.type === "tableau") return rowsOf(p).every(r => rowVal(r)) ? (rowsOf(p).some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   const t = sent["team-" + p.id]; if (t) return t.statut;
   if (p.statut === "todo" && sent[p.id]) return "sent";
@@ -594,7 +615,7 @@ function prioHTML() {
   const top = items.slice(0, 3);
   if (!top.length) return "";
   return `<section class="prio" aria-labelledby="prioT"><div class="prio-h"><span aria-hidden="true">🔥</span><h2 class="disp" id="prioT">À faire en priorité</h2><small>${items.length} sujet${items.length > 1 ? "s" : ""}</small></div>
-    ${top.map(x => `<button type="button" class="prio-i" data-topic="${x.t.id}"><span class="pe" aria-hidden="true">${x.e}</span><span class="pt"><b>${esc(x.titre)}</b><span>${esc(x.sous)}</span></span><span class="due ${x.due.cls}">${esc(x.due.txt)}</span><span class="pa" aria-hidden="true">→</span></button>`).join("")}</section>`;
+    ${top.map(x => `<button type="button" class="prio-i" data-topic="${x.t.id}"><span class="pe" aria-hidden="true">${emo(x.e, 22)}</span><span class="pt"><b>${esc(x.titre)}</b><span>${esc(x.sous)}</span></span><span class="due ${x.due.cls}">${esc(x.due.txt)}</span><span class="pa" aria-hidden="true">→</span></button>`).join("")}</section>`;
 }
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
@@ -619,7 +640,7 @@ function homeHTML() {
     ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span><div class="roles">${x.rs.map(ro => {
       const p = progress(uniq(ro.tps.flatMap(pointsOf)));
       return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
-        <span class="role-h"><span class="role-e" aria-hidden="true">${ro.e}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
+        <span class="role-h"><span class="role-e" aria-hidden="true">${emo(ro.e, 30)}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
         <span class="role-l">${esc(ro.label)}</span>
         <span class="bar ${p.full ? "full" : ""}" role="img" aria-label="${p.d} sur ${p.n}"><i class="b-done" style="width:${p.n ? p.d / p.n * 100 : 0}%;${p.full ? "" : `background:${x.f.bar}`}"></i></span></button>`;
     }).join("")}</div></section>`).join("")}
@@ -683,6 +704,24 @@ function tableauHTML(p) {
         <td>${esc(r.b)}</td></tr>`; }).join("")}
     </tbody></table></div></div>`;
 }
+/* Fiche : un petit tableau de questions courtes (oui/non, cases, choix, champ). Une ligne « gate » à Non clôt le sujet. */
+const ficheRows = p => { const g = p.rows.find(r => r.gate); return g && valOf(g.id) === "Non" ? [g] : p.rows; };
+const ficheDone = p => ficheRows(p).every(r => r.opt || valOf(r.id));
+function ficheCell(r) {
+  const v = valOf(r.id);
+  if (r.type === "ouinon" || r.type === "choix") { const opts = r.type === "ouinon" ? ["Oui", "Non"] : r.options;
+    return `<div class="yn">${opts.map(o => `<button type="button" class="ynb ${v === o ? "on" : ""}" data-rowset="${r.id}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div>`; }
+  if (r.type === "multi") { const on = v.split(" · ");
+    return `<div class="subs in">${r.options.map(o => `<label class="sub"><input type="checkbox" data-rowmulti="${r.id}" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`; }
+  if (v) return `<span class="tv">${esc(v)}</span>${sent[r.id] ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`;
+  return `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(r.ph || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.label)}">`, sent["draft-" + r.id], "OK")}</form>`;
+}
+function ficheHTML(p) {
+  const st = statusOf(p);
+  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}
+    <div class="tab-w"><table class="ttab fiche"><tbody>${ficheRows(p).map(r => `<tr class="${valOf(r.id) || r.opt ? "" : "vide"}"><th scope="row">${esc(r.label)}</th><td>${ficheCell(r)}</td></tr>`).join("")}</tbody></table></div></div>`;
+}
 /* Plusieurs cases + un champ, en un seul envoi (pass, accréditations, tickets). */
 function multiHTML(p) {
   const st = statusOf(p);
@@ -727,6 +766,7 @@ function answerHTML(p) {
 function itemHTML(p) {
   if (p.type === "repas") return repasHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
+  if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
   const st = statusOf(p);
   let body = "";
@@ -810,6 +850,8 @@ function contactsListHTML(t) {
 }
 function subsHTML(sub) {
   const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || "";
+  if (sub.multi) { const on = cur.split(" | ");
+    return `<div class="subs col">${sub.options.map(o => `<label class="sub"><input type="checkbox" data-sub="${sub.id}" data-multi-sub="1" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`; }
   return `<div class="subs">${sub.options.map(o => `<label class="sub"><input type="checkbox" data-sub="${sub.id}" value="${esc(o)}" ${cur.startsWith(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`;
 }
 function checkHTML(p) {
@@ -860,7 +902,7 @@ function topicHTML(t) {
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t);
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(SHORT[next.id] || next.label)} →</button>` : ""}</div>`;
   return `${tabsHTML()}<main><div class="wrap topic">
-    <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${roleOf(t.id).e}</span>
+    <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${emo(roleOf(t.id).e, 46)}</span>
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
@@ -925,11 +967,21 @@ function confirmAll(tid, label, origin) {
   save(); render(false); celebrate(tops, before, beforeAll, origin);
 }
 document.addEventListener("change", e => {
+  if (e.target.matches && e.target.matches("[data-rowmulti]")) { const id = e.target.dataset.rowmulti;
+    const v = [...document.querySelectorAll(`[data-rowmulti="${id}"]:checked`)].map(x => x.value).join(" · ");
+    if (v) submit(id, v, null, e.target); else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); } return; }
   if (e.target.matches && e.target.matches("[data-repas]")) { const id = e.target.dataset.repas, v = e.target.checked ? "oui" : "non";
     sent[id] = { texte: v, date: new Date().toISOString() }; save(); post(id, v, SOURCE()); toast("Enregistré."); return; }
   if (e.target.matches && e.target.matches("[data-multi] input[name=opt]")) { const f = e.target.closest("form");
     sent["draft-sel-" + f.dataset.form] = [...f.querySelectorAll("input[name=opt]:checked")].map(x => x.value).join("|"); save(); return; }
   const sb = e.target.matches && e.target.matches("[data-sub]") ? e.target : null;
+  if (sb && sb.dataset.multiSub) { const id = sb.dataset.sub, w = sb.closest(".chk-w"), all = [...w.querySelectorAll("[data-sub]")];
+    const v = all.filter(x => x.checked).map(x => x.value).join(" | "), main = w.querySelector("[data-check]");
+    if (v) { sent[id] = { texte: v, date: new Date().toISOString() }; } else delete sent[id]; save(); post(id, v || "✗ Retiré", SOURCE());
+    const full = all.every(x => x.checked);
+    if (full && !main.checked) { main.checked = true; submit(main.dataset.check, "✓ Prévu", null, main); return; }
+    if (!full && main.checked) { delete sent[main.dataset.check]; save(); post(main.dataset.check, "✗ Retiré", SOURCE()); }
+    render(false); return; }
   if (sb) { const id = sb.dataset.sub, now = new Date().toISOString();
     document.querySelectorAll(`[data-sub="${id}"]`).forEach(x => { if (x !== sb) x.checked = false; });
     const v = sb.checked ? sb.value : "";
@@ -946,6 +998,10 @@ document.addEventListener("change", e => {
     sent["team-" + id] = { texte: c.checked ? "✓ Prévu" : "", statut: c.checked ? "ok" : "todo", date: now }; save();
     post(id, c.checked ? "✓ Prévu" : "✗ Retiré", "10DEC:" + (c.checked ? "ok" : "todo")); render(false); return;
   }
+  const ms = c.closest(".chk-w") && c.closest(".chk-w").querySelector("[data-multi-sub]");
+  if (ms) { const subs = [...c.closest(".chk-w").querySelectorAll("[data-sub]")], sid = ms.dataset.sub;
+    if (c.checked) { sent[sid] = { texte: subs.map(x => x.value).join(" | "), date: new Date().toISOString() }; save(); post(sid, sent[sid].texte, SOURCE()); }
+    else { delete sent[sid]; save(); post(sid, "✗ Retiré", SOURCE()); } }
   if (c.checked) submit(id, "✓ Prévu", null, c);
   else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
 });
@@ -985,6 +1041,9 @@ document.addEventListener("click", e => {
   else if (b.dataset.ask) { const bx = document.getElementById("qbox-" + b.dataset.ask); if (bx) bx.hidden = false; const q = document.getElementById("q-" + b.dataset.ask); if (q) { if (q.scrollIntoView) q.scrollIntoView({ behavior: "smooth", block: "center" }); q.focus(); } }
   else if (b.dataset.yes) submit(b.dataset.yes, b.dataset.label || "Confirmé.", null, b);
   else if (b.dataset.done) submit(b.dataset.done, "Fichier déposé.", null, b);
+  else if (b.dataset.rowset) { const id = b.dataset.rowset, v = b.dataset.v;
+    if (valOf(id) === v) { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); return; }
+    submit(id, v, null, b); }
   else if (b.dataset.choix) { const p = find(b.dataset.choix), o = p.options[+b.dataset.i];
     if (o.champ) { const host = b.closest(".item"); host.querySelectorAll(".choix-f").forEach(x => x.remove());
       host.insertAdjacentHTML("beforeend", `<form class="form choix-f" data-form="${p.id}" data-prefix="${esc(o.texte)}"><label class="small" for="f-${p.id}">${esc(o.champ)}</label><div class="fwrap"><input type="text" inputmode="numeric" id="f-${p.id}" name="${p.id}"><button class="send" type="submit">Valider →</button></div></form>`);
@@ -1033,6 +1092,7 @@ function buildPdf() {
         y += .8; return;
       }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "repas") { text(p.titre, 10.5, "bold", BLEU, 2); repasRows(p).forEach(r => text(`${r.nom} · ${r.date} · ${[r.midi && "midi", r.soir && "soir"].filter(Boolean).join(" et ") || "aucun repas"} · régime : ${r.regime || "aucun"}`, 10, "normal", null, 6)); y += .8; return; }
       text(`${p.titre}${p.type === "check" && p.detail ? " - " + p.detail : ""}${etat}`, 10.5, "bold", BLEU, 2);
       const v = ans(p); if (v) text(v, 10, "normal", null, 6);

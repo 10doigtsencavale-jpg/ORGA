@@ -122,6 +122,25 @@ def manquants(fichier, cle):
             if "contact" in it:
                 cids.append(it["contact"])
                 if not contact_fait(it["contact"]): reste.append(d["contacts"][it["contact"]]["role"])
+            elif it.get("type") == "repas":
+                continue
+            elif it.get("type") == "fiche":
+                g = next((r for r in it["rows"] if r.get("gate")), None)
+                if g and str((rep.get(g["id"]) or {}).get("texte", "")) == "Non":
+                    continue
+                vides = [r["label"] for r in it["rows"] if not r.get("opt") and r["id"] not in rep]
+                if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
+            elif it.get("type") == "tableau":
+                def repas_a(k):
+                    for t2 in d["topics"]:
+                        for it2 in t2.get("items", []):
+                            if it2.get("type") == "repas":
+                                for i, r2 in enumerate(it2["rows"]):
+                                    o = (rep.get(f'{it2["id"]}-{i}-{k}') or {}).get("texte")
+                                    if (o == "oui") if o else r2.get(k): return True
+                    return False
+                vides = [r["b"] for r in it["rows"] if (not r.get("repas") or repas_a(r["repas"])) and not r.get("a") and r["id"] not in rep]
+                if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif not fait(it["id"], it.get("statut", "todo")):
                 reste.append(it["titre"])
         if t.get("confirm") and not t.get("besoins") and not fait(t["confirm"]["id"]):
