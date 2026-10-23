@@ -853,7 +853,8 @@ function roleFieldHTML(r) {
     ${fw(`<input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">`, draft)}</form>`;
 }
 function groupHTML(gk, titreTag) {
-  return `<div class="grp">${titreTag}${EVENT.groups[gk].roles.map(roleFieldHTML).join("")}</div>`;
+  const g = EVENT.groups[gk], solo = g.roles.length === 1 && g.roles[0].q === g.titre;
+  return `<div class="grp">${titreTag}${g.roles.map(r => solo ? roleFieldHTML(r).replace(`<span class="lbl">${esc(r.q)}</span>`, "") : roleFieldHTML(r)).join("")}</div>`;
 }
 function quiHTML(t) { return `<div class="blk">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`)}</div>`; }
 function questionHTML(t) {
