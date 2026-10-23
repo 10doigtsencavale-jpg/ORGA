@@ -257,6 +257,40 @@ def accueil(liens_json, fichier, cle, code):
               open(os.path.join(ROOT, "e", fichier + ".json"), "w"))
     print(json.dumps({"evenements": [e["nom"] for e in evs]}, ensure_ascii=False))
 
+def profils(fichier, cle, values_json):
+    """Reprend l'onglet « REPAS & TAILLES » de la fiche FDR (régime et tailles saisis par chaque chansigneur dans l'appli FDR)
+    dans le tableau des repas et le tableau des tailles (dresscode) de l'espace. N'affiche aucune valeur (données personnelles)."""
+    from datetime import datetime, timezone
+    d = lire(fichier, cle); rows = json.load(open(values_json)); rows = rows.get("values", rows) if isinstance(rows, dict) else rows
+    P = {}
+    for r in rows[2:]:
+        r = [str(x).strip() for x in (list(r) + [""] * 5)[:5]]
+        if r[0] and r[1] != "pas encore répondu": P[r[0].lower()] = {"regime": r[1], "haut": r[2], "bas": r[3], "nom": r[0]}
+    def trouve(nom):
+        n = nom.strip().lower()
+        return P.get(n) or next((v for k, v in P.items() if k.split(" ")[0] == n.split(" ")[0]), None)
+    R = d.setdefault("reponses", {}); now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"); n = 0
+    def pose(pid, val, qui):
+        nonlocal n
+        if not val: return
+        cur = R.get(pid) or {}
+        if cur.get("texte") == val: return
+        R[pid] = {"texte": val, "date": now, "source": "10DEC", "statut": "ok", "auteur": "FDR · saisi par " + qui}; n += 1
+    for t in d.get("topics", []):
+        for it in t.get("items", []):
+            if it.get("type") == "repas":
+                for i, row in enumerate(it.get("rows", [])):
+                    v = trouve(row.get("nom", ""))
+                    if v: pose(f'{it["id"]}-{i}-regime', v["regime"], v["nom"])
+            for row in it.get("rows", []) if it.get("type") == "fiche" else []:
+                if row.get("type") == "tailles":
+                    for i, nom in enumerate(row.get("personnes", [])):
+                        v = trouve(nom)
+                        if v: pose(f'{row["id"]}-{i}-haut', v["haut"], v["nom"]); pose(f'{row["id"]}-{i}-bas', v["bas"], v["nom"])
+    if n:
+        d["maj"] = datetime.now(timezone.utc).astimezone().strftime("%d/%m/%Y"); ecrire(fichier, cle, d)
+    print(json.dumps({"mis_a_jour": n}))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -266,4 +300,5 @@ if __name__ == "__main__":
     {"nouveau": lambda: nouveau(), "chiffrer": lambda: chiffrer(*a[1:4]), "dechiffrer": lambda: dechiffrer(*a[1:3]),
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
      "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
-     "accueil": lambda: accueil(*a[1:5])}[a[0]]()
+     "accueil": lambda: accueil(*a[1:5]),
+     "profils": lambda: profils(*a[1:4])}[a[0]]()

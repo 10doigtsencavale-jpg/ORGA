@@ -46,6 +46,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    - **Google Agenda** (événement ✅ de la même date, calendrier principal, notificationLevel NONE) : seulement pour un horaire,
      un lieu de parking, un lien GPS ou un référent sur place. Ajoute à la fin de la description, sans rien effacer :
      « 📋 Espace orga (JJ/MM) : <info> ».
+3 ter. **Régime et tailles des chansigneurs** (saisis par chacun dans l'appli FDR) : pour chaque événement, si la fiche FDR (colonne H) a un onglet
+   « REPAS & TAILLES » : get_values `'REPAS & TAILLES'!A1:E30` → écris `values` dans `/tmp/orga/repas.json` (hors du dépôt), puis
+   `python3 -I tools/orga.py profils <fichier> <clé> /tmp/orga/repas.json`. Le régime va dans le tableau des repas, les tailles dans le tableau du dresscode.
+   Données personnelles (santé) : ne les recopie jamais dans un message, une notification, la FDR ou l'Agenda. Pas de notification pour ces mises à jour.
 4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
