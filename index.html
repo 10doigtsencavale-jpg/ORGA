@@ -125,7 +125,8 @@ textarea:focus,input:focus{border-color:var(--electrique);outline:none}
 .actions{display:flex;flex-wrap:wrap;gap:8px}
 .btn{font:inherit;font-size:15px;font-weight:700;border-radius:999px;padding:11px 18px;min-height:46px;cursor:pointer;border:2px solid transparent;display:inline-flex;align-items:center;gap:8px;text-decoration:none;transition:transform .12s}
 .btn:active{transform:scale(.97)}
-.btn-main{background:var(--electrique);color:#fff}
+.btn-main{background:#e6e8ff;color:#2f3cff}
+.btn-main:hover{background:#d7dbff}
 .btn-ok{background:var(--ok);color:#fff}
 .btn-big{font-size:17px;min-height:54px;padding:14px 22px}
 .btn-dark{background:var(--encre);color:#fff}
@@ -284,6 +285,14 @@ body::before{background:#ffffff}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px}
+.fwrap{position:relative}
+.fwrap input[type=text]{padding-right:132px}
+.fwrap textarea{padding-bottom:54px}
+.send{position:absolute;right:6px;top:6px;bottom:6px;font:inherit;font-size:14px;font-weight:800;border:0;border-radius:9px;padding:0 14px;background:#eef0f7;color:#8a90ad;cursor:pointer;transition:background .2s,color .2s}
+.fwrap.ta .send{top:auto;height:40px;bottom:10px;right:10px}
+.fwrap.has .send{background:#e6e8ff;color:#2f3cff}
+.fwrap.has .send:hover{background:#d7dbff}
+.cf .lbl,.item-h .lbl{font-size:17px;font-weight:800}
 .chk-w.has-sub{background:#fff;border-radius:14px;overflow:hidden}
 .chk-w.has-sub .chk{border-radius:14px 14px 0 0}
 .subs{display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 14px 48px}
@@ -621,14 +630,17 @@ function fileButtons(p, label, noDone) {
     ${noDone ? "" : `<button class="btn btn-ghost" type="button" data-done="${p.id}">Le fichier est déposé</button>`}</div>
     ${EVENT.depotFichiers ? "" : `<span class="hint">Le bouton de dépôt sera actif à la mise en ligne.</span>`}`;
 }
+/* Champ + bouton « Envoyer → » dans la case : gris tant que vide, bleu pâle quand rempli. */
+function fw(ctl, val, label, ta) {
+  return `<div class="fwrap ${ta ? "ta" : ""} ${String(val || "").trim() ? "has" : ""}">${ctl}<button class="send" type="submit">${label || "Envoyer →"}</button></div>`;
+}
 function fieldHTML(p) {
   const draft = sent["draft-" + p.id] || "";
   const one = ["lien", "lienfichier", "contact", "court"].includes(p.type);
   const ph = p.type === "contact" ? "Nom, téléphone, mail" : p.type === "court" ? "" : "https://…";
   const ctl = one ? `<input type="text" id="f-${p.id}" name="${p.id}" placeholder="${ph}" value="${esc(draft)}" aria-label="${esc(p.titre)}">`
                   : `<textarea id="f-${p.id}" name="${p.id}">${esc(draft)}</textarea>`;
-  return `${p.type === "contact" ? "" : `<label class="small" for="f-${p.id}">${esc(p.aide || "Votre réponse")}</label>`}${ctl}
-    <div class="actions"><button class="btn btn-main" type="submit">Envoyer</button></div>`;
+  return `${p.type === "contact" ? "" : `<label class="small" for="f-${p.id}">${esc(p.aide || "Votre réponse")}</label>`}${fw(ctl, draft, "", !one)}`;
 }
 function teamHTML(p) {
   const t = sent["team-" + p.id] || {}, st = statusOf(p);
@@ -692,8 +704,7 @@ function contactFieldHTML(cid, off, offMsg, where) {
   const draft = sent["draft-" + cid] || "";
   return `<form class="cf form" data-form="${cid}"><label class="lbl" for="f-${cid}">${esc(p.titre)}</label>
     ${p.detail ? `<span class="hint">${esc(p.detail)}</span>` : ""}
-    <input type="text" id="f-${cid}" name="${cid}" placeholder="Nom, téléphone, mail" value="${esc(draft)}">
-    <div class="actions"><button class="btn btn-main" type="submit">Envoyer</button></div></form>`;
+    ${fw(`<input type="text" id="f-${cid}" name="${cid}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}">`, draft)}</form>`;
 }
 function roleFieldHTML(r) {
   const p = contactItem(r.c, { titre: r.q }), st = statusOf(p), rep = sent[r.c];
@@ -704,8 +715,7 @@ function roleFieldHTML(r) {
   return `<form class="cf form" data-form="${r.c}" data-role="1"><span class="lbl">${esc(r.q)}</span>
     <div class="pick" role="radiogroup" aria-label="${esc(r.q)}">${Object.entries(SIDES).map(([k, lab]) =>
       `<label class="pk"><input type="radio" name="side-${r.c}" value="${k}" ${side === k ? "checked" : ""}><span>${esc(lab)}</span></label>`).join("")}</div>
-    <input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">
-    <div class="actions"><button class="btn btn-main" type="submit">Envoyer</button></div></form>`;
+    ${fw(`<input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">`, draft)}</form>`;
 }
 function groupHTML(gk, titreTag) {
   return `<div class="grp">${titreTag}${EVENT.groups[gk].roles.map(roleFieldHTML).join("")}</div>`;
@@ -717,7 +727,7 @@ function questionHTML(t) {
   const pending = q && !srv.some(x => x.texte === q.texte) ? `<p class="val">${esc(q.texte)}</p><span class="byteam">Question envoyée. Les chansigneurs vous répondent rapidement.</span>` : "";
   return `<div class="blk" id="qbox-${t.id}" ${list || pending ? "" : "hidden"}><h3>Votre question</h3>${list}${pending}
     <form class="form" data-question="${t.id}"><label class="small" for="q-${t.id}">Votre question sera transmise directement aux chansigneurs.</label>
-      <textarea id="q-${t.id}" name="q-${t.id}"></textarea><div class="actions"><button class="btn btn-main" type="submit">Envoyer ma question</button></div></form></div>`;
+      ${fw(`<textarea id="q-${t.id}" name="q-${t.id}"></textarea>`, "", "Envoyer →", true)}</form></div>`;
 }
 function docsHTML(docs) {
   return docs && docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
@@ -889,6 +899,7 @@ document.addEventListener("submit", e => {
     toast("Enregistré. Visible par l'organisateur après la prochaine mise à jour."); render(false); }
 });
 document.addEventListener("change", e => { if (e.target.matches("[data-role] input[type=radio]")) { sent["side-" + e.target.name.slice(5)] = e.target.value; save(); } });
+document.addEventListener("input", e => { const w = e.target.closest && e.target.closest(".fwrap"); if (w) w.classList.toggle("has", !!e.target.value.trim()); });
 document.addEventListener("input", e => { if (e.target.matches("[data-form] textarea, [data-form] input[type=text]")) { sent["draft-" + e.target.name] = e.target.value; save(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -903,7 +914,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.done) submit(b.dataset.done, "Fichier déposé.", null, b);
   else if (b.dataset.choix) { const p = find(b.dataset.choix), o = p.options[+b.dataset.i];
     if (o.champ) { const host = b.closest(".item"); host.querySelectorAll(".choix-f").forEach(x => x.remove());
-      host.insertAdjacentHTML("beforeend", `<form class="form choix-f" data-form="${p.id}" data-prefix="${esc(o.texte)}"><label class="small" for="f-${p.id}">${esc(o.champ)}</label><input type="text" inputmode="numeric" id="f-${p.id}" name="${p.id}"><div class="actions"><button class="btn btn-main" type="submit">Valider</button></div></form>`);
+      host.insertAdjacentHTML("beforeend", `<form class="form choix-f" data-form="${p.id}" data-prefix="${esc(o.texte)}"><label class="small" for="f-${p.id}">${esc(o.champ)}</label><div class="fwrap"><input type="text" inputmode="numeric" id="f-${p.id}" name="${p.id}"><button class="send" type="submit">Valider →</button></div></form>`);
       host.querySelector(".choix-f input").focus(); return; }
     submit(p.id, o.texte, o.fichier ? { fichier: o.fichier } : null, b); }
   else if (b.dataset.oui) { const p = find(b.dataset.oui); submit(p.id, p.oui || "Oui.", { oui: true }, b); }
