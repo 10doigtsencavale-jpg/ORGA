@@ -302,7 +302,11 @@ body::before{background:#ffffff}
 .btn-ask{background:#ffe7d1;color:#a34a08}
 .btn-ask:hover{background:#ffdcbd}
 .subs.in{padding:0}
-.subs.col{flex-direction:column;align-items:flex-start}
+.subs.col{flex-direction:column;align-items:stretch}
+.subs.col .sub span{width:100%;box-sizing:border-box;align-items:flex-start;line-height:1.35;font-size:14.5px}
+.subs.col .sub span::before{flex:none;margin-top:2px}
+.fam-d{font-size:14px;font-weight:800;color:var(--muted);margin-top:-2px}
+.fam-d.urg{color:#a34a08}.fam-d.late{color:#c2410c}.fam-d.ok{color:var(--ok)}
 .sub input:disabled+span{cursor:default;opacity:1}
 .tab-w{overflow-x:auto}
 .ttab{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;background:#fff;border:2px solid var(--line);border-radius:12px;overflow:hidden}
@@ -391,30 +395,44 @@ const ICONS = {
 
 /* Accueil « Vous êtes en charge de… » : trois familles, chaque carte regroupe ses sujets. */
 const FAM = {
+  urg:  { label: "À traiter au plus vite", bg: "#ffe7d1", bar: "#ff8a2a", fg: "#a34a08", tab: "#ff8a2a", tabFg: "#10153d" },
   tech: { label: "Technique", bg: "#dff6f2", bar: "#18c3b0", fg: "#0b7f72", tab: "#0f9c8c", tabFg: "#ffffff" },
   logi: { label: "Accueil · VHR", bg: "#fff1c7", bar: "#e0a800", fg: "#8a5f00", tab: "#ffc629", tabFg: "#10153d" },
-  com:  { label: "Public sourd · com", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
+  com:  { label: "Presse · après le concert", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
 };
 const ROLES = [
-  { fam: "tech", e: "🎧", label: "Les retours son", topics: ["son", "talkback"] },
+  { fam: "urg", e: "setlist", label: "La setlist", topics: ["setlist"] },
+  { fam: "urg", e: "mains", label: "Public sourd et com", topics: ["public"] },
+  { fam: "tech", e: "inear", label: "Les retours son", topics: ["son", "talkback"] },
   { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
   { fam: "tech", e: "scene", label: "Le plateau", topics: ["emplacement"] },
   { fam: "tech", e: "camera", label: "Retransmission sur écrans", topics: ["ecran"] },
-  { fam: "tech", e: "📋", label: "Régie générale et production", topics: ["contacts", "securite"] },
-  { fam: "logi", e: "🍽️", label: "Loge et catering", topics: ["accueil"] },
-  { fam: "logi", e: "🚗", label: "Parking et runs", topics: ["parking"] },
-  { fam: "logi", e: "🎫", label: "Pass et tickets", topics: ["pass"] },
-  { fam: "logi", e: "⏰", label: "Horaires et balances", topics: ["horaires"] },
-  { fam: "com", e: "🧏", label: "Public sourd et com", topics: ["public"] },
-  { fam: "com", e: "📣", label: "Presse et captation", topics: ["presse"] },
-  { fam: "com", e: "🎵", label: "La setlist", topics: ["setlist"] },
-  { fam: "com", e: "📸", label: "Après le concert", topics: ["photos"] }
+  { fam: "tech", e: "console", label: "Régie générale et production", topics: ["contacts"] },
+  { fam: "logi", e: "loge", label: "Loge et catering", topics: ["accueil"] },
+  { fam: "logi", e: "van", label: "Parking et runs", topics: ["parking"] },
+  { fam: "logi", e: "pass", label: "Pass et tickets", topics: ["pass"] },
+  { fam: "logi", e: "horloge", label: "Horaires et balances", topics: ["horaires"] },
+  { fam: "logi", e: "bouclier", label: "Sécurité et assurances", topics: ["securite"] },
+  { fam: "com", e: "presse", label: "Presse et captation", topics: ["presse"] },
+  { fam: "com", e: "photo", label: "Après le concert", topics: ["photos"] }
 ];
-/* Pictos propres à la scène (dessinés) ; les autres restent des émojis. */
+/* Pictos dessinés, tous dans le même style « scène ». */
+const SV = c => `<svg viewBox="0 0 48 48" aria-hidden="true">${c}</svg>`;
 const PICTOS = {
-  spot: `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 14 46 6v30L27 22z" fill="#ffc629" opacity=".55"/><rect x="9" y="10" width="20" height="14" rx="4" transform="rotate(-18 19 17)" fill="#10153d"/><circle cx="27.5" cy="15" r="4.5" fill="#ffe08a" stroke="#10153d" stroke-width="2"/><path d="M14 24v8m-6 0h12M11 40h6m-3-8v8" stroke="#10153d" stroke-width="3" stroke-linecap="round"/></svg>`,
-  scene: `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="5" width="42" height="5" rx="2" fill="#c0392b"/><path d="M4 10c0 14 3 22 9 26H4z" fill="#e0453a"/><path d="M44 10c0 14-3 22-9 26h9z" fill="#e0453a"/><path d="M24 12 16 34h16z" fill="#ffc629" opacity=".5"/><rect x="3" y="36" width="42" height="7" rx="2" fill="#8a5a2b"/><circle cx="24" cy="31" r="3.5" fill="#10153d"/></svg>`,
-  camera: `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="15" width="28" height="19" rx="4" fill="#10153d"/><path d="M32 21l12-6v19l-12-6z" fill="#2f3cff"/><circle cx="12" cy="11" r="5" fill="#10153d"/><circle cx="23" cy="11" r="5" fill="#10153d"/><circle cx="14" cy="24.5" r="4" fill="#18c3b0"/><path d="M14 34l-5 10m5-10 5 10" stroke="#10153d" stroke-width="3" stroke-linecap="round"/></svg>`
+  setlist: SV(`<rect x="9" y="4" width="28" height="38" rx="3" fill="#fff" stroke="#10153d" stroke-width="2.5"/><path d="M15 13h16M15 19h16M15 25h10" stroke="#10153d" stroke-width="2.5" stroke-linecap="round"/><path d="M33 26v13" stroke="#2f3cff" stroke-width="3"/><path d="M33 26l7 2v4l-7-2" fill="#2f3cff"/><circle cx="30" cy="39.5" r="4" fill="#2f3cff"/>`),
+  mains: SV(`<path d="M13 40V22l-3-7c-.8-2 1.8-3.3 3-1.6l4 6V8.5c0-2.2 3.2-2.2 3.2 0V19V6c0-2.2 3.2-2.2 3.2 0v13V8c0-2.2 3.2-2.2 3.2 0v12.5V12c0-2.2 3.2-2.2 3.2 0v17c0 6-3 11-8 11z" fill="#ffc629" stroke="#10153d" stroke-width="2.3" stroke-linejoin="round"/><path d="M36 10c3 2 5 5 5 9M37 4c5 3 8 8 8 15" stroke="#ff8a2a" stroke-width="2.5" stroke-linecap="round" fill="none"/>`),
+  inear: SV(`<rect x="6" y="14" width="18" height="26" rx="4" fill="#10153d"/><rect x="9.5" y="18" width="11" height="7" rx="1.5" fill="#18c3b0"/><circle cx="15" cy="32" r="3" fill="#ffc629"/><path d="M11 14V5" stroke="#10153d" stroke-width="3" stroke-linecap="round"/><path d="M24 22c8 0 8 12 14 12" stroke="#10153d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 30c0-3 6-5 7-1 1 3-2 7-5 7-2 0-2-3-2-6z" fill="#ff8a2a" stroke="#10153d" stroke-width="2"/>`),
+  spot: SV(`<path d="M27 14 46 6v30L27 22z" fill="#ffc629" opacity=".55"/><rect x="9" y="10" width="20" height="14" rx="4" transform="rotate(-18 19 17)" fill="#10153d"/><circle cx="27.5" cy="15" r="4.5" fill="#ffe08a" stroke="#10153d" stroke-width="2"/><path d="M14 24v8m-6 0h12M11 40h6m-3-8v8" stroke="#10153d" stroke-width="3" stroke-linecap="round"/>`),
+  scene: SV(`<rect x="3" y="5" width="42" height="5" rx="2" fill="#c0392b"/><path d="M4 10c0 14 3 22 9 26H4z" fill="#e0453a"/><path d="M44 10c0 14-3 22-9 26h9z" fill="#e0453a"/><path d="M24 12 16 34h16z" fill="#ffc629" opacity=".5"/><rect x="3" y="36" width="42" height="7" rx="2" fill="#8a5a2b"/><circle cx="24" cy="31" r="3.5" fill="#10153d"/>`),
+  camera: SV(`<rect x="4" y="15" width="28" height="19" rx="4" fill="#10153d"/><path d="M32 21l12-6v19l-12-6z" fill="#2f3cff"/><circle cx="12" cy="11" r="5" fill="#10153d"/><circle cx="23" cy="11" r="5" fill="#10153d"/><circle cx="14" cy="24.5" r="4" fill="#18c3b0"/><path d="M14 34l-5 10m5-10 5 10" stroke="#10153d" stroke-width="3" stroke-linecap="round"/>`),
+  console: SV(`<path d="M8 14h32l5 24H3z" fill="#10153d"/><path d="M13 19v14M20 19v14M27 19v14M34 19v14" stroke="#4a5080" stroke-width="2.5" stroke-linecap="round"/><rect x="10" y="26" width="6" height="4" rx="1" fill="#18c3b0"/><rect x="17" y="21" width="6" height="4" rx="1" fill="#ffc629"/><rect x="24" y="28" width="6" height="4" rx="1" fill="#ff8a2a"/><rect x="31" y="23" width="6" height="4" rx="1" fill="#18c3b0"/>`),
+  loge: SV(`<rect x="10" y="6" width="28" height="26" rx="3" fill="#e9ebff" stroke="#10153d" stroke-width="2.5"/><circle cx="10" cy="10" r="2.6" fill="#ffc629"/><circle cx="10" cy="19" r="2.6" fill="#ffc629"/><circle cx="10" cy="28" r="2.6" fill="#ffc629"/><circle cx="38" cy="10" r="2.6" fill="#ffc629"/><circle cx="38" cy="19" r="2.6" fill="#ffc629"/><circle cx="38" cy="28" r="2.6" fill="#ffc629"/><path d="M5 36h38" stroke="#10153d" stroke-width="3" stroke-linecap="round"/><path d="M10 36v7M38 36v7" stroke="#10153d" stroke-width="3" stroke-linecap="round"/><path d="M19 22l7-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`),
+  van: SV(`<path d="M3 32V16a3 3 0 0 1 3-3h24l9 8h4a2 2 0 0 1 2 2v9z" fill="#2f3cff"/><path d="M30 14v8h9" fill="#cfe8ff" stroke="#10153d" stroke-width="2"/><rect x="7" y="17" width="9" height="6" rx="1.5" fill="#cfe8ff"/><rect x="18" y="17" width="9" height="6" rx="1.5" fill="#cfe8ff"/><circle cx="12" cy="34" r="5" fill="#10153d"/><circle cx="36" cy="34" r="5" fill="#10153d"/><circle cx="12" cy="34" r="2" fill="#fff"/><circle cx="36" cy="34" r="2" fill="#fff"/>`),
+  pass: SV(`<path d="M17 3l7 10 7-10" stroke="#18c3b0" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="10" y="12" width="28" height="33" rx="4" fill="#fff" stroke="#10153d" stroke-width="2.5"/><rect x="10" y="12" width="28" height="9" rx="4" fill="#ff8a2a"/><rect x="20" y="15" width="8" height="2.5" rx="1" fill="#fff"/><rect x="15" y="26" width="18" height="6" rx="1.5" fill="#10153d"/><path d="M16 37h16M16 41h10" stroke="#9aa0bd" stroke-width="2" stroke-linecap="round"/>`),
+  horloge: SV(`<circle cx="24" cy="27" r="16" fill="#fff" stroke="#10153d" stroke-width="3"/><path d="M24 27V17M24 27l7 5" stroke="#ff8a2a" stroke-width="3" stroke-linecap="round"/><rect x="20" y="4" width="8" height="5" rx="1.5" fill="#10153d"/><path d="M37 11l3-3" stroke="#10153d" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="27" r="2" fill="#10153d"/>`),
+  bouclier: SV(`<path d="M24 4l16 6v12c0 10-7 17-16 21C15 39 8 32 8 22V10z" fill="#ffc629" stroke="#10153d" stroke-width="2.5" stroke-linejoin="round"/><path d="M17 23l5 5 9-10" stroke="#10153d" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
+  presse: SV(`<rect x="16" y="4" width="16" height="22" rx="8" fill="#10153d"/><path d="M20 10h8M20 15h8M20 20h8" stroke="#4a5080" stroke-width="2"/><rect x="13" y="25" width="22" height="10" rx="2" fill="#2f3cff"/><text x="24" y="32.5" text-anchor="middle" font-size="7" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">PRESSE</text><path d="M24 35v8M17 44h14" stroke="#10153d" stroke-width="3" stroke-linecap="round"/>`),
+  photo: SV(`<rect x="4" y="13" width="40" height="27" rx="5" fill="#10153d"/><path d="M15 13l3-6h12l3 6" fill="#10153d"/><circle cx="24" cy="26.5" r="9" fill="#fff"/><circle cx="24" cy="26.5" r="5.5" fill="#2f3cff"/><rect x="35" y="17" width="5" height="3" rx="1" fill="#ffc629"/>`)
 };
 const emo = (e, px) => PICTOS[e] ? `<span class="pic" style="width:${px}px;height:${px}px">${PICTOS[e]}</span>` : e;
 const roleOf = id => ROLES.find(r => r.topics.includes(id)) || { fam: "com", e: "📌", label: "" };
@@ -492,7 +510,8 @@ function itemOf(it) { return it.contact ? contactItem(it.contact, { detail: it.d
 const asB = b => typeof b === "string" ? { t: b, d: "" } : (b || { t: "", d: "" });
 function checksOf(t) {
   const out = (t.besoins || []).map((b, i) => { const x = asB(b); return { id: t.id + "-b" + i, titre: x.t, detail: x.d, type: "check", statut: "todo", sous: b.sous }; });
-  if (t.important && !t.importantTop) { const x = asB(t.important); out.push({ id: t.id + "-imp", titre: x.t, detail: x.d, type: "check", statut: "todo", important: true }); }
+  if (t.important && !t.importantTop) { const x = asB(t.important), it = { id: t.id + "-imp", titre: x.t, detail: x.d, type: "check", statut: "todo", important: true };
+    if (t.impPos != null) out.splice(t.impPos, 0, it); else out.push(it); }
   return out;
 }
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
@@ -617,6 +636,16 @@ function prioHTML() {
   return `<section class="prio" aria-labelledby="prioT"><div class="prio-h"><span aria-hidden="true">🔥</span><h2 class="disp" id="prioT">À faire en priorité</h2><small>${items.length} sujet${items.length > 1 ? "s" : ""}</small></div>
     ${top.map(x => `<button type="button" class="prio-i" data-topic="${x.t.id}"><span class="pe" aria-hidden="true">${emo(x.e, 22)}</span><span class="pt"><b>${esc(x.titre)}</b><span>${esc(x.sous)}</span></span><span class="due ${x.due.cls}">${esc(x.due.txt)}</span><span class="pa" aria-hidden="true">→</span></button>`).join("")}</section>`;
 }
+/* Ligne de rappel sous chaque catégorie : « À compléter avant le … ». */
+function famDueHTML(rs) {
+  const tps = rs.flatMap(r => r.tps), pts = uniq(tps.flatMap(pointsOf));
+  if (pts.length && pts.every(isDone)) return `<span class="fam-d ok">✓ Tout est complet</span>`;
+  const dues = tps.filter(t => pointsOf(t).some(p => !isDone(p))).map(dueOf).filter(Boolean).sort((a, b) => a.days - b.days);
+  if (!dues.length) return "";
+  const d = dues[0];
+  return d.days < 0 ? `<span class="fam-d late">Date dépassée : à compléter dès que possible</span>`
+    : `<span class="fam-d ${d.cls}">⏰ À compléter avant le ${esc(d.dm)}</span>`;
+}
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
   const msg = pr.full ? "Bravo, tout est complet ! L'équipe de 10 Doigts en Cavale vérifie les informations."
@@ -635,12 +664,11 @@ function homeHTML() {
       <div class="pct" role="img" aria-label="${pr.d} points complétés sur ${pr.n}"><b>${pr.n ? Math.round(pr.d / pr.n * 100) : 0}%</b><span>complété</span></div>
       <p class="msg">${esc(msg)}</p>
     </section>
-    ${prioHTML()}
     <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
-    ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span><div class="roles">${x.rs.map(ro => {
+    ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span>${famDueHTML(x.rs)}<div class="roles">${x.rs.map(ro => {
       const p = progress(uniq(ro.tps.flatMap(pointsOf)));
       return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
-        <span class="role-h"><span class="role-e" aria-hidden="true">${emo(ro.e, 30)}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
+        <span class="role-h"><span class="role-e" aria-hidden="true">${emo(ro.e, 38)}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
         <span class="role-l">${esc(ro.label)}</span>
         <span class="bar ${p.full ? "full" : ""}" role="img" aria-label="${p.d} sur ${p.n}"><i class="b-done" style="width:${p.n ? p.d / p.n * 100 : 0}%;${p.full ? "" : `background:${x.f.bar}`}"></i></span></button>`;
     }).join("")}</div></section>`).join("")}
