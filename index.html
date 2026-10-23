@@ -307,6 +307,8 @@ footer .wrap{max-width:900px}
 .ttab tr.fourni td{background:#eef0f4;color:#4f5677}
 .docs-l{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#7a809c}
 .fourni-docs .doc{background:#eef0f4;border-color:#e1e4ec;color:#4f5677}
+.auteur{margin:0;font-size:14px;color:var(--muted)}
+.auteur-f{background:#fff4e8;border:2px solid #ffc89a;border-radius:14px;padding:12px 14px;display:grid;gap:8px;font-size:15px}
 .fnote{font-weight:700;color:#0b7f72;background:#e3f7f4}
 .yn{display:flex;flex-wrap:wrap;gap:8px}
 .ynb{font:inherit;font-weight:800;font-size:15px;border:2px solid #d6d9ec;background:#fff;color:var(--encre);border-radius:999px;padding:6px 16px;cursor:pointer}
@@ -483,11 +485,24 @@ const SHORT = { setlist: "Setlist / Dresscode", son: "Retours son", lumiere: "Lu
 const PREVIEW = false;
 let TOKEN = "", LS = "orga", FILEID = "", ADMIN = false, ADMINPART = "", LASTSEEN = "";
 /* Formulaire Google qui reçoit les réponses (rempli à la mise en service). */
-const FORM = { url: "", ev: "", pt: "", rep: "", src: "" };
+const FORM = { url: "https://docs.google.com/forms/d/e/1FAIpQLSduVfDHGsYRQjoz9kRyZXjB6o-_KfHsIu15AlCrXnDhPfM7kA/formResponse",
+  ev: "338904261", pt: "1150754807", rep: "1563863016", src: "591334309" };
+/* Qui répond : prénom + rôle, demandé une fois et gardé sur l'appareil. */
+let AUTEUR = ""; try { AUTEUR = localStorage.getItem("orga-auteur") || ""; } catch (e) {}
+async function sig10(point, texte) { /* signature des réponses équipe, vérifiée par la synchro */
+  const code = ADMINPART.slice(1); if (!code) return "";
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code + "|" + point + "|" + texte));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
 function post(point, texte, source) {
   const j = sent.__journal = sent.__journal || [];
   j.push({ date: new Date().toISOString(), point, texte, source, local: true }); save();
-  if (!FORM.url) return;
+  if (!FORM.url || FILEID === "apercu") return; /* l'aperçu interne n'envoie rien */
+  sendForm(point, texte, source);
+}
+async function sendForm(point, texte, source) {
+  if (String(source).startsWith("10DEC")) source += ":" + await sig10(point, texte);
+  else if (AUTEUR) source = "orga:" + AUTEUR;
   const body = new URLSearchParams();
   body.append("entry." + FORM.ev, FILEID); body.append("entry." + FORM.pt, point);
   body.append("entry." + FORM.rep, texte); body.append("entry." + FORM.src, source);
@@ -514,7 +529,7 @@ function mergeServer() {
       const extra = {};
       if (p && p.type === "ouinon" && r.texte === p.oui) extra.oui = true;
       if (p && p.type === "choix") { const o = p.options.find(o => o.texte === r.texte); if (o && o.fichier) extra.fichier = o.fichier; }
-      sent[id] = Object.assign({ texte: r.texte, date: r.date, srv: true }, extra);
+      sent[id] = Object.assign({ texte: r.texte, date: r.date, srv: true, auteur: r.auteur || "" }, extra);
     }
   });
 }
@@ -821,10 +836,11 @@ function pillHTML(p) {
   if (st === "sent") return `<span class="pill p-sent">✓ Envoyé</span>`;
   return `<span class="pill p-ok">✓ ${p.type === "info" ? "Noté" : "Validé"}</span>`;
 }
+const byHTML = r => { const a = r && (r.auteur || (!r.srv && AUTEUR)); return a ? `<span class="byteam">par ${esc(a)}${r.date ? " · " + esc(fmt(r.date)) : ""}</span>` : ""; };
 function answerHTML(p) {
   const team = sent["team-" + p.id]; let h = "";
   if (team && team.texte) h += `<p class="val">${esc(team.texte)}</p><span class="byteam">Complété par 10 Doigts en Cavale</span>`;
-  if (sent[p.id] && (MODE === "equipe" || statusOf(p) === "sent")) h += `<p class="val">${esc(sent[p.id].texte)}</p>${MODE === "equipe" ? `<span class="byteam">Réponse de l'organisateur</span>` : ""}`;
+  if (sent[p.id] && (MODE === "equipe" || statusOf(p) === "sent")) h += `<p class="val">${esc(sent[p.id].texte)}</p>${byHTML(sent[p.id])}`;
   return h;
 }
 /* Zone remplie par 10 Doigts en Cavale : grisée et non modifiable côté organisateur. */
@@ -954,7 +970,7 @@ function subsHTML(sub) {
 }
 function checkHTML(p) {
   const st = statusOf(p), on = st !== "todo", rep = sent[p.id];
-  const extra = on && rep && rep.texte && !String(rep.texte).startsWith("✓") ? `<span class="chk-r">${esc(rep.texte)}</span>` : "";
+  const extra = (on && rep && rep.texte && !String(rep.texte).startsWith("✓") ? `<span class="chk-r">${esc(rep.texte)}</span>` : "") + (on && rep ? byHTML(rep) : "");
   return `<div class="chk-w ${p.sous ? "has-sub" : ""}"><label class="chk ${on ? "on" : ""} ${p.important ? "imp" : ""}" for="c-${p.id}">
     <input type="checkbox" id="c-${p.id}" data-check="${p.id}" ${on ? "checked" : ""}>
     <span class="chk-t"><strong>${p.important ? `<em class="tag-imp">Important</em>` : ""}${esc(p.titre)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}${extra}</span></label>${p.sous ? subsHTML(p.sous) : ""}</div>`;
@@ -973,6 +989,11 @@ function dlHTML(t, pr) {
   if (!du) return t.avant ? `<span class="dl">${esc(t.avant)}</span>` : "";
   if (du.days < 0) return `<span class="dl late">Date passée<b>${esc(du.dm)}</b></span>`;
   return `<span class="dl ${du.cls}">Avant le<b>${esc(du.dm)}</b></span>`;
+}
+function auteurHTML() {
+  if (AUTEUR && !sent.__editAuteur) return `<p class="auteur">👤 Vous répondez en tant que <b>${esc(AUTEUR)}</b> · <button type="button" class="linkbtn" data-auteur-edit="1">Modifier</button></p>`;
+  return `<form class="auteur-f" data-auteur="1"><label for="f-auteur"><b>👤 Qui répond ?</b> Votre prénom et votre rôle, pour que les chansigneurs sachent qui contacter.</label>
+    ${fw(`<input type="text" id="f-auteur" placeholder="ex. Fred – ingé son" value="${esc(AUTEUR)}">`, AUTEUR, "OK")}</form>`;
 }
 function topicHTML(t) {
   const pr = progress(pointsOf(t)), checks = checksOf(t);
@@ -1004,6 +1025,7 @@ function topicHTML(t) {
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
+    ${MODE === "orga" ? auteurHTML() : ""}
     ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
     ${body}</div></main>`;
@@ -1105,6 +1127,9 @@ document.addEventListener("change", e => {
   else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
 });
 document.addEventListener("submit", e => {
+  const au = e.target.closest("[data-auteur]");
+  if (au) { e.preventDefault(); const v = au.querySelector("input").value.trim(); if (!v) { toast("Merci d'indiquer votre prénom et votre rôle."); return; }
+    AUTEUR = v.slice(0, 60); try { localStorage.setItem("orga-auteur", AUTEUR); } catch (x) {} delete sent.__editAuteur; render(false); toast("Merci, " + AUTEUR.split(/[ –-]/)[0] + " !"); return; }
   const f = e.target.closest("[data-form]");
   if (f && f.dataset.ctable) { e.preventDefault();
     const cid = f.dataset.form, el = f.elements, g = k => (el[cid + "__" + k] ? el[cid + "__" + k].value.trim() : "");
@@ -1149,6 +1174,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.ask) { const bx = document.getElementById("qbox-" + b.dataset.ask); if (bx) bx.hidden = false; const q = document.getElementById("q-" + b.dataset.ask); if (q) { if (q.scrollIntoView) q.scrollIntoView({ behavior: "smooth", block: "center" }); q.focus(); } }
   else if (b.dataset.yes) submit(b.dataset.yes, b.dataset.label || "Confirmé.", null, b);
   else if (b.dataset.done) submit(b.dataset.done, "Fichier déposé.", null, b);
+  else if (b.dataset.auteurEdit) { sent.__editAuteur = true; render(false); document.getElementById("f-auteur")?.focus(); }
   else if (b.dataset.rowset) { const id = b.dataset.rowset, v = b.dataset.v;
     if (valOf(id) === v) { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); return; }
     submit(id, v, null, b); }

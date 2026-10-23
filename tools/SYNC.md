@@ -22,7 +22,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `pip install --break-system-packages cryptography` si besoin. Lance python avec `-I`.
 2. Lis les réponses (get_values) et écris le tableau `values` tel quel dans `/tmp/orga/lignes.json` (hors du dépôt).
 3. Lis les liens (get_values). Pour chaque événement dont la colonne C est remplie :
-   `python3 -I tools/orga.py appliquer <fichier> <clé> /tmp/orga/lignes.json` → affiche les nouveautés (JSON).
+   `python3 -I tools/orga.py appliquer <fichier> <clé> /tmp/orga/lignes.json <code équipe>` → affiche les nouveautés (JSON).
+   Le code équipe = ce qui suit le « ! » dans le lien équipe (colonne G). Sans lui, les réponses « 10DEC » ne sont pas reconnues.
+   Chaque nouveauté porte un champ `auteur` (prénom et rôle de l'organisateur) : reporte-le dans la FDR (« par Fred – son »).
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :

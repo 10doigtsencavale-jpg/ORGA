@@ -48,7 +48,7 @@ def date_iso(h):
     except Exception:
         return h
 
-def appliquer(fichier, cle, lignes_json):
+def appliquer(fichier, cle, lignes_json, code=""):
     """Applique les lignes du formulaire (valeurs du Google Sheet, en-tête compris) à l'événement.
     Affiche en JSON les nouveautés appliquées, pour les reporter dans la FDR, le Drive et l'Agenda."""
     import hashlib
@@ -67,15 +67,28 @@ def appliquer(fichier, cle, lignes_json):
             continue
         vus.add(sig)
         date = date_iso(horo)
-        src = "10DEC" if source.startswith("10DEC") else "orga"
-        if point.startswith("question:"):
-            data["questions"].setdefault(point[9:], []).append({"texte": texte, "date": date, "source": src})
+        # Source : « orga:Prénom – rôle » ou « 10DEC:<statut>:<signature> ».
+        # Une réponse « 10DEC » n'est acceptée que si sa signature (code équipe) est valide ; sinon elle compte comme organisateur.
+        auteur, statut = "", "ok"
+        if source.startswith("10DEC"):
+            parts = source.split(":")
+            statut = parts[1] if len(parts) > 1 and parts[1] in ("ok", "todo") else "ok"
+            attendu = hashlib.sha256((code + "|" + point + "|" + texte).encode()).hexdigest()[:16] if code else None
+            if attendu and len(parts) > 2 and parts[2] == attendu:
+                src, auteur = "10DEC", "10 Doigts en Cavale"
+            else:
+                src, auteur = "orga", "réponse « 10DEC » non signée (à vérifier)"
         else:
-            r = {"texte": texte, "date": date, "source": src}
+            src = "orga"
+            auteur = source[5:].strip()[:60] if source.startswith("orga:") else ""
+        if point.startswith("question:"):
+            data["questions"].setdefault(point[9:], []).append({"texte": texte, "date": date, "source": src, "auteur": auteur})
+        else:
+            r = {"texte": texte, "date": date, "source": src, "auteur": auteur}
             if src == "10DEC":
-                r["statut"] = source.split(":", 1)[1] if ":" in source else "ok"
+                r["statut"] = statut
             data["reponses"][point] = r
-        e = {"date": date, "point": point, "texte": texte, "source": src}
+        e = {"date": date, "point": point, "texte": texte, "source": src, "auteur": auteur}
         data["journal"].append(e)
         nouveau.append(e)
     data["journal"] = sorted(data["journal"], key=lambda x: x["date"])[-60:]
@@ -168,4 +181,4 @@ def dechiffrer(fichier, cle):
 if __name__ == "__main__":
     a = sys.argv[1:]
     {"nouveau": lambda: nouveau(), "chiffrer": lambda: chiffrer(*a[1:4]), "dechiffrer": lambda: dechiffrer(*a[1:3]),
-     "appliquer": lambda: appliquer(*a[1:4]), "manquants": lambda: manquants(*a[1:3])}[a[0]]()
+     "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3])}[a[0]]()
