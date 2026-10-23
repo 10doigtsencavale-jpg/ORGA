@@ -305,6 +305,7 @@ body::before{background:#ffffff}
 .subs.col{flex-direction:column;align-items:stretch}
 .subs.col .sub span{width:100%;box-sizing:border-box;align-items:flex-start;line-height:1.35;font-size:14.5px}
 .subs.col .sub span::before{flex:none;margin-top:2px}
+.rappel{margin:0;font-weight:800;color:#a34a08;background:#ffe7d1;border-radius:12px;padding:10px 14px}
 .fam-d{font-size:14px;font-weight:800;color:var(--muted);margin-top:-2px}
 .fam-d.urg{color:#a34a08}.fam-d.late{color:#c2410c}.fam-d.ok{color:var(--ok)}
 .sub input:disabled+span{cursor:default;opacity:1}
@@ -403,6 +404,7 @@ const FAM = {
 const ROLES = [
   { fam: "urg", e: "setlist", label: "La setlist", topics: ["setlist"] },
   { fam: "urg", e: "mains", label: "Public sourd et com", topics: ["public"] },
+  { fam: "urg", e: "horloge", label: "Horaires et balances", topics: ["horaires"] },
   { fam: "tech", e: "inear", label: "Les retours son", topics: ["son", "talkback"] },
   { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
   { fam: "tech", e: "scene", label: "Le plateau", topics: ["emplacement"] },
@@ -411,7 +413,6 @@ const ROLES = [
   { fam: "logi", e: "loge", label: "Loge et catering", topics: ["accueil"] },
   { fam: "logi", e: "van", label: "Parking et runs", topics: ["parking"] },
   { fam: "logi", e: "pass", label: "Pass et tickets", topics: ["pass"] },
-  { fam: "logi", e: "horloge", label: "Horaires et balances", topics: ["horaires"] },
   { fam: "logi", e: "bouclier", label: "Sécurité et assurances", topics: ["securite"] },
   { fam: "com", e: "presse", label: "Presse et captation", topics: ["presse"] },
   { fam: "com", e: "photo", label: "Après le concert", topics: ["photos"] }
@@ -934,6 +935,7 @@ function topicHTML(t) {
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
+    ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
     ${body}</div></main>`;
 }
