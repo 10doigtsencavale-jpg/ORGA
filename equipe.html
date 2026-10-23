@@ -6,8 +6,23 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>ORGA · équipe</title>
-<link rel="icon" type="image/png" href="icon-192.png?v=1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<script>
+/* Fiche d'appli créée à l'ouverture : l'icône remplit tout le fond bleu sur Android,
+   et le raccourci garde le lien complet (avec la clé), sinon il ouvrirait « Lien incomplet ». */
+(function () { try {
+  var base = location.href.split("#")[0].replace(/[^\/]*$/, ""), h = location.hash.slice(1).split(".")[0].slice(0, 24);
+  var m = { name: "ORGA équipe · 10 Doigts en Cavale", short_name: "ORGA équipe", start_url: location.href, scope: base, id: base + "?app=equipe-" + encodeURIComponent(h),
+    display: "standalone", background_color: "#2f3cff", theme_color: "#2f3cff", lang: "fr",
+    icons: [{ src: base + "icon-192.png?v=2", sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: base + "icon-512.png?v=2", sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: base + "icon-maskable-512.png?v=2", sizes: "512x512", type: "image/png", purpose: "maskable" }] };
+  var l = document.createElement("link"); l.rel = "manifest";
+  l.href = "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(m));
+  document.head.appendChild(l);
+} catch (e) {} })();
+</script>
 <meta name="apple-mobile-web-app-title" content="ORGA équipe">
 <meta name="application-name" content="ORGA équipe">
 <meta name="theme-color" content="#2f3cff">
@@ -92,7 +107,7 @@ iframe.stat{position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-ev
 </head>
 <body>
 <header class="head"><div class="in">
-  <img src="icon-192.png?v=1" alt="ORGA">
+  <img src="icon-192.png?v=2" alt="ORGA">
   <h1>Nos événements</h1>
   <span class="maj" id="maj"></span>
   <button class="hbtn" type="button" id="refresh" hidden>↻ Actualiser</button>
