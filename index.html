@@ -299,6 +299,7 @@ footer .wrap{max-width:900px}
 .ttab.fiche th{width:42%;font-size:15px;color:var(--encre);background:transparent;border-top:1px solid var(--line);vertical-align:middle}
 .ttab.fiche tr:first-child th,.ttab.fiche tr:first-child td{border-top:0}
 .ttab.fiche tr.vide th,.ttab.fiche tr.vide td{background:#fff1e3}
+.ttab.mini{font-size:14px}.ttab.mini .fwrap input[type=text]{padding-right:60px;min-height:38px}
 .fnote{font-weight:700;color:#0b7f72;background:#e3f7f4}
 .yn{display:flex;flex-wrap:wrap;gap:8px}
 .ynb{font:inherit;font-weight:800;font-size:15px;border:2px solid #d6d9ec;background:#fff;color:var(--encre);border-radius:999px;padding:6px 16px;cursor:pointer}
@@ -757,6 +758,12 @@ const ficheDone = p => ficheRows(p).every(r => r.opt || valOf(r.id));
 function ficheCell(r) {
   const v = valOf(r.id);
   if (r.type === "note") return "";
+  if (r.type === "tailles") { const eq = MODE === "equipe";
+    const cell = (i, k) => { const id = `${r.id}-${i}-${k}`, v = valOf(id);
+      return eq ? `<form class="form" data-form="${id}">${fw(`<input type="text" id="f-${id}" name="${id}" value="${esc(v)}" placeholder="${k === "haut" ? "ex. M" : "ex. 38"}" aria-label="Taille ${k}">`, v, "OK")}</form>` : esc(v || "—"); };
+    return `<table class="ttab mini"><thead><tr><th>Chansigneur</th><th>Haut</th><th>Bas</th></tr></thead><tbody>${r.personnes.map((n, i) =>
+      `<tr><td><b>${esc(n)}</b></td><td>${cell(i, "haut")}</td><td>${cell(i, "bas")}</td></tr>`).join("")}</tbody></table>
+      ${eq ? "" : `<span class="hint">Complété par 10 Doigts en Cavale.</span>`}`; }
   if (r.type === "ouinon" || r.type === "choix") { const opts = r.type === "ouinon" ? ["Oui", "Non"] : r.options;
     return `<div class="yn">${opts.map(o => `<button type="button" class="ynb ${v === o ? "on" : ""}" data-rowset="${r.id}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div>`; }
   if (r.type === "multi") { const on = v.split(" · ");
