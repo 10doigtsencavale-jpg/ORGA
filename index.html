@@ -423,7 +423,7 @@ const FAM = {
   com:  { label: "Presse · après le concert", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
 };
 const ROLES = [
-  { fam: "urg", e: "setlist", label: "La setlist", topics: ["setlist"] },
+  { fam: "urg", e: "setlist", label: "Setlist / Dresscode", topics: ["setlist"] },
   { fam: "urg", e: "mains", label: "Public sourd et com", topics: ["public"] },
   { fam: "urg", e: "horloge", label: "Horaires et balances", topics: ["horaires"] },
   { fam: "tech", e: "inear", label: "Les retours son", topics: ["son", "talkback"] },
@@ -467,7 +467,7 @@ function dueOf(t) {
   const dm = d.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" });
   return { days, dm, cls: days < 0 ? "late" : days <= 3 ? "urg" : "", txt: days < 0 ? "En retard" : days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : "Avant le " + dm };
 }
-const SHORT = { setlist: "Setlist", son: "Retours son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écrans", talkback: "Talkback",
+const SHORT = { setlist: "Setlist / Dresscode", son: "Retours son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écrans", talkback: "Talkback",
   contacts: "Contacts", accueil: "Accueil", parking: "Parking", pass: "Pass", horaires: "Horaires", public: "Com & public sourd",
   presse: "Presse / Média", photos: "Photos", securite: "Sécurité" };
 
