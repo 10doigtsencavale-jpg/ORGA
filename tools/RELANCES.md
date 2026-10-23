@@ -69,6 +69,7 @@ Merci beaucoup,
 
 - Émojis par sujet : setlist 🎵 · son 🎧 · talkback 🎤 · lumière 💡 · emplacement 🎭 · écran 📺 · contacts 📋 · sécurité 🛡️ ·
   accueil 🍽️ · parking 🚗 · pass 🎫 · horaires ⏰ · public 🧏 · presse 📣 · photos 📸.
+- Plusieurs artistes le même soir : un sujet technique existe en un exemplaire par artiste (`son-mp`, `son-pj`…, champ `label` « Retours son · Pi Ja Ma »). Même émoji que le sujet de base ; écris le nom de l'artiste dans le titre du sujet.
 - Échéance dépassée : écrire « à compléter dès que possible » au lieu de « avant le … ».
 - **Ne jamais relancer le sujet « photos »** (après le concert) : ignore-le dans le JSON de `manquants`. Aucune relance après l'événement.
 - **Ordre des sujets : la setlist, la com / public sourd et les horaires TOUJOURS en premier** (demandées dès la signature du devis, les plus urgentes pour l'équipe), puis les autres par échéance.
