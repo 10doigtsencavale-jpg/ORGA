@@ -29,7 +29,7 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      setlist → « 🎵 SETLIST » (ligne ℹ️) ; contacts (`c-…`) → « 📞 CONTACTS SUR PLACE » (Nom / Rôle / Téléphone) ;
      horaires (`hor-…`) → « ⏰ PLANNING DU JOUR J » + une ligne dans « ⚠️ CHANGEMENTS » si un horaire change ;
      parking, pass, accès (`park-…`, `pass-…`) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
-     technique (`son-ok`, `lum-ok`, `emp-ok`, `cap-ok`, `talk-ok`) → « 📝 INFOS & REMARQUES » (« Son confirmé par l'organisateur ») ;
+     technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
      com, presse, public (`com-…`, `pub-…`, `cap-captation`) → « 📝 INFOS & REMARQUES ».
      Les questions (`question:…`) ne vont PAS dans la FDR (elles sont pour Aurélie et Périnne).
      Les réponses `10DEC` viennent de l'équipe : statut « ✓ OK ».
