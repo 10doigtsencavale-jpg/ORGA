@@ -853,8 +853,8 @@ function roleFieldHTML(r) {
     ${fw(`<input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">`, draft)}</form>`;
 }
 function groupHTML(gk, titreTag) {
-  const g = EVENT.groups[gk], solo = g.roles.length === 1 && g.roles[0].q === g.titre;
-  return `<div class="grp">${titreTag}${g.roles.map(r => solo ? roleFieldHTML(r).replace(`<span class="lbl">${esc(r.q)}</span>`, "") : roleFieldHTML(r)).join("")}</div>`;
+  /* Pas de titre de groupe au-dessus : chaque question suffit (évite « Qui gère la lumière ? » + « Qui gère l'éclairage ? »). */
+  return `<div class="grp">${titreTag}${EVENT.groups[gk].roles.map(roleFieldHTML).join("")}</div>`;
 }
 function quiHTML(t) { return `<div class="blk">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`)}</div>`; }
 function questionHTML(t) {
@@ -922,7 +922,7 @@ function topicHTML(t) {
   if (t.items) body += `<div class="items">${t.items.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
   if (t.contactsList) body += contactsListHTML(t);
   body += docsHTML(t.docs);
-  if (t.qui) body += `<div class="qui">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`)}</div>`;
+  if (t.qui) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
   const reste = checks.some(p => statusOf(p) === "todo");
   const acts = [];
   if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
