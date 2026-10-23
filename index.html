@@ -300,6 +300,13 @@ footer .wrap{max-width:900px}
 .ttab.fiche tr:first-child th,.ttab.fiche tr:first-child td{border-top:0}
 .ttab.fiche tr.vide th,.ttab.fiche tr.vide td{background:#fff1e3}
 .ttab.mini{font-size:14px}.ttab.mini .fwrap input[type=text]{padding-right:60px;min-height:38px}
+.item.fourni,.item.fourni:not(.is-done):not(.chk-w){background:#eef0f4;border-color:#e1e4ec}
+.item.fourni .lbl{color:#4f5677}
+.item.fourni .val{background:#f7f8fb;color:#4f5677}
+.p-eq{background:#e1e4ec;color:#4f5677}
+.ttab tr.fourni td{background:#eef0f4;color:#4f5677}
+.docs-l{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#7a809c}
+.fourni-docs .doc{background:#eef0f4;border-color:#e1e4ec;color:#4f5677}
 .fnote{font-weight:700;color:#0b7f72;background:#e3f7f4}
 .yn{display:flex;flex-wrap:wrap;gap:8px}
 .ynb{font:inherit;font-weight:800;font-size:15px;border:2px solid #d6d9ec;background:#fff;color:var(--encre);border-radius:999px;padding:6px 16px;cursor:pointer}
@@ -539,7 +546,7 @@ function checksOf(t) {
 }
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
 function pointsOf(t) {
-  const pts = [...checksOf(t), ...(t.items || []).map(itemOf)];
+  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
   (t.contactsList || []).forEach(e => pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)));
@@ -549,7 +556,7 @@ const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsO
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
-  if (p.type === "tableau") return rowsOf(p).every(r => rowVal(r)) ? (rowsOf(p).some(r => sent[r.id]) ? "sent" : "ok") : "todo";
+  if (p.type === "tableau") { const rs = rowsOf(p).filter(r => !r.equipe); return rs.every(r => rowVal(r)) ? (rs.some(r => sent[r.id]) ? "sent" : "ok") : "todo"; }
   const t = sent["team-" + p.id]; if (t) return t.statut;
   if (p.statut === "todo" && sent[p.id]) return "sent";
   return p.statut === "info" ? "ok" : p.statut;
@@ -728,7 +735,7 @@ const repasHas = k => EVENT.topics.some(t => (t.items || []).some(it => it.type 
 function repasHTML(p) {
   const eq = MODE === "equipe";
   const box = (r, k) => `<label class="sub"><input type="checkbox" ${r[k] ? "checked" : ""} ${eq ? `data-repas="${p.id}-${r.i}-${k}"` : "disabled"}><span>${k === "midi" ? "Midi" : "Soir"}</span></label>`;
-  return `<div class="item is-done" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${eq ? `<span class="pill p-sent">Rempli par l'équipe</span>` : ""}</div>
+  return `<div class="item ${eq ? "is-done" : "fourni"}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}
     <div class="tab-w"><table class="ttab"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
     ${repasRows(p).map(r => `<tr><td><b>${esc(r.nom)}</b></td><td>${esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
@@ -745,6 +752,7 @@ function tableauHTML(p) {
     <p class="det">Les cases orangées sont à compléter.</p>
     <div class="tab-w"><table class="ttab hor"><thead><tr><th>${esc(p.colA)}</th><th>${esc(p.colB)}</th></tr></thead><tbody>
     ${rowsOf(p).map(r => { const v = rowVal(r), mine = sent[r.id];
+      if (r.equipe && MODE !== "equipe") return `<tr class="fourni"><td>${v ? `<span class="tv">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
       return `<tr class="${v ? "" : "vide"}"><td>${v
         ? `<span class="tv">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
         : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(r.ph || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
@@ -819,7 +827,14 @@ function answerHTML(p) {
   if (sent[p.id] && (MODE === "equipe" || statusOf(p) === "sent")) h += `<p class="val">${esc(sent[p.id].texte)}</p>${MODE === "equipe" ? `<span class="byteam">Réponse de l'organisateur</span>` : ""}`;
   return h;
 }
+/* Zone remplie par 10 Doigts en Cavale : grisée et non modifiable côté organisateur. */
+function equipeHTML(p) {
+  const v = valOf(p.id) || p.valeur || "";
+  return `<div class="item fourni" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
+    ${v ? `<p class="val">${esc(v)}</p>` : `<p class="det">À venir : complété par 10 Doigts en Cavale.</p>`}</div>`;
+}
 function itemHTML(p) {
+  if (p.equipe && MODE !== "equipe" && p.type !== "repas") return equipeHTML(p);
   if (p.type === "repas") return repasHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
@@ -893,7 +908,7 @@ function questionHTML(t) {
       ${fw(`<textarea id="q-${t.id}" name="q-${t.id}"></textarea>`, "", "Envoyer →", true)}</form></div>`;
 }
 function docsHTML(docs) {
-  return docs && docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
+  return docs && docs.length ? `<span class="docs-l">Documents fournis par 10 Doigts en Cavale</span><div class="docs fourni-docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
 }
 /* Contacts : deux tableaux Métier / Nom-Prénom / Mail / Tél. */
 function splitContact(v) {
