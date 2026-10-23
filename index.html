@@ -322,6 +322,21 @@ body::before{background:#ffffff}
 .ttab tr.vide input{border-color:#ffc89a}
 .ttab .fwrap input[type=text]{padding-right:70px;min-height:42px}
 .tv{font-weight:800}
+.ctab td{vertical-align:middle}
+.ctab td:first-child{width:28%}
+.ctab input{width:100%;box-sizing:border-box;font:inherit;font-size:15px;border:2px solid #ffc89a;border-radius:10px;padding:8px 10px;background:#fff;min-height:40px}
+.ctab tr.vide td{background:#fff1e3}
+.ctab .act{width:1%;white-space:nowrap;text-align:right}
+.ctab .ok-row{position:static;height:40px;padding:0 14px}
+@media (max-width:640px){
+  .ctab thead{display:none}
+  .ctab,.ctab tbody,.ctab tr,.ctab td{display:block;width:100%;box-sizing:border-box}
+  .ctab tr{border-top:1px solid var(--line);padding:8px 0}
+  .ctab td{border:0;padding:4px 12px}
+  .ctab td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font-size:12px;font-weight:800;color:var(--muted)}
+  .ctab td:first-child{width:auto}
+  .ctab .act{text-align:left;width:auto}
+}
 .fwrap{position:relative}
 .fwrap input[type=text]{padding-right:132px}
 .fwrap textarea{padding-bottom:54px}
@@ -868,15 +883,40 @@ function questionHTML(t) {
 function docsHTML(docs) {
   return docs && docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
 }
+/* Contacts : deux tableaux Métier / Nom-Prénom / Mail / Tél. */
+function splitContact(v) {
+  v = String(v || "").replace(SIDES.festival, "").replace(SIDES.artiste, "").replace("Équipe du festival", "").replace(/^\s*·\s*/, "");
+  const mail = (v.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/) || [""])[0];
+  const tel = (v.match(/\+?\d[\d .-]{7,}\d/) || [""])[0];
+  const nom = v.replace(mail, "").replace(tel, "").split(/[·,;|\/]/).map(x => x.trim()).filter(Boolean).join(" ");
+  return { nom, mail, tel: tel.trim() };
+}
+function contactRowHTML(cid, side) {
+  const p = contactItem(cid), st = statusOf(p), v = contactValue(cid), mine = sent[cid];
+  const lab = `<td data-l="Métier"><b>${esc(p.titre)}</b></td>`;
+  if (st !== "todo" || MODE === "equipe" && v) {
+    const c = splitContact(v);
+    return `<tr>${lab}<td data-l="Nom-Prénom">${esc(c.nom || v)}</td><td data-l="Mail">${esc(c.mail)}</td><td data-l="Tél">${esc(c.tel)}</td>
+      <td class="act">${mine ? `<button type="button" class="linkbtn" data-edit="${cid}">Modifier</button>` : `<span class="pill p-ok">✓</span>`}</td></tr>`;
+  }
+  const d = k => esc(sent["draft-" + cid + "__" + k] || "");
+  const inp = (k, ph, type) => `<input type="${type || "text"}" form="fc-${cid}" name="${cid}__${k}" id="f-${cid}${k === "nom" ? "" : "-" + k}" placeholder="${ph}" value="${d(k)}" aria-label="${esc(p.titre)} : ${ph}">`;
+  return `<tr class="vide">${lab}<td data-l="Nom-Prénom">${inp("nom", "Nom Prénom")}</td><td data-l="Mail">${inp("mail", "Mail", "email")}</td><td data-l="Tél">${inp("tel", "Téléphone", "tel")}</td>
+    <td class="act"><form id="fc-${cid}" data-form="${cid}" data-ctable="${side}"></form><button class="send ok-row" type="submit" form="fc-${cid}">OK</button></td></tr>`;
+}
+function contactsTableHTML(ids, side) {
+  return `<div class="tab-w"><table class="ttab ctab"><thead><tr><th>Métier</th><th>Nom-Prénom</th><th>Mail</th><th>Tél</th><th></th></tr></thead>
+    <tbody>${ids.map(cid => contactRowHTML(cid, side)).join("") || `<tr><td colspan="5" class="det">Aucun contact pour l'instant.</td></tr>`}</tbody></table></div>`;
+}
 function contactsListHTML(t) {
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
-  const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => EVENT.groups[e.slice(2)].roles.map(r => r.c));
+  const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
   const all = [...singles, ...roles];
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
-  const list = ids => ids.map(cid => contactFieldHTML(cid, false, "", "")).join("") || `<p class="hint">Aucun contact pour l'instant.</p>`;
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
-    <div class="blk"><h3>Équipe du festival/salle</h3>${list(fest)}</div>
-    <div class="blk"><h3>Équipe de l'artiste</h3>${list(art)}</div>`;
+    <p class="hint">Les lignes orangées sont à compléter.</p>
+    <div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>
+    <div class="blk"><h3>Équipe de l'artiste</h3>${contactsTableHTML(art, "artiste")}</div>`;
 }
 function subsHTML(sub) {
   const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || sub.valeur || "";
@@ -1038,6 +1078,14 @@ document.addEventListener("change", e => {
 });
 document.addEventListener("submit", e => {
   const f = e.target.closest("[data-form]");
+  if (f && f.dataset.ctable) { e.preventDefault();
+    const cid = f.dataset.form, el = f.elements, g = k => (el[cid + "__" + k] ? el[cid + "__" + k].value.trim() : "");
+    const nom = g("nom"), mail = g("mail"), tel = g("tel");
+    if (!nom) { toast("Merci d'indiquer le nom et le prénom."); return; }
+    if (!mail && !tel) { toast("Merci d'indiquer un mail ou un téléphone."); return; }
+    const pre = f.dataset.ctable === "artiste" && EVENT.contacts[cid] && EVENT.contacts[cid].equipe !== "artiste" ? SIDES.artiste + " · " : "";
+    ["nom", "mail", "tel"].forEach(k => delete sent["draft-" + cid + "__" + k]);
+    submit(cid, pre + [nom, mail, tel].filter(Boolean).join(" · "), null, f.parentElement.querySelector(".send")); return; }
   if (f) { e.preventDefault();
     let v = f.querySelector("textarea,input[type=text]").value;
     if (f.dataset.multi) { const ch = [...f.querySelectorAll("input[name=opt]:checked")].map(x => x.value);
@@ -1060,6 +1108,7 @@ document.addEventListener("submit", e => {
 });
 document.addEventListener("change", e => { if (e.target.matches("[data-role] input[type=radio]")) { sent["side-" + e.target.name.slice(5)] = e.target.value; save(); } });
 document.addEventListener("input", e => { const w = e.target.closest && e.target.closest(".fwrap"); if (w) w.classList.toggle("has", !!e.target.value.trim()); });
+document.addEventListener("input", e => { if (e.target.matches('input[form^="fc-"]')) { sent["draft-" + e.target.name] = e.target.value; save(); } });
 document.addEventListener("input", e => { if (e.target.matches("[data-form] textarea, [data-form] input[type=text]")) { sent["draft-" + e.target.name] = e.target.value; save(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -1083,7 +1132,8 @@ document.addEventListener("click", e => {
   else if (b.dataset.oui) { const p = find(b.dataset.oui); submit(p.id, p.oui || "Oui.", { oui: true }, b); }
   else if (b.dataset.non) { const p = find(b.dataset.non); submit(p.id, p.non || "Non.", null, b); }
   else if (b.dataset.open) { const f = document.querySelector(`[data-form="${b.dataset.open}"]`); f.hidden = false; f.querySelector("textarea,input").focus(); }
-  else if (b.dataset.edit) { const id = b.dataset.edit, p = find(id); if (!sent[id]) return; if (!p || p.type !== "confirm-big") sent["draft-" + id] = sent[id].texte; delete sent[id]; save(); render(false); document.getElementById("f-" + id)?.focus(); }
+  else if (b.dataset.edit) { const id = b.dataset.edit, p = find(id); if (!sent[id]) return;
+    if (EVENT.contacts[id]) { const c = splitContact(sent[id].texte); ["nom", "mail", "tel"].forEach(k => { sent["draft-" + id + "__" + k] = c[k]; }); } if (!p || p.type !== "confirm-big") sent["draft-" + id] = sent[id].texte; delete sent[id]; save(); render(false); document.getElementById("f-" + id)?.focus(); }
   else if (b.dataset.fwd) copy(location.href.split("#")[0] + "#" + TOKEN + "~" + b.dataset.fwd, "Lien copié. Collez-le dans un mail à la personne concernée.");
   else if (b.dataset.mode) { MODE = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.mode === MODE))); render(false); }
 });
