@@ -174,6 +174,28 @@ def manquants(fichier, cle):
     print(json.dumps({"evenement": d.get("artiste", "") + " · " + d.get("lieu", ""), "date": d.get("iso"),
                       "sujets": sujets, "mails_saisis": tous}, ensure_ascii=False, indent=1))
 
+def depots(fichier, cle):
+    """Liste les points avec une demande de fichiers Dropbox : dossier à surveiller et état (reçu ou non)."""
+    d = lire(fichier, cle); out = []
+    for t in d.get("topics", []):
+        for it in t.get("items", []):
+            if it.get("dossier"):
+                r = d.get("reponses", {}).get(it["id"]) or {}
+                out.append({"point": it["id"], "titre": it.get("titre", ""), "dossier": it["dossier"],
+                            "recu": r.get("source") == "10DEC" and r.get("texte", "").startswith("Reçu")})
+    print(json.dumps(out, ensure_ascii=False, indent=1))
+
+def recu(fichier, cle, point, noms):
+    """Marque un point « Reçu » quand des fichiers sont arrivés dans son dossier Dropbox."""
+    from datetime import datetime, timezone
+    d = lire(fichier, cle); now = datetime.now(timezone.utc).astimezone()
+    texte = "Reçu : " + noms.strip()[:200]
+    r = {"texte": texte, "date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "source": "10DEC", "auteur": "Dépôt Dropbox", "statut": "ok"}
+    d.setdefault("reponses", {})[point] = r
+    d.setdefault("journal", []).append({k: r[k] for k in ("date", "texte", "source", "auteur")} | {"point": point})
+    d["maj"] = now.strftime("%d/%m/%Y"); ecrire(fichier, cle, d)
+    print(json.dumps({"point": point, "texte": texte}, ensure_ascii=False))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -181,4 +203,5 @@ def dechiffrer(fichier, cle):
 if __name__ == "__main__":
     a = sys.argv[1:]
     {"nouveau": lambda: nouveau(), "chiffrer": lambda: chiffrer(*a[1:4]), "dechiffrer": lambda: dechiffrer(*a[1:3]),
-     "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3])}[a[0]]()
+     "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
+     "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5])}[a[0]]()

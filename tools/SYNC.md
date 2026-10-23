@@ -25,6 +25,11 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `python3 -I tools/orga.py appliquer <fichier> <clé> /tmp/orga/lignes.json <code équipe>` → affiche les nouveautés (JSON).
    Le code équipe = ce qui suit le « ! » dans le lien équipe (colonne G). Sans lui, les réponses « 10DEC » ne sont pas reconnues.
    Chaque nouveauté porte un champ `auteur` (prénom et rôle de l'organisateur) : reporte-le dans la FDR (« par Fred – son »).
+3 bis. **Fichiers déposés (Dropbox)** : `python3 -I tools/orga.py depots <fichier> <clé>` → liste des points avec un dossier Dropbox.
+   Pour chaque point avec `"recu": false` : `mcp__Dropbox__list_folder` sur `dossier`. S'il contient au moins un fichier :
+   `python3 -I tools/orga.py recu <fichier> <clé> <point> "<noms des fichiers, séparés par des virgules>"` → le point passe à « Reçu » sur la page.
+   Puis compte-le comme une nouveauté : dans la FDR, une ligne « 📎 <titre> reçu : <noms> » (dossiers « Documents organisateur » :
+   partie « 📝 INFOS & REMARQUES » ; dossier « Visuels » : idem). Ne déplace, ne renomme, ne supprime rien dans Dropbox.
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
@@ -38,7 +43,7 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    - **Google Agenda** (événement ✅ de la même date, calendrier principal, notificationLevel NONE) : seulement pour un horaire,
      un lieu de parking, un lien GPS ou un référent sur place. Ajoute à la fin de la description, sans rien effacer :
      « 📋 Espace orga (JJ/MM) : <info> ».
-5. Si `appliquer` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
+5. Si `appliquer` ou `recu` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
    Vérifie avant le commit qu'aucune clé ni aucun code n'apparaît dans les fichiers modifiés (grep).
 6. Fin :
    - Rien de nouveau → écris seulement « ORGA : à jour ». Pas de notification.

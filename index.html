@@ -728,13 +728,13 @@ function homeHTML() {
 }
 
 /* ===== Vue sujet ===== */
-function fileButtons(p, label, noDone) {
+function fileButtons(p, label) {
   label = label || "Déposer un fichier";
-  return `<div class="actions">${EVENT.depotFichiers
-    ? `<a class="btn btn-main" href="${esc(EVENT.depotFichiers)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`
-    : `<button class="btn btn-main" type="button" disabled>${esc(label)}</button>`}
-    ${noDone ? "" : `<button class="btn btn-ghost" type="button" data-done="${p.id}">Le fichier est déposé</button>`}</div>
-    ${EVENT.depotFichiers ? "" : `<span class="hint">Le bouton de dépôt sera actif à la mise en ligne.</span>`}`;
+  const url = p.depot || EVENT.depotFichiers, t = sent["team-" + p.id], got = t && t.statut === "ok" ? t.texte : "";
+  return `<div class="actions">${url
+    ? `<a class="btn btn-main" href="${esc(url)}" target="_blank" rel="noopener">⬆ ${esc(label)}</a>`
+    : `<button class="btn btn-main" type="button" disabled>${esc(label)}</button>`}</div>
+    <span class="hint">${url ? (got ? `✓ ${esc(got)}` : "Sans compte Dropbox. Le point passe à « Reçu » dès que le fichier arrive.") : "Le bouton de dépôt sera actif à la mise en ligne."}</span>`;
 }
 /* Champ + bouton « Envoyer → » dans la case : gris tant que vide, bleu pâle quand rempli. */
 function fw(ctl, val, label, ta) {
@@ -799,7 +799,7 @@ function ficheHTML(p) {
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
     ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}
     <div class="tab-w"><table class="ttab fiche"><tbody>${ficheRows(p).map(r => r.type === "note" ? `<tr><td colspan="2" class="fnote">${esc(r.label)}</td></tr>` : `<tr class="${valOf(r.id) || r.opt ? "" : "vide"}"><th scope="row">${esc(r.label)}</th><td>${ficheCell(r)}</td></tr>`).join("")}</tbody></table></div>
-    ${p.fichier ? fileButtons(p, p.fichier, true) : ""}</div>`;
+    ${p.fichier ? fileButtons(p, p.fichier) : ""}</div>`;
 }
 /* Plusieurs cases + un champ, en un seul envoi (pass, accréditations, tickets). */
 function multiHTML(p) {
@@ -813,7 +813,7 @@ function multiHTML(p) {
       <label class="small" for="f-${p.id}">${esc(p.aide)}</label>
       ${fw(`<input type="text" id="f-${p.id}" name="${p.id}" placeholder="Lieu et personne à contacter" value="${esc(sent["draft-" + p.id] || "")}">`, sent["draft-" + p.id])}
     </form>
-    ${p.fichier ? fileButtons(p, p.fichier, true) : ""}</div>`;
+    ${p.fichier ? fileButtons(p, p.fichier) : ""}</div>`;
 }
 function fieldHTML(p) {
   const draft = sent["draft-" + p.id] || "";
@@ -863,8 +863,8 @@ function itemHTML(p) {
   if (p.docs && MODE === "orga") body += docsHTML(p.docs);
   if (MODE === "equipe") body += teamHTML(p);
   else if (st === "sent") {
-    if (p.type === "ouinon" && sent[p.id].oui) body += fileButtons(p, null, true);
-    if (p.type === "choix" && sent[p.id].fichier) body += fileButtons(p, sent[p.id].fichier, true);
+    if (p.type === "ouinon" && sent[p.id].oui) body += fileButtons(p);
+    if (p.type === "choix" && sent[p.id].fichier) body += fileButtons(p, sent[p.id].fichier);
     body += `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${p.id}">Modifier ma réponse</button></div>`;
   } else if (st === "todo") {
     if (p.type === "fichier") body += fileButtons(p);
