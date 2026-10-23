@@ -565,7 +565,7 @@ async function copy(text, okMsg) {
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const CONF = ["#2f3cff", "#18c3b0", "#ffc629", "#ff8a1f", "#ffffff"];
 let parts = [], raf = 0;
-function burst(x, y, n, spread) {
+function burst(x, y, n, spread) { return; /* confettis désactivés (sobriété) */
   if (REDUCED) return;
   const c = $("#confetti"); c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio;
   for (let i = 0; i < n; i++) {
@@ -587,7 +587,7 @@ function tick() {
   }
   raf = parts.length ? requestAnimationFrame(tick) : 0;
 }
-function bravo(titre, sous) {
+function bravo(titre, sous) { toast(sous); return; /* pas d'écran « Bravo » */
   const d = document.createElement("div"); d.className = "bravo";
   d.innerHTML = `<div>${esc(titre)}<small>${esc(sous)}</small></div>`;
   document.body.appendChild(d); setTimeout(() => d.remove(), 2100);
@@ -669,7 +669,7 @@ function famDueHTML(rs) {
 }
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
-  const msg = pr.full ? "Bravo, tout est complet ! L'équipe de 10 Doigts en Cavale vérifie les informations."
+  const msg = pr.full ? "Tout est complet. L'équipe de 10 Doigts en Cavale vérifie les informations."
     : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.` : "";
   const r = EVENT.referente;
   const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(Boolean) })).filter(ro => ro.tps.length);
@@ -1016,8 +1016,8 @@ function submit(id, texte, extra, origin) {
   render(false);
   burst(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top : innerHeight / 2, 36, 1.2);
   const cur = tops.find(t => t.id === CURRENT) || tops[0];
-  if (!beforeAll && progress(allPoints()).full) bravo("Bravo !", "Tout est complet. Merci pour ce concert accessible !");
-  else if (cur && !before[tops.indexOf(cur)] && progress(pointsOf(cur)).full) bravo("Bravo !", `« ${cur.label} » est complet.`);
+  if (!beforeAll && progress(allPoints()).full) bravo("", "Tout est complet. Merci pour ce concert accessible.");
+  else if (cur && !before[tops.indexOf(cur)] && progress(pointsOf(cur)).full) bravo("", `« ${cur.label} » est complet. Merci.`);
   else toast(PREVIEW ? "Merci ! (aperçu : réponse gardée sur cet appareil)" : "Merci ! Réponse envoyée.");
 }
 
@@ -1025,8 +1025,8 @@ function celebrate(tops, before, beforeAll, origin) {
   const r = origin ? origin.getBoundingClientRect() : null;
   burst(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top : innerHeight / 2, 36, 1.2);
   const cur = tops.find(t => t.id === CURRENT) || tops[0];
-  if (!beforeAll && progress(allPoints()).full) bravo("Bravo !", "Tout est complet. Merci pour ce concert accessible !");
-  else if (cur && !before[tops.indexOf(cur)] && progress(pointsOf(cur)).full) bravo("Bravo !", `« ${cur.label} » est complet.`);
+  if (!beforeAll && progress(allPoints()).full) bravo("", "Tout est complet. Merci pour ce concert accessible.");
+  else if (cur && !before[tops.indexOf(cur)] && progress(pointsOf(cur)).full) bravo("", `« ${cur.label} » est complet. Merci.`);
   else toast("Merci ! C'est noté.");
 }
 function confirmAll(tid, label, origin) {
