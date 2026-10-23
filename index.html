@@ -53,7 +53,7 @@ h1,h2,h3{text-wrap:balance}
 .gauge p{margin:0;font-size:15px}
 
 .preview{background:#fff4d6;color:#5b3a00;font-size:14px;border-bottom:1px solid #f0dca6}
-.preview .wrap{padding-block:8px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.preview .wrap{max-width:980px;padding-block:8px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
 .seg{display:inline-flex;border:1px solid currentColor;border-radius:8px;overflow:hidden;margin-left:4px;vertical-align:middle}
 .seg button{font:inherit;font-size:14px;font-weight:700;background:transparent;color:inherit;border:0;padding:6px 10px;min-height:36px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:#5b3a00;color:#fff4d6}
@@ -189,77 +189,101 @@ footer .wrap{padding-block:0 32px;display:grid;gap:4px}
 .nv-new{padding:2px 8px;border-radius:999px;background:var(--encre);color:#fff}
 .nv-d{color:var(--muted);margin-left:auto;font-weight:600}
 .nv-t{font-size:14px;line-height:1.4}
-/* ===== Design B (accueil) + C (sujet) ===== */
-body.home{background:#2433ff}
-body.home footer{color:rgba(255,255,255,.85)}
-body.home .topbar{background:#2433ff}
-body:not(.home)::before{background:#141938}
-.topbar.t-orange{background:#ff8a2a;color:#141938}
-.topbar .eo{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2ee6c9}
-.ct-ev{font-size:clamp(20px,5vw,28px)}
-.ct-n{font-weight:800}
+/* ===== Design « Blocs colorés » + encadré « À faire en priorité » =====
+   Trois familles : Technique (turquoise), Accueil · VHR (jaune), Public sourd · com (bleu). Vert = validé. */
+body{background:#f4f5fa}
+body::before{background:#ffffff}
+.topbar{background:#ffffff;color:var(--encre);border-bottom:1px solid #e8eaf3}
+.topbar .wrap{max-width:980px}
+.topbar .logo-chip{background:var(--electrique);border-radius:12px;padding:6px 10px;display:inline-flex}
+.topbar .logo-chip img{height:30px}
+.topbar .eo{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--electrique)}
+.ct-ev{font-size:clamp(18px,4.5vw,24px)}
+.ct-n{font-weight:800;background:var(--soft);border-radius:999px;padding:3px 10px;font-size:14px}
 .wrap.bhome{max-width:980px}
-.bcard{background:var(--soleil);color:var(--encre);border-radius:22px;padding:18px 20px;display:grid;gap:6px}
-.bcard .artist h1{font-size:clamp(48px,10vw,76px)}
+.bcard{position:relative;overflow:hidden;background:var(--electrique);color:#fff;border-radius:22px;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.bcard::before,.bcard::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.bcard::before{right:-40px;top:-40px;width:150px;height:150px;background:var(--soleil)}
+.bcard::after{right:90px;bottom:-50px;width:90px;height:90px;background:var(--turquoise)}
+.bcard>*{position:relative;z-index:1}
+.bcard .bc-main{display:grid;gap:6px;min-width:0}
+.bcard .artist h1{font-size:clamp(44px,9vw,70px)}
+.bcard .cs-logo{background:#fff;border-radius:14px;padding:3px;width:56px;height:56px}
 .bcard .where{font-weight:800;font-size:17px}
-.bcard .bar{background:rgba(16,21,61,.15);height:12px}
-.bcard .bar .b-done,.bcard .bar.full .b-done{background:var(--encre)}
-.bcard .progress-row span{font-weight:800}
-.bcard .msg{margin:0}
-.bh2{color:#fff;font-size:clamp(30px,6vw,42px);margin:10px 0 0}
-.roles{display:grid;gap:10px}
-@media (min-width:820px){.roles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.role{font:inherit;color:var(--encre);text-align:left;cursor:pointer;background:#fff;border:0;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:transform .15s,box-shadow .15s}
-.role:hover{transform:translateY(-2px);box-shadow:0 10px 24px -16px rgba(0,0,0,.6)}
-.role-h{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.role-l{font-weight:800;font-size:17px}
-.role-a{font-size:24px;font-weight:800;color:#2433ff;line-height:1}
-.role-s{font-size:13px;color:var(--muted)}
+.bcard .sub{font-size:15px;opacity:.95}
+.bcard .pct{background:#fff;color:var(--encre);border-radius:18px;padding:10px 14px;text-align:center;align-self:center}
+.bcard .pct b{display:block;font-family:var(--display);font-weight:600;font-size:32px;line-height:1}
+.bcard .pct span{font-size:12px;font-weight:800}
+.bcard .msg{margin:0;grid-column:1/-1;font-weight:700}
+@media (max-width:520px){.bcard{grid-template-columns:1fr}.bcard .pct{justify-self:start;display:flex;gap:8px;align-items:baseline}}
+.prio{background:#fff4e8;border:2px solid #ff8a2a;border-radius:18px;padding:14px 16px;display:grid;gap:8px}
+.prio-h{display:flex;align-items:center;gap:8px}
+.prio-h h2{margin:0;font-size:22px}
+.prio-h small{margin-left:auto;font-size:13px;font-weight:800;color:#a34a08}
+.prio-i{font:inherit;color:var(--encre);text-align:left;cursor:pointer;background:#fff;border:0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:transform .15s}
+.prio-i:hover{transform:translateX(3px)}
+.prio-i .pe{font-size:18px}
+.prio-i .pt{flex-grow:1;display:grid;line-height:1.3}
+.prio-i .pt b{font-size:15px}
+.prio-i .pt span{font-size:13px;color:var(--muted)}
+.due{font-size:12px;font-weight:800;border-radius:999px;padding:3px 9px;white-space:nowrap;background:#ffe9a8;color:#6b4a00}
+.due.urg{background:#ff8a2a;color:#fff}
+.due.late{background:#c2410c;color:#fff}
+.prio-i .pa{color:#ff8a2a;font-weight:800;font-size:20px}
+.fam{display:grid;gap:8px}
+.fam-l{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.roles{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:700px){.roles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.role{font:inherit;color:var(--encre);text-align:left;cursor:pointer;border:0;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-height:104px;transition:transform .15s,box-shadow .15s}
+.role:hover{transform:translateY(-2px);box-shadow:0 10px 24px -16px rgba(16,21,61,.6)}
+.role-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.role-e{font-size:26px;line-height:1}
+.role-n{font-family:var(--display);font-weight:600;font-size:19px}
+.role-l{font-weight:800;font-size:15px;line-height:1.2;flex-grow:1}
+.role .bar{background:rgba(255,255,255,.85);height:7px}
 .role.full{box-shadow:0 0 0 3px var(--ok) inset}
-.role .progress-row span{font-size:12px;font-weight:800}
-.role .bar{background:#e7e9ff;height:8px}
-.ball{font:inherit;font-weight:800;color:#2ee6c9;background:none;border:0;text-align:left;cursor:pointer;padding:6px 0;justify-self:start}
-.bout{border:2px solid rgba(255,255,255,.35);border-radius:18px;padding:16px;display:grid;gap:10px;color:#fff}
+.role.full .role-n{color:var(--ok)}
+.ball{font:inherit;font-weight:800;color:var(--electrique);background:none;border:0;text-align:left;cursor:pointer;padding:6px 0;justify-self:start}
+.bout{background:#fff;border-radius:18px;padding:16px;display:grid;gap:10px;color:var(--encre)}
 .bout h2{margin:0;font-size:24px}
-.bout .arr .t{color:#2ee6c9}
-.bout .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
-.btn-turq{background:#2ee6c9;color:#0d1240}
-.alerte-home{display:flex;gap:14px;align-items:flex-start;background:#fff;color:var(--encre);border-radius:18px;padding:14px 16px;text-align:left;font:inherit;border:0;cursor:pointer}
-.alerte-home .al-ic{background:#ff8a2a;color:#fff}
-.alerte-home strong{font-family:var(--display);font-weight:600;font-size:18px;display:block}
-.al-p{display:block;margin-top:4px}
-body.home .feed{background:#fff}
-.tabs{background:#141938;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
-.tabs-in{max-width:980px;margin:0 auto;display:flex;gap:8px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;scrollbar-width:none}
+.bout .arr .t{color:var(--electrique)}
+.btn-turq{background:var(--turquoise);color:#0b1a3a}
+.feed{background:#fff}
+.tabs{background:#fff;border-bottom:1px solid #e8eaf3;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs-in{max-width:980px;margin:0 auto;display:flex;gap:6px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;scrollbar-width:none}
 .tabs-in::-webkit-scrollbar{display:none}
 @media (min-width:900px){.tabs-in{flex-wrap:wrap;overflow:visible}}
-.tab{flex:none;font:inherit;font-size:14px;font-weight:800;background:#262c57;color:#fff;border:0;border-radius:999px;padding:8px 12px;cursor:pointer;min-height:38px}
-.tab small{font-size:12px;opacity:.85;font-weight:700}
-.tab.cur{background:#ff8a2a;color:#141938}
-.tab.full:not(.cur) small{color:#5fd394;opacity:1}
+.tab{flex:none;font:inherit;font-size:14px;font-weight:800;background:#f1f2f8;color:var(--encre);border:0;border-radius:999px;padding:7px 12px;cursor:pointer;min-height:36px}
+.tab small{font-size:12px;opacity:.75;font-weight:700}
+.tab.full:not(.cur) small{color:var(--ok);opacity:1}
 .wrap.topic{max-width:760px}
-.th{display:flex;justify-content:space-between;align-items:flex-end;gap:6px 12px;flex-wrap:wrap}
-.th h1{margin:0;font-size:clamp(32px,7vw,46px);color:var(--electrique)}
-.avant{font-size:14px;color:var(--muted);font-weight:700}
-.topic .bar{background:#e9ebff}
-.topic .bar .b-done{background:#12b5a5}
-.topic .bar.full .b-done{background:var(--ok)}
-.pour{margin:-8px 0 0;color:var(--muted);font-weight:700}
+.thb{border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+.thb .te{font-size:40px;line-height:1}
+.thb .tm{flex-grow:1;display:grid;gap:8px;min-width:0}
+.thb h1{margin:0;font-size:clamp(28px,6vw,40px)}
+.thb .bar{background:#fff;height:9px}
+.thb .progress-row span{font-weight:800}
+.dl{background:var(--soleil);border-radius:14px;padding:6px 10px;font-size:12px;font-weight:800;text-align:center;line-height:1.2;flex:none}
+.dl b{display:block;font-family:var(--display);font-weight:600;font-size:18px}
+.dl.urg{background:#ff8a2a;color:#fff}
+.dl.late{background:#c2410c;color:#fff}
+.pour{margin:0;color:var(--muted);font-weight:700}
 .hint{margin:0;color:var(--muted)}
 .chks,.items{display:grid;gap:10px}
-.chk{display:flex;gap:12px;align-items:flex-start;border:2px solid #e6e8f4;background:#fff;border-radius:14px;padding:12px 14px;line-height:1.4;cursor:pointer;transition:background .2s,border-color .2s}
-.chk:hover{border-color:#12b5a5}
-.chk input{width:22px;height:22px;margin:1px 0 0;accent-color:#12b5a5;flex:none;cursor:pointer}
+.chk{display:flex;gap:12px;align-items:flex-start;border:2px solid transparent;background:#fff;border-radius:14px;padding:12px 14px;line-height:1.4;cursor:pointer;transition:background .2s,border-color .2s}
+.chk:hover{border-color:#18c3b0}
+.chk input{width:22px;height:22px;margin:1px 0 0;accent-color:#12a596;flex:none;cursor:pointer}
 .chk-t{display:grid;gap:2px}
 .chk-t>span{color:var(--muted);font-size:14px}
-.chk.on{border-color:#12b5a5;background:#e3f7f4}
-.chk.imp:not(.on){border-color:#ffc629;background:#fffaeb}
-.tag-imp{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#ffc629;color:var(--encre);padding:2px 7px;border-radius:999px;margin-right:6px;vertical-align:2px}
+.chk.on{background:#e3f7f4}
+.chk.imp:not(.on){background:#fff4e8;border-color:#ffc89a}
+.tag-imp{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#ff8a2a;color:#fff;padding:2px 7px;border-radius:999px;margin-right:6px;vertical-align:2px}
 .chk-t>span.chk-r{color:var(--ok);font-weight:700}
-.qui{background:#fff0e2;border-radius:16px;padding:14px;display:grid;gap:10px}
+.qui{background:#fff4d6;border-radius:16px;padding:14px;display:grid;gap:10px}
 .qui .side{background:#fff}
+.qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .grp h3{margin:0;font-family:var(--display);font-weight:600;font-size:20px;color:var(--encre)}
-.btn-line{background:#fff;color:var(--electrique);border-color:var(--electrique)}
+.btn-line{background:#eef0ff;color:var(--electrique);border-color:#eef0ff}
 .fwd2{margin:0;color:var(--muted)}
 .linkbtn{font:inherit;color:var(--electrique);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 .tnav{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:2px dashed var(--line);padding-top:16px}
@@ -309,19 +333,37 @@ const ICONS = {
   ecran: "M2 4h20v13H2zM8 21h8m-4-4v4"
 };
 
-/* Accueil « Vous êtes en charge de… » : chaque métier regroupe ses sujets. */
+/* Accueil « Vous êtes en charge de… » : trois familles, chaque carte regroupe ses sujets. */
+const FAM = {
+  tech: { label: "Technique", bg: "#dff6f2", bar: "#18c3b0", fg: "#0b7f72", tab: "#0f9c8c", tabFg: "#ffffff" },
+  logi: { label: "Accueil · VHR", bg: "#fff1c7", bar: "#e0a800", fg: "#8a5f00", tab: "#ffc629", tabFg: "#10153d" },
+  com:  { label: "Public sourd · com", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
+};
 const ROLES = [
-  { label: "Le son", topics: ["son", "talkback"] },
-  { label: "La lumière", topics: ["lumiere"] },
-  { label: "Le plateau", topics: ["emplacement"] },
-  { label: "La vidéo et l'écran", topics: ["ecran"] },
-  { label: "La régie générale et la production", topics: ["contacts", "horaires", "securite"] },
-  { label: "L'accueil des artistes", topics: ["accueil", "parking", "pass"] },
-  { label: "La communication et le public sourd", topics: ["public"] },
-  { label: "La presse", topics: ["presse"] },
-  { label: "La setlist (équipe de l'artiste)", topics: ["setlist"] },
-  { label: "Après le concert", topics: ["photos"] }
+  { fam: "tech", e: "🎧", label: "Le son", topics: ["son", "talkback"] },
+  { fam: "tech", e: "💡", label: "La lumière", topics: ["lumiere"] },
+  { fam: "tech", e: "🎭", label: "Le plateau", topics: ["emplacement"] },
+  { fam: "tech", e: "📺", label: "La vidéo et l'écran", topics: ["ecran"] },
+  { fam: "tech", e: "📋", label: "Régie générale et production", topics: ["contacts", "securite"] },
+  { fam: "logi", e: "🍽️", label: "Loge et catering", topics: ["accueil"] },
+  { fam: "logi", e: "🚗", label: "Parking et runs", topics: ["parking"] },
+  { fam: "logi", e: "🎫", label: "Pass et tickets", topics: ["pass"] },
+  { fam: "logi", e: "⏰", label: "Horaires et balances", topics: ["horaires"] },
+  { fam: "com", e: "🧏", label: "Public sourd et com", topics: ["public"] },
+  { fam: "com", e: "📣", label: "Presse et captation", topics: ["presse"] },
+  { fam: "com", e: "🎵", label: "La setlist", topics: ["setlist"] },
+  { fam: "com", e: "📸", label: "Après le concert", topics: ["photos"] }
 ];
+const roleOf = id => ROLES.find(r => r.topics.includes(id)) || { fam: "com", e: "📌", label: "" };
+const famOf = id => FAM[roleOf(id).fam];
+/* Échéances : « iso » (AAAA-MM-JJ) dans chaque sujet. */
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+function dueOf(t) {
+  if (!t.iso) return null;
+  const d = new Date(t.iso + "T00:00:00"), days = Math.round((d - today0()) / 864e5);
+  const dm = d.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" });
+  return { days, dm, cls: days < 0 ? "late" : days <= 3 ? "urg" : "", txt: days < 0 ? "En retard" : days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : "Avant le " + dm };
+}
 const SHORT = { setlist: "Setlist", son: "Son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écran", talkback: "Talkback",
   contacts: "Contacts", accueil: "Accueil", parking: "Parking", pass: "Pass", horaires: "Horaires", public: "Com & public sourd",
   presse: "Presse", photos: "Photos", securite: "Sécurité" };
@@ -447,11 +489,10 @@ const icon = k => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" s
 const barHTML = (pr, label) => `<div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${esc(label || `${pr.d} sur ${pr.n}`)}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%"></i></div>`;
 function renderTop() {
   const tb = $("#topbar"), pr = progress(allPoints());
-  tb.parentElement.classList.toggle("t-orange", !!CURRENT);
   document.body.classList.toggle("home", !CURRENT);
   tb.innerHTML = CURRENT
     ? `<span class="ct-ev disp">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n} ✓</span>`
-    : `<img src="${LOGO}" alt="10 Doigts en Cavale"><span class="eo">Espace organisateur</span>`;
+    : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span><span class="eo">Espace organisateur</span>`;
   $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
   $("#foot").innerHTML = `<div>Page mise à jour le ${esc(EVENT.maj)}. Les réponses sont vérifiées par l'équipe de 10 Doigts en Cavale, et la page est actualisée toutes les heures.</div>
@@ -487,35 +528,53 @@ function feedHTML() {
   return `<section class="feed" aria-labelledby="feedT"><h2 class="disp" id="feedT">Les nouveautés</h2>
     ${items ? `<ul>${items}</ul>` : `<p class="det">Aucune nouveauté pour l'instant. Les réponses, questions et mises à jour apparaîtront ici.</p>`}</section>`;
 }
+/* « À faire en priorité » : les sujets incomplets les plus proches de leur échéance (et les places PSH en premier). */
+function prioHTML() {
+  const items = [];
+  const tpA = EVENT.topics.find(x => x.alerte), itA = tpA && pointsOf(tpA).find(p => p.id === "pub-places");
+  if (tpA && itA && statusOf(itA) === "todo") items.push({ t: tpA, e: "🧏", titre: "Places PSH : indiquer le stock prévu", sous: "Le public sourd est souvent prévenu tardivement.", due: { cls: "urg", txt: "Urgent" }, k: -999 });
+  EVENT.topics.forEach(t => {
+    const pts = pointsOf(t), left = pts.filter(p => !isDone(p)).length, du = dueOf(t);
+    if (!left || !du || du.days > 21) return;
+    if (t.id === "photos" && EVENT.iso && new Date(EVENT.iso + "T23:59:00") > new Date()) return;
+    if (items.some(x => x.t === t)) return;
+    items.push({ t, e: roleOf(t.id).e, titre: t.label, sous: `${left} point${left > 1 ? "s" : ""} à confirmer`, due: du, k: du.days });
+  });
+  items.sort((a, b) => a.k - b.k);
+  const top = items.slice(0, 3);
+  if (!top.length) return "";
+  return `<section class="prio" aria-labelledby="prioT"><div class="prio-h"><span aria-hidden="true">🔥</span><h2 class="disp" id="prioT">À faire en priorité</h2><small>${items.length} sujet${items.length > 1 ? "s" : ""}</small></div>
+    ${top.map(x => `<button type="button" class="prio-i" data-topic="${x.t.id}"><span class="pe" aria-hidden="true">${x.e}</span><span class="pt"><b>${esc(x.titre)}</b><span>${esc(x.sous)}</span></span><span class="due ${x.due.cls}">${esc(x.due.txt)}</span><span class="pa" aria-hidden="true">→</span></button>`).join("")}</section>`;
+}
 function homeHTML() {
   const pr = progress(allPoints()); const left = pr.n - pr.d;
   const msg = pr.full ? "Bravo, tout est complet ! L'équipe de 10 Doigts en Cavale vérifie les informations."
     : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.`
     : "Choisissez ce dont vous êtes en charge : vous ne voyez que ce qui vous concerne.";
   const r = EVENT.referente;
-  const tpA = EVENT.topics.find(x => x.alerte), itA = tpA && pointsOf(tpA).find(p => p.id === "pub-places");
-  const alerte = tpA && itA && statusOf(itA) === "todo"
-    ? `<button type="button" class="alerte-home" data-topic="${tpA.id}"><span class="al-ic" aria-hidden="true">!</span><span><strong>${esc(tpA.alerte.titre)}</strong><span class="al-p">Le public sourd est souvent prévenu tardivement. Cliquez ici pour indiquer le stock prévu.</span></span></button>` : "";
   const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(Boolean) })).filter(ro => ro.tps.length);
+  const fams = Object.keys(FAM).map(k => ({ k, f: FAM[k], rs: roles.filter(ro => ro.fam === k) })).filter(x => x.rs.length);
   return `<main><div class="wrap bhome">
     <section class="bcard">
-      <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
-      <div class="where">${esc(EVENT.lieu)} · ${esc(EVENT.ville)} · ${esc(EVENT.date)} · ${esc(EVENT.heure)}</div>
-      <div>Première partie : ${esc(EVENT.premiere)} · Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
-      <div class="progress-row">${barHTML(pr, `${pr.d} points complétés sur ${pr.n}`)}<span>${pr.d} / ${pr.n}</span></div>
+      <div class="bc-main">
+        <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
+        <div class="where">${esc(EVENT.lieu)} · ${esc(EVENT.ville)} · ${esc(EVENT.date)} · ${esc(EVENT.heure)}</div>
+        <div class="sub">Première partie : ${esc(EVENT.premiere)} · Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
+      </div>
+      <div class="pct" role="img" aria-label="${pr.d} points complétés sur ${pr.n}"><b>${pr.n ? Math.round(pr.d / pr.n * 100) : 0}%</b><span>complété</span></div>
       <p class="msg">${esc(msg)}</p>
     </section>
-    ${alerte}
-    ${feedHTML()}
-    <h2 class="bh2 disp">Vous êtes en charge de…</h2>
-    <div class="roles">${roles.map(ro => {
+    ${prioHTML()}
+    <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
+    ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span><div class="roles">${x.rs.map(ro => {
       const p = progress(uniq(ro.tps.flatMap(pointsOf)));
-      return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}">
-        <span class="role-h"><span class="role-l">${esc(ro.label)}</span><span class="role-a" aria-hidden="true">→</span></span>
-        <span class="role-s">${esc(ro.tps.map(t => t.label).join(" · "))}</span>
-        <span class="progress-row">${barS(p)}<span>${p.full ? "✓ Complet" : `${p.d} / ${p.n}`}</span></span></button>`;
-    }).join("")}</div>
+      return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
+        <span class="role-h"><span class="role-e" aria-hidden="true">${ro.e}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
+        <span class="role-l">${esc(ro.label)}</span>
+        <span class="bar ${p.full ? "full" : ""}" role="img" aria-label="${p.d} sur ${p.n}"><i class="b-done" style="width:${p.n ? p.d / p.n * 100 : 0}%;${p.full ? "" : `background:${x.f.bar}`}"></i></span></button>`;
+    }).join("")}</div></section>`).join("")}
     <button type="button" class="ball" data-topic="${tabOrder()[0]}">Tout voir, sujet par sujet →</button>
+    ${feedHTML()}
     <section class="bout" aria-labelledby="teamT"><h2 class="disp" id="teamT">Les chansigneurs : ${esc(EVENT.chansigneurs)}</h2>
       <ul class="arr">${EVENT.arrivees.map(a => `<li><span class="t">${esc(a.quand)}</span><span>${esc(a.detail)}</span></li>`).join("")}</ul>
       <div class="actions"><b style="align-self:center">${esc(r.nom)}, ${esc(r.role)}</b>
@@ -656,8 +715,16 @@ function tabsHTML() {
   return `<nav class="tabs" aria-label="Sujets"><div class="tabs-in">
     <button type="button" class="tab" data-home>← Accueil</button>
     ${tabOrder().map(id => { const t = topicById(id), p = progress(pointsOf(t)), cur = id === CURRENT;
-      return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${esc(SHORT[id] || t.label)} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
+      const f = famOf(id), st = cur ? `background:${f.tab};color:${f.tabFg}` : `background:${f.bg}`;
+      return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${esc(SHORT[id] || t.label)} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
   </div></nav>`;
+}
+function dlHTML(t, pr) {
+  const du = dueOf(t);
+  if (pr.full) return `<span class="dl" style="background:var(--ok);color:#fff">Complet<b>✓</b></span>`;
+  if (!du) return t.avant ? `<span class="dl">${esc(t.avant)}</span>` : "";
+  if (du.days < 0) return `<span class="dl late">Date passée<b>${esc(du.dm)}</b></span>`;
+  return `<span class="dl ${du.cls}">Avant le<b>${esc(du.dm)}</b></span>`;
 }
 function topicHTML(t) {
   const pr = progress(pointsOf(t)), checks = checksOf(t);
@@ -685,8 +752,10 @@ function topicHTML(t) {
   if (MODE === "orga") body += `<p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p>` + questionHTML(t);
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(SHORT[next.id] || next.label)} →</button>` : ""}</div>`;
   return `${tabsHTML()}<main><div class="wrap topic">
-    <div class="th"><h1 class="disp">${esc(t.label)}</h1><span class="avant">à compléter avant le ${esc(t.avant)}</span></div>
-    <div class="progress-row">${barHTML(pr)}<span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div>
+    <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${roleOf(t.id).e}</span>
+      <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
+        <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
+      ${dlHTML(t, pr)}</div>
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
     ${body}</div></main>`;
 }
