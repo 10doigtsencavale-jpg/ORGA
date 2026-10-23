@@ -174,12 +174,13 @@ footer .wrap{padding-block:0 32px;display:grid;gap:4px}
 .alerte p{margin:4px 0 0;line-height:1.45}
 .alerte-btn{cursor:pointer}
 .al-ic{flex:none;width:40px;height:40px;border-radius:50%;background:var(--soleil);color:var(--encre);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:24px}
-.afilt{display:flex;flex-wrap:wrap;gap:4px;background:#eef0f7;border-radius:999px;padding:4px;justify-self:start;max-width:100%;min-width:0}
-.seg-b{font:inherit;font-size:14px;font-weight:800;border:0;background:transparent;color:#5a6080;padding:8px 13px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.afilt{display:flex;flex-wrap:nowrap;gap:2px;background:#eef0f7;border-radius:999px;padding:3px;justify-self:start;max-width:100%;min-width:0;overflow-x:auto;scrollbar-width:none}
+.afilt::-webkit-scrollbar{display:none}
+.seg-b{font:inherit;font-size:13.5px;font-weight:800;border:0;background:transparent;color:#5a6080;padding:7px 11px;white-space:nowrap;flex:none;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .seg-b.on{background:#fff;color:#10153d;box-shadow:0 1px 4px rgba(16,21,61,.18)}
 .seg-b:focus-visible,.ap:focus-visible{outline:3px solid #2f3cff;outline-offset:2px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
-.seg-note{margin:0;font-size:14px;font-weight:700;color:#8a5f00;background:#fff4d6;border-radius:12px;padding:8px 12px}
+.seg-note{margin:0;font-size:13px;font-weight:700;color:#8a5f00;background:#fff4d6;border-radius:10px;padding:5px 10px}
 .slots{display:grid;gap:5px;margin-top:2px;min-width:0}
 .bc-main{min-width:0}
 .slot{display:flex;gap:8px;align-items:baseline;font-weight:700;font-size:15px;min-width:0}
@@ -268,6 +269,10 @@ body::before{background:#ffffff}
 .btn-turq{background:var(--turquoise);color:#0b1a3a}
 .feed{background:#fff}
 .tabs{background:#fff;border-bottom:1px solid #e8eaf3;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.stick{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:#fff}
+.stick .tabs{position:static}
+.afband{background:#fff;border-bottom:1px solid #e8eaf3}
+.afband .wrap{display:grid;gap:6px;padding-block:8px}
 .tabs-in{max-width:900px;margin:0 auto;display:flex;gap:6px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;scrollbar-width:none}
 .tabs-in::-webkit-scrollbar{display:none}
 @media (min-width:900px){.tabs-in{flex-wrap:wrap;overflow:visible}}
@@ -480,7 +485,8 @@ const PICTOS = {
   photo: SV(`<rect x="4" y="13" width="40" height="27" rx="5" fill="#10153d"/><path d="M15 13l3-6h12l3 6" fill="#10153d"/><circle cx="24" cy="26.5" r="9" fill="#fff"/><circle cx="24" cy="26.5" r="5.5" fill="#2f3cff"/><rect x="35" y="17" width="5" height="3" rx="1" fill="#ffc629"/>`)
 };
 const emo = (e, px) => PICTOS[e] ? `<span class="pic" style="width:${px}px;height:${px}px">${PICTOS[e]}</span>` : e;
-const roleOf = id => ROLES.find(r => r.topics.includes(id)) || { fam: "com", e: "📌", label: "" };
+const baseOf = id => ((EVENT && EVENT.topics.find(t => t.id === id)) || {}).base || id; /* sujet dupliqué par artiste : « son-mp » → « son » */
+const roleOf = id => ROLES.find(r => r.topics.includes(baseOf(id))) || { fam: "com", e: "📌", label: "" };
 const famOf = id => FAM[roleOf(id).fam];
 /* Échéances : « iso » (AAAA-MM-JJ) dans chaque sujet. */
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
@@ -562,14 +568,16 @@ function visible(x) {
   if (!multiArt() || FILTRE === "tout") return true;
   const tg = tagsOf(x); return FILTRE === "fest" ? !tg.length : tg.includes(FILTRE);
 }
-const ptsF = t => pointsOf(t).filter(visible);
+const ptsF = t => t.artiste ? (visible(t) ? pointsOf(t) : []) : pointsOf(t).filter(visible);
+const artDot = id => { const a = ARTS().find(x => x.id === id); return a ? `<i class="dot" style="background:${a.couleur}"></i>` : ""; };
+const tabLabel = t => (SHORT[baseOf(t.id)] || t.label) + (t.artiste ? " · " + artName(t.artiste) : "");
 const artName = id => id === "fest" ? "Festival" : ((ARTS().find(a => a.id === id) || {}).court || "");
 function filtreHTML() {
   if (!multiArt()) return "";
-  const opts = [["tout", "Tout"], ["fest", "Festival"], ...ARTS().map(a => [a.id, a.court])];
+  const opts = [["tout", "Tout"], ["fest", "Festival"], ...ARTS().map(a => [a.id, a.bref || a.court])];
   const bar = `<div class="afilt" role="group" aria-label="Afficher">${opts.map(([k, l]) =>
     `<button type="button" class="seg-b ${FILTRE === k ? "on" : ""}" data-filtre="${k}" aria-pressed="${FILTRE === k}">${k !== "tout" ? `<i class="dot" style="background:${k === "fest" ? "#0f7f8c" : (ARTS().find(a => a.id === k) || {}).couleur}"></i>` : ""}${esc(l)}</button>`).join("")}</div>`;
-  const note = FILTRE === "tout" ? "" : `<p class="seg-note">Seuls les points « ${esc(artName(FILTRE))} » sont affichés. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
+  const note = FILTRE === "tout" ? "" : `<p class="seg-note">Filtre actif : ${esc(artName(FILTRE))} uniquement. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   return bar + note;
 }
 function artPctHTML() {
@@ -676,7 +684,7 @@ function renderTop() {
 const topicById = id => EVENT.topics.find(t => t.id === id);
 function tabOrder() {
   const seen = [];
-  ROLES.forEach(r => r.topics.forEach(id => { if (topicById(id) && !seen.includes(id)) seen.push(id); }));
+  ROLES.forEach(r => r.topics.forEach(id => EVENT.topics.filter(t => (t.base || t.id) === id).forEach(t => { if (!seen.includes(t.id)) seen.push(t.id); })));
   EVENT.topics.forEach(t => { if (!seen.includes(t.id)) seen.push(t.id); });
   return seen.filter(id => id === CURRENT || ptsF(topicById(id)).length);
 }
@@ -737,9 +745,9 @@ function homeHTML() {
   const msg = pr.full ? "Tout est complet. L'équipe de 10 Doigts en Cavale vérifie les informations."
     : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.` : "";
   const r = EVENT.referente;
-  const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(t => t && ptsF(t).length) })).filter(ro => ro.tps.length);
+  const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.flatMap(id => EVENT.topics.filter(t => (t.base || t.id) === id)).filter(t => ptsF(t).length) })).filter(ro => ro.tps.length);
   const fams = Object.keys(FAM).map(k => ({ k, f: FAM[k], rs: roles.filter(ro => ro.fam === k) })).filter(x => x.rs.length);
-  return `<main><div class="wrap bhome">
+  return `${multiArt() ? `<div class="stick"><div class="afband"><div class="wrap">${filtreHTML()}</div></div></div>` : ""}<main><div class="wrap bhome">
     <section class="bcard">
       <div class="bc-main">
         <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
@@ -755,7 +763,6 @@ function homeHTML() {
       ${artPctHTML()}
     </section>
     <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
-    ${filtreHTML()}
     ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span>${famDueHTML(x.rs)}<div class="roles">${x.rs.map(ro => {
       const p = progress(uniq(ro.tps.flatMap(ptsF)));
       return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
@@ -995,17 +1002,18 @@ function contactsTableHTML(ids, side) {
   return `<div class="tab-w"><table class="ttab ctab"><thead><tr><th>Métier</th><th>Nom-Prénom</th><th>Mail</th><th>Tél</th><th></th></tr></thead>
     <tbody>${ids.map(cid => contactRowHTML(cid, side)).join("") || `<tr><td colspan="5" class="det">Aucun contact pour l'instant.</td></tr>`}</tbody></table></div>`;
 }
-function contactsListHTML(t) {
+function contactsListHTML(t, vis) {
+  vis = vis || visible;
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
   const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
-  const all = [...singles, ...roles].filter(c => visible(contactItem(c)));
+  const all = [...singles, ...roles].filter(c => vis(contactItem(c)));
   const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
     <p class="hint">Les lignes orangées sont à compléter.</p>
     ${fest.length || !multiArt() ? `<div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>` : ""}
     ${!multiArt() ? `<div class="blk"><h3>Équipe de l'artiste</h3>${contactsTableHTML(art, "artiste")}</div>`
-      : ARTS().filter(a => FILTRE === "tout" || FILTRE === a.id).map(a => `<div class="blk"><h3><i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}</h3>${contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste")}</div>`).join("")}`;
+      : ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id))).map(a => `<div class="blk"><h3><i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}</h3>${contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste")}</div>`).join("")}`;
 }
 function subsHTML(sub) {
   const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || sub.valeur || "";
@@ -1025,7 +1033,7 @@ function tabsHTML() {
     <button type="button" class="tab" data-home>← Accueil</button>
     ${tabOrder().map(id => { const t = topicById(id), p = progress(ptsF(t)), cur = id === CURRENT;
       const f = famOf(id), st = cur ? `background:${f.tab};color:${f.tabFg}` : `background:${f.bg}`;
-      return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${esc(SHORT[id] || t.label)} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
+      return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${t.artiste ? artDot(t.artiste) : ""}${esc(tabLabel(t))} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
   </div></nav>`;
 }
 function dlHTML(t, pr) {
@@ -1041,7 +1049,8 @@ function auteurHTML() {
     ${fw(`<input type="text" id="f-auteur" placeholder="ex. Fred – ingé son" value="${esc(AUTEUR)}">`, AUTEUR, "OK")}</form>`;
 }
 function topicHTML(t) {
-  const pr = progress(ptsF(t)), checks = checksOf(t).filter(visible);
+  const vis = x => t.artiste ? visible(t) : visible(x);
+  const pr = progress(ptsF(t)), checks = checksOf(t).filter(vis);
   const order = tabOrder(), next = topicById(order[order.indexOf(t.id) + 1]);
   let body = "";
   if (t.alerte) body += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
@@ -1053,12 +1062,12 @@ function topicHTML(t) {
     body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
     if (t.note) body += `<p class="det">${esc(t.note)}</p>`;
   }
-  const its = (t.items || []).filter(it => visible(itemOf(it)));
+  const its = (t.items || []).filter(it => vis(itemOf(it)));
   if (its.length) body += `<div class="items">${its.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
   else if (t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
-  if (t.contactsList) body += contactsListHTML(t);
+  if (t.contactsList) body += contactsListHTML(t, vis);
   body += docsHTML(t.docs);
-  if (t.qui && visible({})) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
+  if (t.qui && vis({})) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
   const reste = checks.some(p => statusOf(p) === "todo");
   const acts = [];
   if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
@@ -1066,13 +1075,12 @@ function topicHTML(t) {
   if (acts.length) body += `<div class="actions">${acts.join("")}</div>`;
   if (MODE === "orga") body += `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t);
-  body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(SHORT[next.id] || next.label)} →</button>` : ""}</div>`;
-  return `${tabsHTML()}<main><div class="wrap topic">
+  body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
+  return `<div class="stick">${multiArt() ? `<div class="afband"><div class="wrap">${filtreHTML()}</div></div>` : ""}${tabsHTML()}</div><main><div class="wrap topic">
     <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${emo(roleOf(t.id).e, 46)}</span>
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
-    ${filtreHTML()}
     ${MODE === "orga" ? auteurHTML() : ""}
     ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
