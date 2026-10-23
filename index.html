@@ -174,6 +174,19 @@ footer .wrap{padding-block:0 32px;display:grid;gap:4px}
 .alerte p{margin:4px 0 0;line-height:1.45}
 .alerte-btn{cursor:pointer}
 .al-ic{flex:none;width:40px;height:40px;border-radius:50%;background:var(--soleil);color:var(--encre);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:24px}
+.afilt{display:flex;flex-wrap:wrap;gap:4px;background:#eef0f7;border-radius:999px;padding:4px;justify-self:start;max-width:100%;min-width:0}
+.seg-b{font:inherit;font-size:14px;font-weight:800;border:0;background:transparent;color:#5a6080;padding:8px 13px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg-b.on{background:#fff;color:#10153d;box-shadow:0 1px 4px rgba(16,21,61,.18)}
+.seg-b:focus-visible,.ap:focus-visible{outline:3px solid #2f3cff;outline-offset:2px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.seg-note{margin:0;font-size:14px;font-weight:700;color:#8a5f00;background:#fff4d6;border-radius:12px;padding:8px 12px}
+.slots{display:grid;gap:5px;margin-top:2px;min-width:0}
+.bc-main{min-width:0}
+.slot{display:flex;gap:8px;align-items:baseline;font-weight:700;font-size:15px;min-width:0}
+.slot i{font-style:normal;font-variant-numeric:tabular-nums;background:#fff;color:#10153d;border-radius:7px;padding:1px 7px;font-size:13px;font-weight:800;white-space:nowrap;flex:none}
+.aps{display:flex;flex-wrap:wrap;gap:6px;grid-column:1/-1}
+.ap{font:inherit;font-size:13px;font-weight:700;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;padding:5px 10px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.ap .dot{box-shadow:0 0 0 2px #fff}
 .setlist{display:grid;gap:8px;background:var(--t-logi);border-radius:16px;padding:14px 16px}
 .setlist h2{margin:0;font-size:17px}
 .setlist ol{margin:0;padding-left:24px;columns:2;column-gap:20px;font-size:15px;line-height:1.6}
@@ -537,7 +550,35 @@ function save() { try { localStorage.setItem(LS, JSON.stringify(sent)); } catch 
 
 function contactItem(cid, extra) {
   const c = EVENT.contacts[cid];
-  return Object.assign({ id: cid, titre: c.role, statut: c.statut, type: c.statut === "ok" ? "info" : "contact", valeur: c.valeur }, extra || {});
+  return Object.assign({ id: cid, titre: c.role, statut: c.statut, type: c.statut === "ok" ? "info" : "contact", valeur: c.valeur, artiste: c.artiste }, extra || {});
+}
+/* Plusieurs artistes le même soir : sélecteur « Tout · Festival · artiste A · artiste B ».
+   Un point sans « artiste » est commun au festival ; « artiste » peut être un id ou une liste d'ids. */
+let FILTRE = "tout";
+const ARTS = () => (EVENT && EVENT.artistes) || [];
+const multiArt = () => ARTS().length > 1;
+const tagsOf = x => [].concat((x && x.artiste) || []);
+function visible(x) {
+  if (!multiArt() || FILTRE === "tout") return true;
+  const tg = tagsOf(x); return FILTRE === "fest" ? !tg.length : tg.includes(FILTRE);
+}
+const ptsF = t => pointsOf(t).filter(visible);
+const artName = id => id === "fest" ? "Festival" : ((ARTS().find(a => a.id === id) || {}).court || "");
+function filtreHTML() {
+  if (!multiArt()) return "";
+  const opts = [["tout", "Tout"], ["fest", "Festival"], ...ARTS().map(a => [a.id, a.court])];
+  const bar = `<div class="afilt" role="group" aria-label="Afficher">${opts.map(([k, l]) =>
+    `<button type="button" class="seg-b ${FILTRE === k ? "on" : ""}" data-filtre="${k}" aria-pressed="${FILTRE === k}">${k !== "tout" ? `<i class="dot" style="background:${k === "fest" ? "#0f7f8c" : (ARTS().find(a => a.id === k) || {}).couleur}"></i>` : ""}${esc(l)}</button>`).join("")}</div>`;
+  const note = FILTRE === "tout" ? "" : `<p class="seg-note">Seuls les points « ${esc(artName(FILTRE))} » sont affichés. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
+  return bar + note;
+}
+function artPctHTML() {
+  if (!multiArt()) return "";
+  const keep = FILTRE; const row = ["fest", ...ARTS().map(a => a.id)].map(k => {
+    FILTRE = k; const pr = progress(uniq(EVENT.topics.flatMap(ptsF))); FILTRE = keep;
+    return pr.n ? `<button type="button" class="ap" data-filtre="${k}"><i class="dot" style="background:${k === "fest" ? "#0f7f8c" : (ARTS().find(a => a.id === k) || {}).couleur}"></i>${esc(artName(k))} <b>${Math.round(pr.d / pr.n * 100)} %</b></button>` : "";
+  }).join("");
+  return `<div class="aps">${row}</div>`;
 }
 function confirmItem(t) {
   return { id: t.confirm.id, titre: "Besoins confirmés par l'organisateur", statut: "todo", type: "confirm-big", label: t.confirm.label, nonConcerne: t.confirm.nonConcerne };
@@ -637,7 +678,7 @@ function tabOrder() {
   const seen = [];
   ROLES.forEach(r => r.topics.forEach(id => { if (topicById(id) && !seen.includes(id)) seen.push(id); }));
   EVENT.topics.forEach(t => { if (!seen.includes(t.id)) seen.push(t.id); });
-  return seen;
+  return seen.filter(id => id === CURRENT || ptsF(topicById(id)).length);
 }
 const uniq = pts => [...new Map(pts.map(p => [p.id, p])).values()];
 const barS = (pr, label) => `<span class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${esc(label || `${pr.d} sur ${pr.n}`)}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%"></i></span>`;
@@ -683,9 +724,9 @@ function prioHTML() {
 }
 /* Ligne de rappel sous chaque catégorie : « À compléter avant le … ». */
 function famDueHTML(rs) {
-  const tps = rs.flatMap(r => r.tps), pts = uniq(tps.flatMap(pointsOf));
+  const tps = rs.flatMap(r => r.tps), pts = uniq(tps.flatMap(ptsF));
   if (pts.length && pts.every(isDone)) return `<span class="fam-d ok">✓ Tout est complet</span>`;
-  const dues = tps.filter(t => pointsOf(t).some(p => !isDone(p))).map(dueOf).filter(Boolean).sort((a, b) => a.days - b.days);
+  const dues = tps.filter(t => ptsF(t).some(p => !isDone(p))).map(dueOf).filter(Boolean).sort((a, b) => a.days - b.days);
   if (!dues.length) return "";
   const d = dues[0];
   return d.days < 0 ? `<span class="fam-d late">Date dépassée : à compléter dès que possible</span>`
@@ -696,24 +737,27 @@ function homeHTML() {
   const msg = pr.full ? "Tout est complet. L'équipe de 10 Doigts en Cavale vérifie les informations."
     : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.` : "";
   const r = EVENT.referente;
-  const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(Boolean) })).filter(ro => ro.tps.length);
+  const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.map(topicById).filter(t => t && ptsF(t).length) })).filter(ro => ro.tps.length);
   const fams = Object.keys(FAM).map(k => ({ k, f: FAM[k], rs: roles.filter(ro => ro.fam === k) })).filter(x => x.rs.length);
   return `<main><div class="wrap bhome">
     <section class="bcard">
       <div class="bc-main">
         <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
         <div class="where">${esc(EVENT.lieu)} · ${esc(EVENT.ville)} · ${esc(EVENT.date)} · ${esc(EVENT.heure)}</div>
-        <div class="sub">${EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
+        ${multiArt() ? `<div class="slots">${ARTS().map(a => `<span class="slot"><i>${esc(a.heure || "à venir")}</i>${esc(a.nom)}</span>`).join("")}</div>` : ""}
+        <div class="sub">${!multiArt() && EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
         <div class="bc-contact"><b>${esc(r.nom)}, ${esc(r.role)}</b>
           <button class="bc-btn" type="button" data-copy="${esc(r.tel)}" data-msg="Numéro copié.">📞 ${esc(r.tel)}</button>
           <button class="bc-btn" type="button" data-copy="${esc(r.mail)}" data-msg="Adresse copiée.">✉️ ${esc(r.mail)}</button></div>
       </div>
       <div class="pct" role="img" aria-label="${pr.d} points complétés sur ${pr.n}"><b>${pr.n ? Math.round(pr.d / pr.n * 100) : 0}%</b><span>complété</span></div>
       ${msg ? `<p class="msg">${esc(msg)}</p>` : ""}
+      ${artPctHTML()}
     </section>
     <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
+    ${filtreHTML()}
     ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span>${famDueHTML(x.rs)}<div class="roles">${x.rs.map(ro => {
-      const p = progress(uniq(ro.tps.flatMap(pointsOf)));
+      const p = progress(uniq(ro.tps.flatMap(ptsF)));
       return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
         <span class="role-h"><span class="role-e" aria-hidden="true">${emo(ro.e, 38)}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
         <span class="role-l">${esc(ro.label)}</span>
@@ -954,13 +998,14 @@ function contactsTableHTML(ids, side) {
 function contactsListHTML(t) {
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
   const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
-  const all = [...singles, ...roles];
+  const all = [...singles, ...roles].filter(c => visible(contactItem(c)));
   const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
     <p class="hint">Les lignes orangées sont à compléter.</p>
-    <div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>
-    <div class="blk"><h3>Équipe de l'artiste</h3>${contactsTableHTML(art, "artiste")}</div>`;
+    ${fest.length || !multiArt() ? `<div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>` : ""}
+    ${!multiArt() ? `<div class="blk"><h3>Équipe de l'artiste</h3>${contactsTableHTML(art, "artiste")}</div>`
+      : ARTS().filter(a => FILTRE === "tout" || FILTRE === a.id).map(a => `<div class="blk"><h3><i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}</h3>${contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste")}</div>`).join("")}`;
 }
 function subsHTML(sub) {
   const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || sub.valeur || "";
@@ -978,7 +1023,7 @@ function checkHTML(p) {
 function tabsHTML() {
   return `<nav class="tabs" aria-label="Sujets"><div class="tabs-in">
     <button type="button" class="tab" data-home>← Accueil</button>
-    ${tabOrder().map(id => { const t = topicById(id), p = progress(pointsOf(t)), cur = id === CURRENT;
+    ${tabOrder().map(id => { const t = topicById(id), p = progress(ptsF(t)), cur = id === CURRENT;
       const f = famOf(id), st = cur ? `background:${f.tab};color:${f.tabFg}` : `background:${f.bg}`;
       return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${esc(SHORT[id] || t.label)} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
   </div></nav>`;
@@ -996,22 +1041,24 @@ function auteurHTML() {
     ${fw(`<input type="text" id="f-auteur" placeholder="ex. Fred – ingé son" value="${esc(AUTEUR)}">`, AUTEUR, "OK")}</form>`;
 }
 function topicHTML(t) {
-  const pr = progress(pointsOf(t)), checks = checksOf(t);
+  const pr = progress(ptsF(t)), checks = checksOf(t).filter(visible);
   const order = tabOrder(), next = topicById(order[order.indexOf(t.id) + 1]);
   let body = "";
   if (t.alerte) body += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); body += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) body += `<p class="intro">${esc(t.intro)}</p>`;
-  if (t.setlist) body += [].concat(t.setlist).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
+  if (t.setlist) body += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
     <ol>${sl.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("");
   if (checks.length) {
     body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
     if (t.note) body += `<p class="det">${esc(t.note)}</p>`;
   }
-  if (t.items) body += `<div class="items">${t.items.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
+  const its = (t.items || []).filter(it => visible(itemOf(it)));
+  if (its.length) body += `<div class="items">${its.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
+  else if (t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) body += contactsListHTML(t);
   body += docsHTML(t.docs);
-  if (t.qui) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
+  if (t.qui && visible({})) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
   const reste = checks.some(p => statusOf(p) === "todo");
   const acts = [];
   if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
@@ -1025,6 +1072,7 @@ function topicHTML(t) {
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
+    ${filtreHTML()}
     ${MODE === "orga" ? auteurHTML() : ""}
     ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
@@ -1166,6 +1214,7 @@ document.addEventListener("input", e => { if (e.target.matches("[data-form] text
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const find = id => allPoints().find(p => p.id === id) || EVENT.topics.filter(t => t.confirm).map(confirmItem).find(p => p.id === id);
+  if (b.dataset.filtre) { FILTRE = b.dataset.filtre; render(false); return; }
   if (b.dataset.topic) go(b.dataset.topic);
   else if (b.hasAttribute("data-home")) go(null);
   else if (b.hasAttribute("data-pdf")) downloadPdf();
