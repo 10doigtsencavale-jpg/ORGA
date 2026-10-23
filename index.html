@@ -879,7 +879,7 @@ function contactsListHTML(t) {
     <div class="blk"><h3>Équipe de l'artiste</h3>${list(art)}</div>`;
 }
 function subsHTML(sub) {
-  const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || "";
+  const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || sub.valeur || "";
   if (sub.multi) { const on = cur.split(" | ");
     return `<div class="subs col">${sub.options.map(o => `<label class="sub"><input type="checkbox" data-sub="${sub.id}" data-multi-sub="1" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`; }
   return `<div class="subs">${sub.options.map(o => `<label class="sub"><input type="checkbox" data-sub="${sub.id}" value="${esc(o)}" ${cur.startsWith(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`;
