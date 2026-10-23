@@ -103,8 +103,7 @@ def manquants(fichier, cle):
     def contact_fait(cid):
         return d["contacts"].get(cid, {}).get("statut") == "ok" or cid in rep
     def groupe_fait(g):
-        g = d["groups"][g]
-        return any(g[s] and all(contact_fait(c) for c in g[s]) for s in ("festival", "artiste"))
+        return all(contact_fait(r["c"]) for r in d["groups"][g]["roles"])
     def mails(cids):
         out = []
         for c in cids:
@@ -129,7 +128,7 @@ def manquants(fichier, cle):
             reste.append("Confirmation : " + t["label"])
         gs = ([t["qui"]] if t.get("qui") else []) + [e[2:] for e in t.get("contactsList", []) if e.startswith("g:")]
         for g in gs:
-            cids += d["groups"][g]["festival"] + d["groups"][g]["artiste"]
+            cids += [r["c"] for r in d["groups"][g]["roles"]]
             if not groupe_fait(g): reste.append(d["groups"][g]["titre"])
         for e in t.get("contactsList", []):
             if not e.startswith("g:"):

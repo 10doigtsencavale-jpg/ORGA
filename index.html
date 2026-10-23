@@ -282,6 +282,15 @@ body::before{background:#ffffff}
 .qui{background:#fff4d6;border-radius:16px;padding:14px;display:grid;gap:10px}
 .qui .side{background:#fff}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
+.qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pk{cursor:pointer}
+.pk input{position:absolute;opacity:0;pointer-events:none}
+.pk span{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;border:2px solid #d6d9ec;border-radius:999px;padding:8px 14px;background:#fff}
+.pk span::before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid #9aa0bd;box-sizing:border-box}
+.pk input:checked+span{border-color:var(--electrique);background:#eef0ff;color:var(--electrique)}
+.pk input:checked+span::before{border:5px solid var(--electrique)}
+.pk input:focus-visible+span{outline:3px solid var(--electrique);outline-offset:2px}
 .qui .grp h3{margin:0;font-family:var(--display);font-weight:600;font-size:20px;color:var(--encre)}
 .btn-line{background:#eef0ff;color:var(--electrique);border-color:#eef0ff}
 .fwd2{margin:0;color:var(--muted)}
@@ -340,10 +349,10 @@ const FAM = {
   com:  { label: "Public sourd · com", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
 };
 const ROLES = [
-  { fam: "tech", e: "🎧", label: "Le son", topics: ["son", "talkback"] },
+  { fam: "tech", e: "🎧", label: "Les retours son", topics: ["son", "talkback"] },
   { fam: "tech", e: "💡", label: "La lumière", topics: ["lumiere"] },
   { fam: "tech", e: "🎭", label: "Le plateau", topics: ["emplacement"] },
-  { fam: "tech", e: "📺", label: "La vidéo et l'écran", topics: ["ecran"] },
+  { fam: "tech", e: "📺", label: "Retransmission sur écrans", topics: ["ecran"] },
   { fam: "tech", e: "📋", label: "Régie générale et production", topics: ["contacts", "securite"] },
   { fam: "logi", e: "🍽️", label: "Loge et catering", topics: ["accueil"] },
   { fam: "logi", e: "🚗", label: "Parking et runs", topics: ["parking"] },
@@ -364,7 +373,7 @@ function dueOf(t) {
   const dm = d.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" });
   return { days, dm, cls: days < 0 ? "late" : days <= 3 ? "urg" : "", txt: days < 0 ? "En retard" : days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : "Avant le " + dm };
 }
-const SHORT = { setlist: "Setlist", son: "Son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écran", talkback: "Talkback",
+const SHORT = { setlist: "Setlist", son: "Retours son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écrans", talkback: "Talkback",
   contacts: "Contacts", accueil: "Accueil", parking: "Parking", pass: "Pass", horaires: "Horaires", public: "Com & public sourd",
   presse: "Presse", photos: "Photos", securite: "Sécurité" };
 
@@ -418,6 +427,11 @@ function confirmItem(t) {
 }
 const contactDone = cid => { const c = contactItem(cid); return statusOf(c) !== "todo"; };
 const sideDone = list => list.length > 0 && list.every(contactDone);
+/* « Qui gère… ? » : une question par rôle, réponse « Équipe du festival · Nom, tél, mail ». */
+const SIDES = { festival: "Équipe du festival", artiste: "Équipe de l'artiste" };
+const groupDone = gk => EVENT.groups[gk].roles.every(r => contactDone(r.c));
+function contactValue(cid) { const t = sent["team-" + cid], r = sent[cid], c = EVENT.contacts[cid] || {}; return (t && t.texte) || (r && r.texte) || c.valeur || ""; }
+function sideOf(cid) { const v = contactValue(cid); if (v.startsWith(SIDES.artiste)) return "artiste"; if (v.startsWith(SIDES.festival)) return "festival"; return (EVENT.contacts[cid] || {}).equipe || ""; }
 function groupItem(gk) { const g = EVENT.groups[gk]; return { id: "grp-" + gk, titre: g.titre, type: "group", group: gk, statut: "todo" }; }
 function itemOf(it) { return it.contact ? contactItem(it.contact, { detail: it.detail }) : it; }
 /* Les besoins techniques deviennent des cases à cocher, une par besoin (+ la case « Important »). */
@@ -437,7 +451,7 @@ function pointsOf(t) {
 }
 const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsOf(t).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
-  if (p.type === "group") { const g = EVENT.groups[p.group]; return sideDone(g.festival) || sideDone(g.artiste) ? "ok" : "todo"; }
+  if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   const t = sent["team-" + p.id]; if (t) return t.statut;
   if (p.statut === "todo" && sent[p.id]) return "sent";
   return p.statut === "info" ? "ok" : p.statut;
@@ -671,21 +685,22 @@ function contactFieldHTML(cid, off, offMsg, where) {
     <input type="text" id="f-${cid}" name="${cid}" placeholder="Nom, téléphone, mail" value="${esc(draft)}">
     <div class="actions"><button class="btn btn-main" type="submit">Envoyer</button></div></form>`;
 }
-function groupHTML(gk, titreTag, where) {
-  const g = EVENT.groups[gk];
-  const fd = sideDone(g.festival), ad = sideDone(g.artiste);
-  const side = (k, lab, list, otherDone, otherLab) => {
-    const off = otherDone && !sideDone(list);
-    return `<div class="side ${off ? "is-off" : ""} ${sideDone(list) ? "is-done" : ""}"><div class="side-h">${lab}${sideDone(list) ? ` <span class="pill p-ok">✓</span>` : ""}</div>
-      ${list.map(cid => contactFieldHTML(cid, off, `Pas nécessaire : ${otherLab} s'en occupe.`, where)).join("")}</div>`;
-  };
-  return `<div class="grp">${titreTag}
-    <p class="hint" style="margin:0">Un seul des deux suffit : l'équipe du festival <b>ou</b> l'équipe de l'artiste.</p>
-    <div class="or">${side("festival", "Équipe du festival", g.festival, ad, "l'équipe de l'artiste")}
-      <div class="or-badge" aria-hidden="true">OU</div>
-      ${side("artiste", "Équipe de l'artiste", g.artiste, fd, "l'équipe du festival")}</div></div>`;
+function roleFieldHTML(r) {
+  const p = contactItem(r.c, { titre: r.q }), st = statusOf(p), rep = sent[r.c];
+  if (MODE === "equipe") return itemHTML(p);
+  if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(r.q)}</span>${pillHTML(p)}</div><p class="val">${esc(contactValue(r.c))}</p>
+      ${rep ? `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${r.c}">Modifier</button></div>` : ""}</div>`;
+  const draft = sent["draft-" + r.c] || "", side = sent["side-" + r.c] || "";
+  return `<form class="cf form" data-form="${r.c}" data-role="1"><span class="lbl">${esc(r.q)}</span>
+    <div class="pick" role="radiogroup" aria-label="${esc(r.q)}">${Object.entries(SIDES).map(([k, lab]) =>
+      `<label class="pk"><input type="radio" name="side-${r.c}" value="${k}" ${side === k ? "checked" : ""}><span>${esc(lab)}</span></label>`).join("")}</div>
+    <input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">
+    <div class="actions"><button class="btn btn-main" type="submit">Envoyer</button></div></form>`;
 }
-function quiHTML(t) { return `<div class="blk">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`, "Contacts régie et production")}</div>`; }
+function groupHTML(gk, titreTag) {
+  return `<div class="grp">${titreTag}${EVENT.groups[gk].roles.map(roleFieldHTML).join("")}</div>`;
+}
+function quiHTML(t) { return `<div class="blk">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`)}</div>`; }
 function questionHTML(t) {
   const q = sent["q-" + t.id], srv = (EVENT.questions || {})[t.id] || [];
   const list = srv.map(x => `<div class="val"><b>${x.source === "10DEC" ? "10 Doigts en Cavale" : "Question"} · ${esc(fmt(x.date))}</b><br>${esc(x.texte)}${x.reponse ? `<br><br><b>Réponse :</b> ${esc(x.reponse)}` : ""}</div>`).join("");
@@ -698,12 +713,14 @@ function docsHTML(docs) {
   return docs && docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
 }
 function contactsListHTML(t) {
-  const singles = t.contactsList.filter(e => !e.startsWith("g:")), groups = t.contactsList.filter(e => e.startsWith("g:")).map(e => e.slice(2));
-  const topicOf = gk => EVENT.topics.find(x => x.qui === gk);
+  const singles = t.contactsList.filter(e => !e.startsWith("g:"));
+  const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => EVENT.groups[e.slice(2)].roles.map(r => r.c));
+  const all = [...singles, ...roles];
+  const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
+  const list = ids => ids.map(cid => contactFieldHTML(cid, false, "", "")).join("") || `<p class="hint">Aucun contact pour l'instant.</p>`;
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
-    <p class="hint" style="margin:0">Les contacts remplis ici apparaissent automatiquement dans chaque sujet, et inversement : rien à saisir deux fois.</p>
-    <div class="blk"><h3>Équipe du festival</h3>${singles.map(cid => contactFieldHTML(cid, false, "", cid === "c-accueil" ? "Accueil, loge et catering" : "")).join("")}</div>
-    ${groups.map(gk => { const tp = topicOf(gk); return `<div class="blk">${groupHTML(gk, `<h3>${esc(EVENT.groups[gk].court)}</h3>`, tp ? tp.label : "")}</div>`; }).join("")}`;
+    <div class="blk"><h3>Équipe du festival</h3>${list(fest)}</div>
+    <div class="blk"><h3>Équipe de l'artiste</h3>${list(art)}</div>`;
 }
 function checkHTML(p) {
   const st = statusOf(p), on = st !== "todo", rep = sent[p.id];
@@ -737,13 +754,13 @@ function topicHTML(t) {
   if (t.setlist) body += `<div class="setlist"><h2>${esc(t.setlist.titre)}</h2><p class="det">${esc(t.setlist.note)}</p>
     <ol>${t.setlist.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`;
   if (checks.length) {
-    body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
+    body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
     if (t.note) body += `<p class="det">${esc(t.note)}</p>`;
   }
   if (t.items) body += `<div class="items">${t.items.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
   if (t.contactsList) body += contactsListHTML(t);
   body += docsHTML(t.docs);
-  if (t.qui) body += `<div class="qui">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`, "Contacts régie et production")}</div>`;
+  if (t.qui) body += `<div class="qui">${groupHTML(t.qui, `<h3>${esc(EVENT.groups[t.qui].titre)}</h3>`)}</div>`;
   const reste = checks.some(p => statusOf(p) === "todo");
   const acts = [];
   if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
@@ -829,7 +846,13 @@ document.addEventListener("change", e => {
 });
 document.addEventListener("submit", e => {
   const f = e.target.closest("[data-form]");
-  if (f) { e.preventDefault(); submit(f.dataset.form, f.querySelector("textarea,input").value, null, f.querySelector("[type=submit]")); return; }
+  if (f) { e.preventDefault();
+    let v = f.querySelector("textarea,input[type=text]").value;
+    if (f.dataset.role) { const r = f.querySelector("input[type=radio]:checked");
+      if (!r) { toast("Merci d'indiquer l'équipe : festival ou artiste."); return; }
+      if (!v.trim()) { toast("Merci d'indiquer le nom, le téléphone et le mail."); return; }
+      v = SIDES[r.value] + " · " + v.trim(); }
+    submit(f.dataset.form, v, null, f.querySelector("[type=submit]")); return; }
   const q = e.target.closest("[data-question]");
   if (q) { e.preventDefault(); const v = q.querySelector("textarea").value.trim(); if (!v) { toast("Merci d'écrire votre question."); return; }
     sent["q-" + q.dataset.question] = { texte: v, date: new Date().toISOString() }; save(); post("question:" + q.dataset.question, v, SOURCE()); render(false); toast("Question envoyée. Merci !"); return; }
@@ -839,7 +862,8 @@ document.addEventListener("submit", e => {
     post(t.dataset.team, tx || (st === "ok" ? "Validé par 10 Doigts en Cavale." : "À compléter."), "10DEC:" + st);
     toast("Enregistré. Visible par l'organisateur après la prochaine mise à jour."); render(false); }
 });
-document.addEventListener("input", e => { if (e.target.matches("[data-form] textarea, [data-form] input")) { sent["draft-" + e.target.name] = e.target.value; save(); } });
+document.addEventListener("change", e => { if (e.target.matches("[data-role] input[type=radio]")) { sent["side-" + e.target.name.slice(5)] = e.target.value; save(); } });
+document.addEventListener("input", e => { if (e.target.matches("[data-form] textarea, [data-form] input[type=text]")) { sent["draft-" + e.target.name] = e.target.value; save(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const find = id => allPoints().find(p => p.id === id) || EVENT.topics.filter(t => t.confirm).map(confirmItem).find(p => p.id === id);
@@ -891,9 +915,7 @@ function buildPdf() {
       const etat = statusOf(p) === "todo" ? " [à compléter]" : "";
       if (p.type === "group") {
         const g = EVENT.groups[p.group]; text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2);
-        [["Équipe du festival", g.festival], ["Équipe de l'artiste", g.artiste]].forEach(([lab, list]) => list.forEach(cid => {
-          const c = contactItem(cid), v = ans(c); if (v) text(`${lab} - ${c.titre} : ${v}`, 10, "normal", null, 6);
-        }));
+        g.roles.forEach(r => { const v = contactValue(r.c); if (v) text(`${r.q} ${v}`, 10, "normal", null, 6); });
         y += .8; return;
       }
       text(`${p.titre}${p.type === "check" && p.detail ? " - " + p.detail : ""}${etat}`, 10.5, "bold", BLEU, 2);
