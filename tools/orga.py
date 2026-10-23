@@ -128,7 +128,8 @@ def manquants(fichier, cle):
                 g = next((r for r in it["rows"] if r.get("gate")), None)
                 if g and str((rep.get(g["id"]) or {}).get("texte", "")) == "Non":
                     continue
-                vides = [r["label"] for r in it["rows"] if not r.get("opt") and r["id"] not in rep]
+                vis = [r for r in it["rows"] if not r.get("on") or str((rep.get(r["on"]) or {}).get("texte", "")) == r.get("si")]
+                vides = [r["label"] for r in vis if r.get("type") != "note" and not r.get("opt") and r["id"] not in rep]
                 if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif it.get("type") == "tableau":
                 def repas_a(k):
