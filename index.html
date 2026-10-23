@@ -284,6 +284,16 @@ body::before{background:#ffffff}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px}
+.chk-w.has-sub{background:#fff;border-radius:14px;overflow:hidden}
+.chk-w.has-sub .chk{border-radius:14px 14px 0 0}
+.subs{display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 14px 48px}
+.sub{cursor:pointer;display:inline-flex}
+.sub input{position:absolute;opacity:0;pointer-events:none}
+.sub span{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;border:2px solid #d6d9ec;border-radius:10px;padding:6px 12px;background:#fff}
+.sub span::before{content:"";width:16px;height:16px;border-radius:5px;border:2px solid #9aa0bd;box-sizing:border-box;display:grid;place-items:center;font-size:12px;color:#fff}
+.sub input:checked+span{border-color:#12a596;background:#e3f7f4}
+.sub input:checked+span::before{content:"✓";background:#12a596;border-color:#12a596}
+.sub input:focus-visible+span{outline:3px solid var(--electrique);outline-offset:2px}
 .pk{cursor:pointer}
 .pk input{position:absolute;opacity:0;pointer-events:none}
 .pk span{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;border:2px solid #d6d9ec;border-radius:999px;padding:8px 14px;background:#fff}
@@ -428,16 +438,16 @@ function confirmItem(t) {
 const contactDone = cid => { const c = contactItem(cid); return statusOf(c) !== "todo"; };
 const sideDone = list => list.length > 0 && list.every(contactDone);
 /* « Qui gère… ? » : une question par rôle, réponse « Équipe du festival · Nom, tél, mail ». */
-const SIDES = { festival: "Équipe du festival", artiste: "Équipe de l'artiste" };
+const SIDES = { festival: "Équipe du festival/salle", artiste: "Équipe de l'artiste" };
 const groupDone = gk => EVENT.groups[gk].roles.every(r => contactDone(r.c));
 function contactValue(cid) { const t = sent["team-" + cid], r = sent[cid], c = EVENT.contacts[cid] || {}; return (t && t.texte) || (r && r.texte) || c.valeur || ""; }
-function sideOf(cid) { const v = contactValue(cid); if (v.startsWith(SIDES.artiste)) return "artiste"; if (v.startsWith(SIDES.festival)) return "festival"; return (EVENT.contacts[cid] || {}).equipe || ""; }
+function sideOf(cid) { const v = contactValue(cid); if (v.startsWith(SIDES.artiste)) return "artiste"; if (v.startsWith(SIDES.festival) || v.startsWith("Équipe du festival")) return "festival"; return (EVENT.contacts[cid] || {}).equipe || ""; }
 function groupItem(gk) { const g = EVENT.groups[gk]; return { id: "grp-" + gk, titre: g.titre, type: "group", group: gk, statut: "todo" }; }
 function itemOf(it) { return it.contact ? contactItem(it.contact, { detail: it.detail }) : it; }
 /* Les besoins techniques deviennent des cases à cocher, une par besoin (+ la case « Important »). */
 const asB = b => typeof b === "string" ? { t: b, d: "" } : (b || { t: "", d: "" });
 function checksOf(t) {
-  const out = (t.besoins || []).map((b, i) => { const x = asB(b); return { id: t.id + "-b" + i, titre: x.t, detail: x.d, type: "check", statut: "todo" }; });
+  const out = (t.besoins || []).map((b, i) => { const x = asB(b); return { id: t.id + "-b" + i, titre: x.t, detail: x.d, type: "check", statut: "todo", sous: b.sous }; });
   if (t.important && !t.importantTop) { const x = asB(t.important); out.push({ id: t.id + "-imp", titre: x.t, detail: x.d, type: "check", statut: "todo", important: true }); }
   return out;
 }
@@ -705,7 +715,7 @@ function questionHTML(t) {
   const q = sent["q-" + t.id], srv = (EVENT.questions || {})[t.id] || [];
   const list = srv.map(x => `<div class="val"><b>${x.source === "10DEC" ? "10 Doigts en Cavale" : "Question"} · ${esc(fmt(x.date))}</b><br>${esc(x.texte)}${x.reponse ? `<br><br><b>Réponse :</b> ${esc(x.reponse)}` : ""}</div>`).join("");
   const pending = q && !srv.some(x => x.texte === q.texte) ? `<p class="val">${esc(q.texte)}</p><span class="byteam">Question envoyée. Les chansigneurs vous répondent rapidement.</span>` : "";
-  return `<div class="blk"><h3>J'ai une question</h3>${list}${pending}
+  return `<div class="blk" id="qbox-${t.id}" ${list || pending ? "" : "hidden"}><h3>Votre question</h3>${list}${pending}
     <form class="form" data-question="${t.id}"><label class="small" for="q-${t.id}">Votre question sera transmise directement aux chansigneurs.</label>
       <textarea id="q-${t.id}" name="q-${t.id}"></textarea><div class="actions"><button class="btn btn-main" type="submit">Envoyer ma question</button></div></form></div>`;
 }
@@ -719,15 +729,19 @@ function contactsListHTML(t) {
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
   const list = ids => ids.map(cid => contactFieldHTML(cid, false, "", "")).join("") || `<p class="hint">Aucun contact pour l'instant.</p>`;
   return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
-    <div class="blk"><h3>Équipe du festival</h3>${list(fest)}</div>
+    <div class="blk"><h3>Équipe du festival/salle</h3>${list(fest)}</div>
     <div class="blk"><h3>Équipe de l'artiste</h3>${list(art)}</div>`;
+}
+function subsHTML(sub) {
+  const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || "";
+  return `<div class="subs">${sub.options.map(o => `<label class="sub"><input type="checkbox" data-sub="${sub.id}" value="${esc(o)}" ${cur.startsWith(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`;
 }
 function checkHTML(p) {
   const st = statusOf(p), on = st !== "todo", rep = sent[p.id];
   const extra = on && rep && rep.texte && !String(rep.texte).startsWith("✓") ? `<span class="chk-r">${esc(rep.texte)}</span>` : "";
-  return `<label class="chk ${on ? "on" : ""} ${p.important ? "imp" : ""}" for="c-${p.id}">
+  return `<div class="chk-w ${p.sous ? "has-sub" : ""}"><label class="chk ${on ? "on" : ""} ${p.important ? "imp" : ""}" for="c-${p.id}">
     <input type="checkbox" id="c-${p.id}" data-check="${p.id}" ${on ? "checked" : ""}>
-    <span class="chk-t"><strong>${p.important ? `<em class="tag-imp">Important</em>` : ""}${esc(p.titre)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}${extra}</span></label>`;
+    <span class="chk-t"><strong>${p.important ? `<em class="tag-imp">Important</em>` : ""}${esc(p.titre)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}${extra}</span></label>${p.sous ? subsHTML(p.sous) : ""}</div>`;
 }
 function tabsHTML() {
   return `<nav class="tabs" aria-label="Sujets"><div class="tabs-in">
@@ -835,6 +849,17 @@ function confirmAll(tid, label, origin) {
   save(); render(false); celebrate(tops, before, beforeAll, origin);
 }
 document.addEventListener("change", e => {
+  const sb = e.target.matches && e.target.matches("[data-sub]") ? e.target : null;
+  if (sb) { const id = sb.dataset.sub, now = new Date().toISOString();
+    document.querySelectorAll(`[data-sub="${id}"]`).forEach(x => { if (x !== sb) x.checked = false; });
+    const v = sb.checked ? sb.value : "";
+    if (ADMIN && MODE === "equipe") { sent["team-" + id] = { texte: v, statut: v ? "ok" : "todo", date: now }; save(); post(id, v || "✗ Retiré", "10DEC:" + (v ? "ok" : "todo")); render(false); return; }
+    if (v) { sent[id] = { texte: v, date: now }; save(); post(id, v, SOURCE());
+      const main = sb.closest(".chk-w") && sb.closest(".chk-w").querySelector("[data-check]");
+      if (main && !main.checked) { main.checked = true; submit(main.dataset.check, "✓ Prévu", null, main); return; }
+      render(false); }
+    else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
+    return; }
   const c = e.target.closest && e.target.closest("[data-check]"); if (!c) return;
   const id = c.dataset.check, now = new Date().toISOString();
   if (ADMIN && MODE === "equipe") {
@@ -848,8 +873,9 @@ document.addEventListener("submit", e => {
   const f = e.target.closest("[data-form]");
   if (f) { e.preventDefault();
     let v = f.querySelector("textarea,input[type=text]").value;
+    if (f.dataset.prefix) { if (!v.trim()) { toast("Merci d'indiquer le nombre."); return; } v = f.dataset.prefix + " " + v.trim(); }
     if (f.dataset.role) { const r = f.querySelector("input[type=radio]:checked");
-      if (!r) { toast("Merci d'indiquer l'équipe : festival ou artiste."); return; }
+      if (!r) { toast("Merci d'indiquer l'équipe : festival/salle ou artiste."); return; }
       if (!v.trim()) { toast("Merci d'indiquer le nom, le téléphone et le mail."); return; }
       v = SIDES[r.value] + " · " + v.trim(); }
     submit(f.dataset.form, v, null, f.querySelector("[type=submit]")); return; }
@@ -872,10 +898,14 @@ document.addEventListener("click", e => {
   else if (b.hasAttribute("data-pdf")) downloadPdf();
   else if (b.dataset.copy) copy(b.dataset.copy, b.dataset.msg);
   else if (b.dataset.allok) confirmAll(b.dataset.allok, b.dataset.label, b);
-  else if (b.dataset.ask) { const q = document.getElementById("q-" + b.dataset.ask); if (q) { if (q.scrollIntoView) q.scrollIntoView({ behavior: "smooth", block: "center" }); q.focus(); } }
+  else if (b.dataset.ask) { const bx = document.getElementById("qbox-" + b.dataset.ask); if (bx) bx.hidden = false; const q = document.getElementById("q-" + b.dataset.ask); if (q) { if (q.scrollIntoView) q.scrollIntoView({ behavior: "smooth", block: "center" }); q.focus(); } }
   else if (b.dataset.yes) submit(b.dataset.yes, b.dataset.label || "Confirmé.", null, b);
   else if (b.dataset.done) submit(b.dataset.done, "Fichier déposé.", null, b);
-  else if (b.dataset.choix) { const p = find(b.dataset.choix), o = p.options[+b.dataset.i]; submit(p.id, o.texte, o.fichier ? { fichier: o.fichier } : null, b); }
+  else if (b.dataset.choix) { const p = find(b.dataset.choix), o = p.options[+b.dataset.i];
+    if (o.champ) { const host = b.closest(".item"); host.querySelectorAll(".choix-f").forEach(x => x.remove());
+      host.insertAdjacentHTML("beforeend", `<form class="form choix-f" data-form="${p.id}" data-prefix="${esc(o.texte)}"><label class="small" for="f-${p.id}">${esc(o.champ)}</label><input type="text" inputmode="numeric" id="f-${p.id}" name="${p.id}"><div class="actions"><button class="btn btn-main" type="submit">Valider</button></div></form>`);
+      host.querySelector(".choix-f input").focus(); return; }
+    submit(p.id, o.texte, o.fichier ? { fichier: o.fichier } : null, b); }
   else if (b.dataset.oui) { const p = find(b.dataset.oui); submit(p.id, p.oui || "Oui.", { oui: true }, b); }
   else if (b.dataset.non) { const p = find(b.dataset.non); submit(p.id, p.non || "Non.", null, b); }
   else if (b.dataset.open) { const f = document.querySelector(`[data-form="${b.dataset.open}"]`); f.hidden = false; f.querySelector("textarea,input").focus(); }
