@@ -2083,6 +2083,7 @@ function topicHTML(t) {
   if (t.docs && t.docs.length && !TOPIC_RES[t.base || t.id]) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
   if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
+  if (PH && PH !== t.phases[0].k) body += topicResHTML(t);
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
@@ -2099,7 +2100,7 @@ function topicHTML(t) {
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
-    ${t.phases ? phasesHTML(t) : ""}${pre}${topicResHTML(t)}${body}</div></main>`;
+    ${t.phases ? phasesHTML(t) : ""}${pre}${!PH || PH === t.phases[0].k ? topicResHTML(t) : ""}${body}</div></main>`;
 }
 
 function render(scrollTop) {
