@@ -615,6 +615,19 @@ body.sujet .ttab .fwrap .send{padding:0 10px;min-width:40px}
 .btn.btn-depot,body.sujet .btn.btn-depot{background:#fff7ea;color:#7a4300;border:2px dashed #f7a42b;border-radius:14px;width:100%;justify-content:center;min-height:56px}
 .btn.btn-depot:hover{background:#fdeccf}.btn.btn-depot .ic,.btn.btn-depot svg{color:#7a4300}
 .actions:has(>.btn-depot){display:block}
+/* « Ce qu'il manque en un coup d'œil » : encart cliquable, une barre par catégorie, sans chiffre. */
+button.hero-p{border:0;cursor:pointer;width:100%;text-align:left;color:#fff;font:inherit;flex-direction:column;align-items:stretch;gap:10px}
+button.hero-p:hover{background:rgba(255,255,255,.18)}
+.mq-l{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}.mq-l>span{flex:1}
+.mq-b{display:grid;gap:6px}.mq-b>span{display:grid;gap:4px;min-width:0}
+.mq-b i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden}.mq-b i b{display:block;height:100%}
+.mq-b small{font-size:11px;font-weight:600;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mqv{display:grid;gap:14px}.mqv-c{background:#fff;border-radius:22px;padding:16px;display:grid;gap:14px;border:1.5px solid #d7daef}
+.mqv-h{display:flex;justify-content:space-between;align-items:center;gap:10px}.mqv-h h1{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:34px;color:#2e3bb2;line-height:1}
+.mqv-x{width:44px;height:44px;border-radius:12px;border:0;background:#eef0fa;color:#2e3bb2;font-size:20px;cursor:pointer}
+.mqv-g{display:grid;gap:6px}.mqv-g h2{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:22px;line-height:1}
+.mqv-ch{display:flex;flex-wrap:wrap;gap:8px}.mqv-ch button{font:inherit;font-size:14px;font-weight:700;border:1.5px solid var(--b);border-radius:999px;padding:8px 13px;background:#fff;color:#000;cursor:pointer;min-height:40px}
+.mqv-ch button.ok{background:#dcf1e4;border-color:#dcf1e4;color:#14633a}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -835,7 +848,7 @@ function artPctHTML() {
   if (!multiArt()) return "";
   const keep = FILTRE; const row = ["fest", ...ARTS().map(a => a.id)].map(k => {
     FILTRE = k; const pr = progress(uniq(EVENT.topics.flatMap(ptsF))); FILTRE = keep;
-    return pr.n ? `<button type="button" class="ap" data-filtre="${k}"><i class="dot" style="background:${k === "fest" ? "#0f7f8c" : (ARTS().find(a => a.id === k) || {}).couleur}"></i>${esc(artName(k))} <b>${Math.round(pr.d / pr.n * 100)} %</b></button>` : "";
+    return pr.n ? `<button type="button" class="ap" data-filtre="${k}"><i class="dot" style="background:${k === "fest" ? "#0f7f8c" : (ARTS().find(a => a.id === k) || {}).couleur}"></i>${esc(artName(k))}</button>` : "";
   }).join("");
   return `<div class="aps">${row}</div>`;
 }
@@ -926,7 +939,7 @@ function renderTop() {
   document.body.classList.toggle("home", !CURRENT);
   document.body.classList.toggle("sujet", !!CURRENT);
   tb.innerHTML = CURRENT
-    ? `<button type="button" class="tb-home" data-home>← Accueil</button><span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n}</span>`
+    ? `<button type="button" class="tb-home" data-home>← Accueil</button><span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span>${ADMIN ? `<span class="ct-n">${pr.d} / ${pr.n}</span>` : ""}`
     : `${teamHome() ? `<a class="logo-chip" href="${esc(teamHome())}" title="Tous nos événements"><img src="${LOGO}" alt="10 Doigts en Cavale : tous nos événements"></a>` : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span>`}<span class="eo">Espace organisateur</span>`;
   $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
@@ -1043,7 +1056,7 @@ function homeHTML() {
         <p class="hero-dt">${esc(EVENT.date)}${EVENT.heure ? " · " + esc(EVENT.heure) : ""}</p>
         ${multiArt() ? `<div class="slots">${ARTS().map(a => `<span class="slot"><i>${esc(a.heure || "à venir")}</i>${esc(a.nom)}</span>`).join("")}</div>` : ""}
         <p class="hero-s">${!multiArt() && EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</p>
-        <div class="hero-p"><span class="hring" style="--p:${pc}%" aria-hidden="true"><span>${pc}%</span></span><b>${pr.d} sur ${pr.n} réponses<span class="vh"> (${pc} %)</span></b></div>
+        ${mqHeroHTML()}
         ${artPctHTML()}
         <div class="hero-c"><a class="hero-ln" href="tel:${esc(telHref(r.tel))}">${SVGL(ICONS.tel)}<span>Référente : <b>${esc(nomAff(r.nom))}</b> · <b class="nw">${esc(r.tel)}</b></span></a><a class="hero-ln" href="mailto:${esc(r.mail)}">${SVGL(MAILD)}<span><b>${esc(r.mail)}</b></span></a></div>
       </div>
@@ -1106,6 +1119,28 @@ function cgHTML() {
   }
   return `<main><div class="wrap topic cg-v"><section class="cg-h"><span class="doc-ic" aria-hidden="true">PDF</span><h1>${esc(CG.titre)}</h1></section>${body}
     <div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Retour à l'accueil</button></div></div></main>`;
+}
+
+
+/* ===== Ce qu'il manque en un coup d'œil (sans chiffre : ça encourage plus que « 7 sur 58 ») ===== */
+function mqFams() {
+  const order = tabOrder();
+  return Object.keys(FAM).map(k => ({ k, f: FAM[k], ids: order.filter(id => famKey(id) === k) })).filter(c => c.ids.length)
+    .map(c => Object.assign(c, { pr: progress(uniq(c.ids.flatMap(id => ptsF(topicById(id))))) })).filter(c => c.pr.n);
+}
+function mqHeroHTML() {
+  const fs = mqFams(), ARR = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
+  const EYE = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f7a42b" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  return `<button type="button" class="hero-p" data-topic="manque"><span class="mq-l">${EYE}<span>Ce qu'il manque en un coup d'œil</span>${ARR}</span>
+    <span class="mq-b" style="grid-template-columns:repeat(${fs.length},minmax(0,1fr))" aria-hidden="true">${fs.map(c => `<span><i><b style="width:${c.pr.full ? 100 : Math.max(6, Math.round(c.pr.d / c.pr.n * 100))}%;background:${c.k === "logi" ? "#aeb6ff" : c.f.tab}"></b></i><small>${esc(c.f.court)}</small></span>`).join("")}</span></button>`;
+}
+function manqueHTML() {
+  const fs = mqFams();
+  return `<main><div class="wrap topic mqv"><section class="mqv-c" aria-labelledby="mqT"><div class="mqv-h"><h1 id="mqT">Ce qu'il manque</h1><button type="button" class="mqv-x" data-home aria-label="Fermer">✕</button></div>
+    <p class="det" style="margin:0">Touchez un sujet pour le compléter.</p>
+    ${fs.map(c => `<div class="mqv-g" style="--b:${c.f.bd}"><h2 style="color:${c.f.fg}">${esc(c.f.label)}</h2><div class="mqv-ch">${c.ids.map(id => { const t = topicById(id), p = progress(ptsF(t));
+      return p.n ? `<button type="button" data-topic="${id}" class="${p.full ? "ok" : ""}">${p.full ? "✓ " : ""}${esc(tabLabel(t))}${p.full ? `<span class="vh"> : complet</span>` : ""}</button>` : ""; }).join("")}</div></div>`).join("")}
+  </section></div></main>`;
 }
 
 /* ===== Vue sujet ===== */
@@ -1470,7 +1505,7 @@ function topicHTML(t) {
 function render(scrollTop) {
   renderTop();
   const t = CURRENT && EVENT.topics.find(x => x.id === CURRENT);
-  $("#view").innerHTML = CURRENT === "cg" ? cgHTML() : t ? topicHTML(t) : homeHTML();
+  $("#view").innerHTML = CURRENT === "cg" ? cgHTML() : CURRENT === "manque" ? manqueHTML() : t ? topicHTML(t) : homeHTML();
   if (scrollTop) window.scrollTo(0, 0);
 }
 function go(id, fromHistory) {
@@ -1479,7 +1514,7 @@ function go(id, fromHistory) {
   render(true);
 }
 /* Retour : bouton « précédent » du navigateur ou du téléphone, et glissement du doigt vers la droite. */
-window.addEventListener("popstate", () => { if (!EVENT) return; const h = topicFromHash(); go(h === "cg" || EVENT.topics.some(t => t.id === h) ? h : null, true); });
+window.addEventListener("popstate", () => { if (!EVENT) return; const h = topicFromHash(); go(h === "cg" || h === "manque" || EVENT.topics.some(t => t.id === h) ? h : null, true); });
 let sx = null, sy = 0;
 document.addEventListener("touchstart", e => { if (!CURRENT || e.touches.length !== 1 || e.target.closest("input,textarea,select")) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
 document.addEventListener("touchend", e => {
@@ -1710,7 +1745,7 @@ function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) 
     EVENT = window.EMBED; ADMIN = true; ADMINPART = ""; TOKEN = "apercu"; FILEID = "apercu"; LS = "orga-apercu";
     document.title = `${EVENT.artiste} · ${EVENT.lieu} · Espace organisateur`;
     prepEvent(); loadLocal(); mergeServer();
-    const t1 = topicFromHash(); CURRENT = t1 === "cg" || EVENT.topics.some(t => t.id === t1) ? t1 : null;
+    const t1 = topicFromHash(); CURRENT = t1 === "cg" || t1 === "manque" || EVENT.topics.some(t => t.id === t1) ? t1 : null;
     return render(false);
   }
   const full = decodeURIComponent((location.hash || "").slice(1)).split("~")[0];
@@ -1732,7 +1767,7 @@ function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) 
     if ([...new Uint8Array(dg)].map(b => b.toString(16).padStart(2, "0")).join("") === EVENT.adminHash) { ADMIN = true; ADMINPART = "!" + code; }
   }
   prepEvent(); loadLocal(); mergeServer();
-  const t0 = topicFromHash(); CURRENT = t0 === "cg" || EVENT.topics.some(t => t.id === t0) ? t0 : null;
+  const t0 = topicFromHash(); CURRENT = t0 === "cg" || t0 === "manque" || EVENT.topics.some(t => t.id === t0) ? t0 : null;
   render(false);
   if (ADMIN && window.parent !== window) postStats();
 })();
