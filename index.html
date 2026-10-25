@@ -328,15 +328,8 @@ footer .wrap{max-width:900px}
 .qui .or-badge{background:var(--encre);color:var(--soleil)}
 .qui .cf{background:#fff;border-radius:14px;padding:12px 14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px}
-/* Zones à compléter : orangé pâle tant que rien n'est envoyé. */
-.item:not(.is-done):not(.chk-w){background:#fff4e8;border-color:#ffd6b0}
-.cf.form{background:#fff4e8;border-radius:14px;padding:12px 14px}
-.qui .cf.form{background:#fff4e8}
-.fwrap input[type=text],.fwrap textarea{border-color:#ffc89a;background:#fff}
-.fwrap.has input[type=text],.fwrap.has textarea{border-color:#b9bdf7}
 .ttab.fiche th{width:42%;font-size:15px;color:var(--encre);background:transparent;border-top:1px solid var(--line);vertical-align:middle}
 .ttab.fiche tr:first-child th,.ttab.fiche tr:first-child td{border-top:0}
-.ttab.fiche tr.vide th,.ttab.fiche tr.vide td{background:#fff1e3}
 .ttab.mini{font-size:14px}.ttab.mini .fwrap input[type=text]{padding-right:60px;min-height:38px}
 .item.fourni,.item.fourni:not(.is-done):not(.chk-w){background:#eef0f4;border-color:#e1e4ec}
 .item.fourni .lbl{color:#4f5677}
@@ -368,14 +361,13 @@ footer .wrap{max-width:900px}
 .ttab th{text-align:left;font-size:13px;font-weight:800;color:var(--muted);background:var(--soft);padding:8px 12px}
 .ttab td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:middle}
 .ttab.hor td:first-child{width:46%;font-weight:800;font-variant-numeric:tabular-nums}
-.ttab tr.vide td{background:#fff1e3}
-.ttab tr.vide input{border-color:#ffc89a}
 .ttab .fwrap input[type=text]{padding-right:70px;min-height:42px}
 .tv{font-weight:800}
 .ctab td{vertical-align:middle}
 .ctab td:first-child{width:28%}
-.ctab input{width:100%;box-sizing:border-box;font:inherit;font-size:15px;border:2px solid #ffc89a;border-radius:10px;padding:8px 10px;background:#fff;min-height:40px}
-.ctab tr.vide td{background:#fff1e3}
+.ctab input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid #d7daef;border-radius:10px;padding:8px 10px;background:#fff;min-height:44px}
+.ctab input:placeholder-shown{border:2px dashed #f7a42b;background:#fff7ea}
+.ctab input:focus{border-color:#2e3bb2}
 .ctab .act{width:1%;white-space:nowrap;text-align:right}
 .ctab .ok-row{position:static;height:40px;padding:0 14px}
 @media (max-width:640px){
@@ -484,6 +476,101 @@ body.home{font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 .tl.ok{border:2.5px solid #2e3bb2;--f:#2e3bb2}
 .tl.ok .rg{background:#2e3bb2}
 .tl.ok .rg span{font-size:14px;color:#2e3bb2}
+/* ===== Pages de sujet (oct. 2026) : menu de pastilles couleur, en-tête carte + anneau, étapes numérotées, cases en pointillés ===== */
+body.sujet{font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;color:#000}
+body.sujet .topbar{background:#fff;border-bottom:1px solid #e3e5f3}
+body.sujet .topbar .wrap{gap:10px}
+body.sujet .ct-ev{font-family:"Bebas Neue",var(--display);font-weight:400;font-size:24px;line-height:1.05;letter-spacing:.01em;color:#000;min-width:0;overflow-wrap:anywhere}
+body.sujet .ct-n{flex:none;background:#eef0fa;color:#2e3bb2;font-weight:700;font-size:14px;border-radius:999px;padding:4px 12px}
+body.sujet .tabs{background:#fff;border-bottom:1px solid #e3e5f3}
+body.sujet .tabs-in{gap:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+body.sujet .tab{scroll-snap-align:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;background:#fff;color:#000;border:1.5px solid #d7daef;border-radius:999px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;white-space:nowrap}
+body.sujet .tab small{font-family:"Bebas Neue",var(--display);font-size:16px;font-weight:400;opacity:1;line-height:1;padding-top:2px}
+body.sujet .tab.full:not(.cur) small{color:#2e3bb2}
+body.sujet .tab.tab-home{background:#eef0fa;color:#2e3bb2;border-color:#eef0fa}
+body.sujet .tab:focus-visible{outline:3px solid #2e3bb2;outline-offset:2px}
+@media (min-width:700px){body.sujet .tabs-in{flex-wrap:wrap;overflow:visible}}
+body.sujet main .wrap.topic{gap:14px;padding-top:16px}
+.sh{background:#fff;border:2px solid var(--b);border-radius:22px;padding:16px;display:grid;gap:14px}
+.sh-top{display:flex;align-items:flex-start;gap:12px}
+.sh-ic{flex:none;width:48px;height:48px;border-radius:14px;background:var(--ib);display:grid;place-items:center}
+.sh-m{flex:1;min-width:0;display:grid;gap:8px;justify-items:start}
+.sh-t{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:34px;line-height:.95;letter-spacing:.01em;color:#000;overflow-wrap:anywhere;padding-top:4px}
+.sh-dl{font-size:13px;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.sh-rg{width:52px;height:52px}
+.sh-rg span{width:42px;height:42px;font-size:20px}
+.sh.ok{border-color:#2e3bb2;--f:#2e3bb2}
+.sh.ok .sh-rg{background:#2e3bb2}.sh.ok .sh-rg span{font-size:15px;color:#2e3bb2}
+.sh-s{margin:0}
+body.sujet .rappel{display:flex;gap:10px;align-items:flex-start;background:#fff4e0;color:#7a4300;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:700;line-height:1.4}
+body.sujet .rappel svg{flex:none;color:#7a4300;margin-top:0}
+body.sujet .pour{margin:0;justify-self:start;background:#e3e5f6;color:#2e3bb2;font-size:13px;font-weight:700;border-radius:999px;padding:6px 12px}
+/* Bloc équipe : rempli par 10 Doigts en Cavale, grisé en lecture seule. */
+body.sujet .eqb{background:#f3f4f8;border:1.5px solid #d7daef;margin:0}
+.eqb-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 10px}
+.eqb-h .eqb-t{margin:0}
+body.sujet .eqb-t{color:#555}
+body.sujet .eqt td{color:#333;border-bottom-color:#e1e3ee}
+body.sujet .eqt th{border-bottom-color:#e1e3ee}
+body.sujet .eq-ref{background:#e3e5f6;color:#2e3bb2}
+body.sujet .p-eq{background:#e3e5f6;color:#2e3bb2;font-size:12px}
+/* Étapes numérotées */
+.step{background:#fff;border:1.5px solid #d7daef;border-radius:20px;padding:16px;display:grid;gap:12px;min-width:0}
+.st-h{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.st-n{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:22px;line-height:1;padding-top:2px}
+.st-t{flex:1;min-width:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:24px;line-height:1;letter-spacing:.01em;color:#000;padding-top:3px;overflow-wrap:anywhere}
+.st-t .dot{vertical-align:3px}
+.st-h .pill{margin-left:auto}
+.step>.item,.step>.cf,.step>.grp,.step>.form{border:0;background:transparent;padding:0;border-radius:0}
+.step>.item>.item-h,.step>.cf>.item-h{display:none}
+.step>.cf.form>label.lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.step .grp .cf{background:#f7f8fc;border-radius:14px;padding:12px 14px}
+.step .bas{border-top:0;padding-top:0}
+.step .blk{border-top:1.5px solid #e3e5f3}
+.step .chk{border:1.5px solid #d7daef}
+.step .chk.on{border-color:#bfe8e1}
+.step .chk-w.has-sub{border:1.5px solid #d7daef}
+.step .chk-w.has-sub .chk{border:0}
+.st-auteur .auteur-f{background:transparent;border:0;padding:0;font-size:14px}
+.st-auteur label{font-size:14px}
+body.sujet .auteur{display:flex;gap:8px;align-items:center;font-size:14px;color:#333}
+body.sujet .auteur svg{flex:none;color:#2e3bb2}
+body.sujet .item.fourni,body.sujet .item.fourni:not(.is-done):not(.chk-w){background:#f3f4f8;border:1.5px solid #d7daef;border-radius:20px;padding:16px}
+body.sujet .item.fourni .lbl{font-family:"Bebas Neue",var(--display);font-weight:400;font-size:24px;line-height:1;color:#555;padding-top:3px}
+body.sujet .item.fourni .val,body.sujet .item.fourni .det{color:#555}
+body.sujet .item.fourni .val{background:#fff;border-color:#e1e3ee}
+body.sujet .ttab tr.fourni td{background:#f3f4f8;color:#555}
+body.sujet .ttab tr.fourni .tv{color:#555}
+.docbox{display:grid;gap:8px}
+/* Champs */
+body.sujet textarea,body.sujet input[type=text],body.sujet input[type=email],body.sujet input[type=tel]{font-family:"DM Sans",sans-serif;border:1.5px solid #d7daef;border-radius:12px}
+body.sujet .fwrap:not(.has) input[type=text],body.sujet .fwrap:not(.has) textarea{border:2px dashed #f7a42b;background:#fff7ea;border-radius:10px}
+body.sujet .st-q .fwrap textarea{border:1.5px solid #d7daef;background:#fff;border-radius:12px}
+body.sujet .fwrap input:focus,body.sujet .fwrap textarea:focus{border-style:solid;border-color:#2e3bb2}
+body.sujet .cf.off input{border:1.5px solid #d7daef;background:#f3f4f8}
+body.sujet .send{background:#eef0fa;color:#5a6080}
+body.sujet .fwrap.has .send{background:#2e3bb2;color:#fff}
+body.sujet .fwrap.has .send:hover{background:#25309a}
+body.sujet .st-auteur .fwrap input[type=text]{min-height:46px;border-radius:12px}
+body.sujet .st-auteur .fwrap .send{border-radius:12px;background:#2e3bb2;color:#fff;padding:0 18px}
+body.sujet .ttab{border:1.5px solid #d7daef}
+/* Boutons */
+body.sujet .btn{border-radius:14px;min-height:48px;font-family:"DM Sans",sans-serif}
+body.sujet .btn-main,body.sujet .btn-ok{background:#2e3bb2;color:#fff;border-color:#2e3bb2}
+body.sujet .btn-main:hover,body.sujet .btn-ok:hover{background:#25309a}
+body.sujet .btn-ghost,body.sujet .btn-ask,body.sujet .btn-line{background:#fff;color:#2e3bb2;border:1.5px solid #2e3bb2}
+body.sujet .btn-ghost:hover,body.sujet .btn-ask:hover{background:#eef0fa}
+body.sujet .btn svg{flex:none}
+body.sujet .tnav{border-top:0;padding-top:4px}
+body.sujet .tnav .btn{flex:1 1 auto;justify-content:center}
+body.sujet .p-todo{background:#fff;color:#7a4300;border:1.5px solid #f7a42b}
+body.sujet .setlist{background:#fff;border:1.5px solid #d7daef;border-radius:20px}
+body.sujet .important{background:#fff4e0}
+body.sujet .important strong{font-family:"Bebas Neue",var(--display);font-weight:400;font-size:22px;color:#7a4300}
+body.sujet .ttab.hor td:first-child{width:56%}
+body.sujet .ttab td,body.sujet .ttab th{padding-left:10px;padding-right:10px}
+body.sujet .ttab .fwrap input[type=text]{font-size:16px;padding-left:10px;padding-right:52px;min-height:44px}
+body.sujet .ttab .fwrap .send{padding:0 10px;min-width:40px}
 /* Téléphone : bandeau du haut et en-tête d'un seul bloc bleu, coins bas arrondis. */
 @media (max-width:759px){
   body.home::before{background:#2e3bb2}
@@ -767,8 +854,9 @@ const barHTML = (pr, label) => `<div class="bar ${pr.full ? "full" : ""}" role="
 function renderTop() {
   const tb = $("#topbar"), pr = progress(allPoints());
   document.body.classList.toggle("home", !CURRENT);
+  document.body.classList.toggle("sujet", !!CURRENT);
   tb.innerHTML = CURRENT
-    ? `<span class="ct-ev disp">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n} ✓</span>`
+    ? `<span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n}</span>`
     : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span><span class="eo">Espace organisateur</span>`;
   $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
@@ -836,6 +924,9 @@ function famDueHTML(rs, f) {
 }
 const SVGL = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"></path></svg>`;
 const MAILD = "M3 5h18v14H3zM3 6l9 7 9-7";
+const UPD = "M12 16V4m0 0-5 5m5-5 5 5M4 17v3h16v-3";
+const USERD = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
+const CLOCKD = "M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-12v4l2.5 2.5M5 3 2 6m17-3 3 3";
 const telHref = t => String(t || "").replace(/[^\d+]/g, "");
 /* « Périnne Diot » → « Périnne DIOT » */
 const nomAff = n => { const w = String(n || "").trim().split(/\s+/); return w.length > 1 ? w[0] + " " + w.slice(1).join(" ").toUpperCase() : w[0] || ""; };
@@ -848,10 +939,10 @@ function teamList() {
   list.forEach(x => { if (!x.tel && p0 && String(x.nom).trim().split(/\s+/)[0].toLowerCase() === p0) { x.tel = r.tel; if (!/\s/.test(String(x.nom).trim())) x.nom = r.nom; } });
   return list;
 }
-function teamTableHTML(f) {
+function teamTableHTML() {
   const r = EVENT.referente || {}, list = teamList();
   if (!list.length) return "";
-  return `<section class="eqb" aria-labelledby="eqbT"><h2 class="eqb-t" id="eqbT" style="color:${f.fg}">L'équipe</h2>
+  return `<section class="eqb" aria-labelledby="eqbT"><div class="eqb-h"><h2 class="eqb-t" id="eqbT">L'équipe de chansigneurs</h2><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     <table class="eqt"><thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th></tr></thead><tbody>
     ${list.map(x => `<tr><td>${esc(nomAff(x.nom))}${x.nom && r.nom && nomAff(x.nom) === nomAff(r.nom) ? ` <span class="eq-ref">Référente</span>` : ""}</td><td>${x.tel ? `<a href="tel:${esc(telHref(x.tel))}">${esc(x.tel)}</a>` : `<span class="det">À venir</span>`}</td></tr>`).join("")}
     </tbody></table>
@@ -902,7 +993,7 @@ function fileButtons(p, label) {
   label = label || "Déposer un fichier";
   const url = p.depot || EVENT.depotFichiers, t = sent["team-" + p.id], got = t && t.statut === "ok" ? t.texte : "";
   return `<div class="actions">${url
-    ? `<a class="btn btn-main" href="${esc(url)}" target="_blank" rel="noopener">⬆ ${esc(label)}</a>`
+    ? `<a class="btn btn-main" href="${esc(url)}" target="_blank" rel="noopener">${SVGL(UPD)}${esc(label)}</a>`
     : `<button class="btn btn-main" type="button" disabled>${esc(label)}</button>`}</div>
     <span class="hint">${url ? (got ? `✓ ${esc(got)}` : "Sans compte Dropbox. Le point passe à « Reçu » dès que le fichier arrive.") : "Le bouton de dépôt sera actif à la mise en ligne."}</span>`;
 }
@@ -928,19 +1019,22 @@ function repasHTML(p) {
     </tbody></table></div>
     ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
 }
+/* Placeholders : jamais d'horaire fictif. « ex. 16h30 – 16h45 » → « xxhxx – xxhxx ». */
+const HRE = /\b\d{1,2}h\d{0,2}\b/g;
+const phHeure = ph => { ph = String(ph || ""); return /\b\d{1,2}h\d{0,2}\b/.test(ph) ? ph.replace(HRE, "xxhxx").replace(/^ex\.\s*/i, "") : ph; };
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
 function tableauHTML(p) {
   const st = statusOf(p);
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
-    <p class="det">Les cases orangées sont à compléter.</p>
+    <p class="det">Les cases en pointillés jaunes sont à compléter.</p>
     <div class="tab-w"><table class="ttab hor"><thead><tr><th>${esc(p.colA)}</th><th>${esc(p.colB)}</th></tr></thead><tbody>
     ${rowsOf(p).map(r => { const v = rowVal(r), mine = sent[r.id];
       if (r.equipe && MODE !== "equipe") return `<tr class="fourni"><td>${v ? `<span class="tv">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
       return `<tr class="${v ? "" : "vide"}"><td>${v
         ? `<span class="tv">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
-        : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(r.ph || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
+        : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(phHeure(r.ph) || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
         <td>${esc(r.b)}</td></tr>`; }).join("")}
     </tbody></table></div></div>`;
 }
@@ -962,7 +1056,7 @@ function ficheCell(r) {
   if (r.type === "multi") { const on = v.split(" · ");
     return `<div class="subs in">${r.options.map(o => `<label class="sub"><input type="checkbox" data-rowmulti="${r.id}" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`; }
   if (v) return `<span class="tv">${esc(v)}</span>${sent[r.id] ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`;
-  return `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(r.ph || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.label)}">`, sent["draft-" + r.id], "OK")}</form>`;
+  return `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(phHeure(r.ph) || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.label)}">`, sent["draft-" + r.id], "OK")}</form>`;
 }
 function ficheHTML(p) {
   const st = statusOf(p);
@@ -1128,11 +1222,13 @@ function contactsListHTML(t, vis) {
   const all = [...singles, ...roles].filter(c => vis(contactItem(c)));
   const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
-  return `<p class="det" style="color:var(--encre)">${esc(t.intro)}</p>
-    <p class="hint">Les lignes orangées sont à compléter.</p>
-    ${fest.length || !multiArt() ? `<div class="blk"><h3>Équipe du festival/salle</h3>${contactsTableHTML(fest, "festival")}</div>` : ""}
-    ${!multiArt() ? `<div class="blk"><h3>Équipe de l'artiste</h3>${contactsTableHTML(art, "artiste")}</div>`
-      : ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id))).map(a => `<div class="blk"><h3><i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}</h3>${contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste")}</div>`).join("")}`;
+  /* Une étape numérotée par tableau. */
+  const steps = [];
+  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") });
+  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") });
+  else ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id)))
+    .forEach(a => steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste") }));
+  return { intro: `<p class="intro">${esc(t.intro)}</p><p class="hint">Les cases en pointillés jaunes sont à compléter.</p>`, steps };
 }
 function subsHTML(sub) {
   const t = sent["team-" + sub.id], r = sent[sub.id], cur = (t && t.texte) || (r && r.texte) || sub.valeur || "";
@@ -1149,62 +1245,74 @@ function checkHTML(p) {
 }
 function tabsHTML() {
   return `<nav class="tabs" aria-label="Sujets"><div class="tabs-in">
-    <button type="button" class="tab" data-home>← Accueil</button>
+    <button type="button" class="tab tab-home" data-home>← Accueil</button>
     ${tabOrder().map(id => { const t = topicById(id), p = progress(ptsF(t)), cur = id === CURRENT;
-      const f = famOf(id), st = cur ? `background:${f.tab};color:${f.tabFg}` : `background:${f.bg}`;
+      const f = famOf(id), st = cur ? `border-color:${f.bd};background:${f.tab};color:${f.tabFg}` : `border-color:${f.bd}`;
       return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${t.artiste ? artDot(t.artiste) : ""}${esc(tabLabel(t))} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
   </div></nav>`;
 }
-function dlHTML(t, pr) {
-  const du = dueOf(t);
-  if (pr.full) return `<span class="dl" style="background:var(--ok);color:#fff">Complet<b>✓</b></span>`;
-  if (!du) return t.avant ? `<span class="dl">${esc(t.avant)}</span>` : "";
-  if (du.days < 0) return `<span class="dl late">Date passée<b>${esc(du.dm)}</b></span>`;
-  return `<span class="dl ${du.cls}">Avant le<b>${esc(du.dm)}</b></span>`;
+/* Pastille d'échéance, aux couleurs de la catégorie. */
+function dlHTML(t, pr, f) {
+  if (pr.full) return "";
+  const du = dueOf(t), pill = x => `<span class="sh-dl" style="background:${f.tab};color:${f.tabFg}">${esc(x)}</span>`;
+  if (!du) return t.avant ? pill(t.avant) : "";
+  return pill(du.days < 0 ? "Date passée · " + du.dm : "Avant le " + du.dm);
 }
+/* Étape « Qui répond ? » (mode organisateur). */
 function auteurHTML() {
-  if (AUTEUR && !sent.__editAuteur) return `<p class="auteur">👤 Vous répondez en tant que <b>${esc(AUTEUR)}</b> · <button type="button" class="linkbtn" data-auteur-edit="1">Modifier</button></p>`;
-  return `<form class="auteur-f" data-auteur="1"><label for="f-auteur"><b>👤 Qui répond ?</b> Votre prénom et votre rôle, pour que les chansigneurs sachent qui contacter.</label>
+  if (AUTEUR && !sent.__editAuteur) return `<p class="auteur">${SVGL(USERD)}<span>Vous répondez en tant que <b>${esc(AUTEUR)}</b> · <button type="button" class="linkbtn" data-auteur-edit="1">Modifier</button></span></p>`;
+  return `<form class="auteur-f" data-auteur="1"><label for="f-auteur">Votre prénom et votre rôle, pour que les chansigneurs sachent qui contacter.</label>
     ${fw(`<input type="text" id="f-auteur" placeholder="ex. Fred – ingé son" value="${esc(AUTEUR)}">`, AUTEUR, "OK")}</form>`;
 }
 function topicHTML(t) {
   const vis = x => t.artiste ? visible(t) : visible(x);
-  const pr = progress(ptsF(t)), checks = checksOf(t).filter(vis);
+  const f = famOf(t.id), pts = ptsF(t), pr = progress(pts), checks = checksOf(t).filter(vis);
   const order = tabOrder(), next = topicById(order[order.indexOf(t.id) + 1]);
-  let body = "";
-  if (t.alerte) body += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
-  if (t.important && t.importantTop) { const x = asB(t.important); body += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
-  if (t.intro && !t.contactsList) body += `<p class="intro">${esc(t.intro)}</p>`;
-  if (t.setlist) body += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
+  /* Étapes numérotées au rendu : le numéro suit ce qui est réellement affiché (filtre artiste compris). */
+  let n = 0;
+  const step = (titre, inner, cls, extra) => `<section class="step ${cls || ""}"><h2 class="st-h"><span class="st-n" style="background:${f.tab};color:${f.tabFg}" aria-hidden="true">${++n}</span><span class="st-t"><span class="vh">Étape ${n} : </span>${titre}</span>${extra || ""}</h2>${inner}</section>`;
+  let pre = "", body = "";
+  if (t.alerte) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
+  if (t.important && t.importantTop) { const x = asB(t.important); pre += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
+  if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
+  if (t.setlist) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
     <ol>${sl.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("");
+  if (MODE === "orga") body += step("Qui répond ?", auteurHTML(), "st-auteur");
+  const reste = checks.some(p => statusOf(p) === "todo");
   if (checks.length) {
-    body += `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>`;
-    if (t.note) body += `<p class="det">${esc(t.note)}</p>`;
+    const acts = [];
+    if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
+    if (reste && t.confirm && t.confirm.nonConcerne) acts.push(`<button class="btn btn-ghost btn-big" type="button" data-allok="${t.id}" data-label="Non concerné">Non concerné</button>`);
+    body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
+      ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}`);
   }
   const its = (t.items || []).filter(it => vis(itemOf(it)));
-  if (its.length) body += `<div class="items">${its.map(it => it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)).join("")}</div>`;
-  else if (t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
-  if (t.contactsList) body += contactsListHTML(t, vis);
-  body += docsHTML(t.docs);
-  if (t.qui && vis({})) body += `<div class="qui">${groupHTML(t.qui, "")}</div>`;
-  const reste = checks.some(p => statusOf(p) === "todo");
-  const acts = [];
-  if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
-  if (reste && t.confirm && t.confirm.nonConcerne) acts.push(`<button class="btn btn-ghost btn-big" type="button" data-allok="${t.id}" data-label="Non concerné">Non concerné</button>`);
-  if (acts.length) body += `<div class="actions">${acts.join("")}</div>`;
-  if (MODE === "orga") body += `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
-    <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t);
+  its.forEach(it => {
+    const p = itemOf(it);
+    /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
+    if (p.equipe) { body += itemHTML(it); return; }
+    const h = it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it);
+    body += step(esc(p.titre), h, "st-item", pillHTML(p));
+  });
+  if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
+  if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
+  if (t.docs && t.docs.length) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
+  if (t.qui && vis({})) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, ""), "st-qui");
+  if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
+    <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
+  const pp = pr.n ? Math.round(pr.d / pr.n * 100) : 0;
   return `<div class="stick">${multiArt() ? `<div class="afband"><div class="wrap">${filtreHTML()}</div></div>` : ""}${tabsHTML()}</div><main><div class="wrap topic">
-    <div class="thb" style="background:${famOf(t.id).bg}"><span class="te" aria-hidden="true">${emo(roleOf(t.id).e, 46)}</span>
-      <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
-        <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
-      ${dlHTML(t, pr)}</div>
-    ${(t.base || t.id) === "horaires" ? teamTableHTML(FAM.urg) : ""}
-    ${MODE === "orga" ? auteurHTML() : ""}
-    ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
-    <p class="pour">👤 Pour ${esc(t.pour)}</p>
-    ${body}</div></main>`;
+    <section class="sh ${pr.full ? "ok" : ""}" style="--b:${f.bd};--f:${f.bar};--t:${f.fg};--ib:${f.bg}">
+      <div class="sh-top"><span class="sh-ic" aria-hidden="true">${emo(roleOf(t.id).e, 32)}</span>
+        <div class="sh-m"><h1 class="sh-t">${esc(t.label)}</h1>${dlHTML(t, pr, f)}</div>
+        <span class="rg sh-rg" style="--p:${pr.full ? 100 : pp}%" role="img" aria-label="${pr.full ? "Fait" : `${pr.d} sur ${pr.n}`}"><span>${pr.full ? "Fait" : `${pr.d}/${pr.n}`}</span></span></div>
+      ${pts.length ? `<div class="tl-s sh-s" aria-hidden="true">${pts.map(x => `<i class="${isDone(x) ? "on" : ""}"></i>`).join("")}</div>` : ""}
+    </section>
+    ${t.rappel ? `<p class="rappel">${SVGL(CLOCKD)}<span>${esc(t.rappel)}</span></p>` : ""}
+    ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
+    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
+    ${pre}${body}</div></main>`;
 }
 
 function render(scrollTop) {
@@ -1212,6 +1320,9 @@ function render(scrollTop) {
   const t = CURRENT && EVENT.topics.find(x => x.id === CURRENT);
   $("#view").innerHTML = t ? topicHTML(t) : homeHTML();
   if (scrollTop) window.scrollTo(0, 0);
+  /* Pastille du sujet ouvert visible dans la rangée (défilement horizontal du menu seulement). */
+  const tc = t && document.querySelector(".tabs-in"), tb = tc && tc.querySelector(".tab.cur");
+  if (tb && tc.scrollWidth > tc.clientWidth) { const a = tb.getBoundingClientRect(), c = tc.getBoundingClientRect(); tc.scrollLeft += (a.left + a.width / 2) - (c.left + c.width / 2); }
 }
 function go(id, fromHistory) {
   CURRENT = id || null;
