@@ -825,6 +825,25 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .phe{font-size:30px}.phc b{display:block;font:400 22px "Bebas Neue",sans-serif;letter-spacing:.01em}.phc small{display:block;font-size:12.5px;font-weight:700;color:#6b718f}
 @media (max-width:759px){.phs{grid-template-columns:1fr;gap:6px}.phc{padding:8px 12px}.phe{font-size:22px}.phc b{font-size:19px}}
 .tres-n{margin:-2px 0 8px;font-size:14px;color:#444}
+
+/* Journée dans l'ordre (frise) */
+.fr-btn{font:inherit;display:flex;width:100%;align-items:center;justify-content:center;gap:10px;margin:6px 0 14px;border:2px solid #2e3bb2;border-radius:16px;padding:14px;font-weight:800;font-size:16px;color:#2e3bb2;background:#fff;cursor:pointer}
+.fr-btn small{font-weight:600;font-size:12.5px;color:#555}
+.fr-wrap{margin:-6px 0 14px;scroll-margin-top:90px}.fr-sheet{border:2px solid #2e3bb2;border-radius:18px;background:#fff;padding:14px}
+.fr-h{display:flex;align-items:center;margin-bottom:10px}.fr-h b{flex:1;font-size:17px}
+.fr-x{font:inherit;border:1.5px solid #c9cde6;border-radius:10px;padding:6px 12px;font-weight:700;color:#2e3bb2;background:#fff;cursor:pointer}
+.fr-chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}.fr-chip{font:inherit;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;border:1.5px solid #c9cde6;color:#2e3bb2;background:#fff;cursor:pointer}.fr-chip.on{background:#2e3bb2;color:#fff;border-color:#2e3bb2}
+.fr-tl{position:relative;padding-left:84px}.fr-tl:before{content:"";position:absolute;left:68px;top:6px;bottom:6px;width:4px;background:#d7daef;border-radius:2px}
+.fr-ev{position:relative;margin-bottom:8px;border-radius:12px;padding:9px 12px;border:1.5px solid #d7daef;background:#fff;font-size:14.5px}
+.fr-hh{position:absolute;left:-84px;top:9px;width:58px;text-align:right;font-weight:800;font-size:14px}
+.fr-ev:before{content:"";position:absolute;left:-22px;top:12px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid #9aa0bd}
+.fr-ev small{display:block;color:#555;font-size:12.5px;margin-top:2px}
+.fr-ev.run{background:#e6f4ff;border-color:#9cc8f0}.fr-ev.run:before{border-color:#0a5aa6;background:#0a5aa6}.fr-ev.run.vide{border-style:dashed;border-color:#0a5aa6;background:#fff}.fr-ev.vide .fr-hh{color:#0a5aa6}
+.fr-ev.tr{background:#f3f4f8;color:#555}.fr-ev.sh{background:#fff4dd;border-color:#f7c66b}.fr-ev.sh:before{border-color:#f7a42b;background:#f7a42b}
+.fr-n{font-size:12.5px;color:#555;margin:8px 0 0}
+@media (max-width:759px){.fr-wrap{position:fixed;inset:0;z-index:60;margin:0;background:rgba(16,21,61,.45);display:flex;align-items:flex-end}
+  .fr-sheet{width:100%;max-height:88vh;overflow:auto;border:0;border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
+  .fr-tl{padding-left:70px}.fr-tl:before{left:56px}.fr-hh{left:-70px;width:48px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -1737,6 +1756,36 @@ function parcoursHTML(p) {
   return `<div class="item pc" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
     <p class="det">De votre texte à la vidéo publiée.</p>${metro}<div class="pc-v">${cards}</div></div>`;
 }
+/* ===== « La journée dans l'ordre » : planning + runs mélangés, à lire (les tableaux restent séparés et modifiables) ===== */
+let FRISE = false, FRF = "tout";
+const frMin = s => { const m = String(s || "").match(/(\d{1,2})\s*h\s*(\d{0,2})/i); return m ? +m[1] * 60 + (+m[2] || 0) : null; };
+function friseEvents(t) {
+  const ev = [], noms = [EVENT.artiste, EVENT.premiere].filter(Boolean).map(x => String(x).toLowerCase().split(/[ (]/)[0]);
+  (t.items || []).forEach(p => {
+    if (p.type === "tableau") rowsOf(p).forEach(r => { const v = rowVal(r); if (!v) return; const lb = String(r.b || "");
+      const k = /train/i.test(lb) ? "tr" : noms.some(n => n && lb.toLowerCase().includes(n)) ? "sh" : "";
+      const [h1, h2] = v.split(/\s*[–-]\s*/); ev.push({ k, h: h1, fin: h2 || "", t: lb, m: frMin(h1), src: "plan" }); });
+    if (p.type === "grille" && !isPB(p)) grilleRows(p).forEach(r => { const g = c => valOf(r.id + "-" + c) || (r.cells || {})[c] || "";
+      const h = g("heure"), a = g("a"), b = g("b"), qui = g("qui"), ch = g("chauf");
+      ev.push({ k: "run", h: h || "??h??", t: `🚐 ${r.nom || "Run"}${a || b ? " : " + (a || "?") + " → " + (b || "?") : ""}`,
+        d: [g("date"), qui, ch ? "Chauffeur : " + ch : "Chauffeur à préciser"].filter(Boolean).join(" · "), m: frMin(h), src: "runs", vide: !h }); });
+  });
+  return ev.map((e, i) => Object.assign(e, { i })).sort((x, y) => (x.m ?? 1e4) - (y.m ?? 1e4) || (x.src === "plan" ? -1 : 1) || x.i - y.i);
+}
+function friseHTML(t) {
+  const btn = `<button type="button" class="fr-btn" data-frise="1" aria-expanded="${FRISE}">🗓️ ${FRISE ? "Replier la journée ▲" : "Voir toute la journée dans l'ordre"} <small>planning + runs</small></button>`;
+  if (!FRISE) return btn;
+  const ev = friseEvents(t).filter(e => FRF === "tout" || (FRF === "runs" ? e.src === "runs" : e.src === "plan"));
+  const chip = (k, l) => `<button type="button" class="fr-chip ${FRF === k ? "on" : ""}" data-frf="${k}" aria-pressed="${FRF === k}">${l}</button>`;
+  return btn + `<div class="fr-wrap" role="dialog" aria-label="La journée dans l'ordre"><div class="fr-sheet"><div class="fr-h"><b>🗓️ La journée dans l'ordre</b><button type="button" class="fr-x" data-frise="0" aria-label="Fermer">✕</button></div>
+    <div class="fr-chips">${chip("tout", "Tout")}${chip("plan", "Planning")}${chip("runs", "🚐 Runs")}</div>
+    <div class="fr-tl">${ev.map(e => `<div class="fr-ev ${e.k} ${e.vide ? "vide" : ""}"><span class="fr-hh">${esc(e.h)}</span><b>${esc(e.t)}</b>${e.fin ? `<small>jusqu'à ${esc(e.fin)}</small>` : ""}${e.d ? `<small>${esc(e.d)}</small>` : ""}</div>`).join("") || `<p class="det">Rien à afficher pour l'instant.</p>`}</div>
+    <p class="fr-n">Pour changer une heure : dans « Planning du jour J » ou « Les runs ». La journée se met à jour toute seule.</p></div></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-frise],[data-frf]"); if (!b) return;
+  if (b.dataset.frf) FRF = b.dataset.frf; else FRISE = b.dataset.frise === "1" ? !FRISE : false;
+  render(false); if (FRISE && b.dataset.frise === "1" && innerWidth >= 760) document.querySelector(".fr-wrap")?.scrollIntoView({ behavior: "smooth", block: "start" }); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && FRISE) { FRISE = false; render(false); } });
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -2085,6 +2134,7 @@ function topicHTML(t) {
   if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
   if (PH) body += topicResHTML(t);
+  if ((t.base || t.id) === "horaires") body += friseHTML(t);
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
