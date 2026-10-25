@@ -234,6 +234,7 @@ let FILTER = store.get("orga-acc-filtre") || "all", SHOWPAST = false, MENU = "";
 if (!["all", "send", "check", "wait", "ready"].includes(FILTER)) FILTER = "all";
 
 function start() {
+  store.set("orga-acc-lien", decodeURIComponent((location.hash || "").slice(1))); /* pour que le logo des espaces orga (vue équipe) ramène ici */
   LASTSEEN = store.get("orga-acc-seen-" + FID) || "";
   $("#refresh").hidden = false;
   $("#maj").textContent = DATA.maj ? "Mis à jour " + fmt(DATA.maj) : "";
@@ -344,7 +345,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.filter) { FILTER = (b.dataset.filter === FILTER && FILTER !== "all") ? "all" : b.dataset.filter; store.set("orga-acc-filtre", FILTER); render(); }
   else if (b.hasAttribute("data-past")) { SHOWPAST = !SHOWPAST; render(); if (SHOWPAST) { const p = $("#past"); if (p) p.scrollIntoView({ behavior: "smooth", block: "start" }); } }
   else if (b.id === "refresh") { location.reload(); }
-  else if (b.id === "forget") { store.del("orga-acc-" + FID); toast("Code oublié sur cet appareil."); setTimeout(() => location.reload(), 900); }
+  else if (b.id === "forget") { store.del("orga-acc-" + FID); store.del("orga-acc-lien"); toast("Code oublié sur cet appareil."); setTimeout(() => location.reload(), 900); }
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && MENU) { const k = MENU; setMenu(""); const t = document.querySelector(`[data-menu="${CSS.escape(k)}"]`); if (t) t.focus(); }

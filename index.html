@@ -896,7 +896,7 @@ function renderTop() {
   document.body.classList.toggle("sujet", !!CURRENT);
   tb.innerHTML = CURRENT
     ? `<button type="button" class="tb-home" data-home>← Accueil</button><span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n}</span>`
-    : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span><span class="eo">Espace organisateur</span>`;
+    : `${teamHome() ? `<a class="logo-chip" href="${esc(teamHome())}" title="Tous nos événements"><img src="${LOGO}" alt="10 Doigts en Cavale : tous nos événements"></a>` : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span>`}<span class="eo">Espace organisateur</span>`;
   $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
   $("#foot").innerHTML = `<div>Page mise à jour le ${esc(EVENT.maj)}. Les réponses sont vérifiées par l'équipe de 10 Doigts en Cavale, et la page est actualisée toutes les heures.</div>
@@ -1611,6 +1611,8 @@ function fail(msg) {
   $("#view").innerHTML = `<main><div class="wrap"><section class="team"><h2 class="disp">Lien incomplet</h2><p>${esc(msg)}</p>
     <p>Pour toute question : 10doigtsencavale@gmail.com</p></section></div></main>`;
 }
+/* Vue équipe : le logo ramène à la page de tous les événements, si elle a déjà été ouverte sur cet appareil. */
+function teamHome() { if (!ADMIN) return ""; let h = ""; try { h = localStorage.getItem("orga-acc-lien") || ""; } catch (e) {} return /^[A-Za-z0-9_-]{8,64}\.[A-Za-z0-9_-]{40,64}$/.test(h) ? "equipe.html#" + h : ""; }
 function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) === "horaires") t.label = t.artiste ? t.label.replace(/^Horaires et balances/, "L'équipe / Horaires") : "L'équipe / Horaires"; }); }
 (async () => {
   if (window.EMBED) {
