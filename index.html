@@ -608,6 +608,16 @@ body.sujet .ttab .fwrap .send{padding:0 10px;min-width:40px}
   body.home .topbar .eo{display:none}
   body.home .hero{border-radius:0 0 28px 28px;margin:-18px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-top:20px}
 }
+/* Ordinateur (900px et plus) : pleine largeur. Le téléphone ne change pas. */
+@media (min-width:900px){
+  .wrap,.topbar .wrap,.wrap.bhome,.wrap.topic,footer .wrap,.preview .wrap,.tm-in{max-width:none;padding-left:40px;padding-right:40px}
+  .tls{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+  /* En-tête : infos à gauche, avancement et contacts à droite. */
+  .hero-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);column-gap:40px;align-items:start}
+  .hero-in>*{grid-column:1}
+  .hero-in>.hero-p{grid-column:2;grid-row:2 / span 3;align-self:end;margin-top:0}
+  .hero-in>.hero-c{grid-column:2;grid-row:5 / span 4;margin-top:12px}
+}
 </style>
 </head>
 <body>
