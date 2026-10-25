@@ -1264,10 +1264,7 @@ function blocsOf(t) {
   if (checks.length) out.push({ key: t.id + "-prevu", ids: checks.flatMap(idsOfPoint) });
   (t.items || []).forEach(it => { const p = itemOf(it); if (!p.equipe) out.push({ key: p.id, ids: idsOfPoint(p) }); });
   if (t.qui) out.push({ key: "grp-" + t.qui, ids: idsOfPoint(groupItem(t.qui)) });
-  if (t.contactsList) { const all = t.contactsList.flatMap(e => e.startsWith("g:") ? (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c) : [e]);
-    const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
-    if (!multiArt()) { out.push({ key: t.id + "-fest", ids: fest }); out.push({ key: t.id + "-art", ids: art }); }
-    else { out.push({ key: t.id + "-fest", ids: fest }); ARTS().forEach(a => out.push({ key: t.id + "-art-" + a.id, ids: art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)) })); } }
+  /* Tableaux de contacts : pas de « Vu & noté » (choix d'Aurélie). */
   return out;
 }
 const aVoir = t => blocsOf(t).filter(b => ["avoir", "nouveau"].includes(vuState(b.key, b.ids).etat)).length;
@@ -1598,10 +1595,10 @@ function contactsListHTML(t, vis) {
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   /* Une étape numérotée par tableau. */
   const steps = [];
-  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") + vuHTML(t.id + "-fest", fest) });
-  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") + vuHTML(t.id + "-art", art) });
+  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") });
+  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") });
   else ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id)))
-    .forEach(a => { const ids = art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)); steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(ids, "artiste") + vuHTML(t.id + "-art-" + a.id, ids) }); });
+    .forEach(a => { const ids = art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)); steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(ids, "artiste") }); });
   return { intro: `<p class="intro">${esc(t.intro)}</p><p class="hint">Les cases en pointillés jaunes sont à compléter.</p>`, steps };
 }
 function subsHTML(sub) {

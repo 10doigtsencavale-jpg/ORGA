@@ -211,7 +211,7 @@ def manquants(fichier, cle):
         if t.get("confirm") and not t.get("besoins") and not fait(t["confirm"]["id"]):
             reste.append("Confirmation : " + t["label"])
         # « ↩ À revoir » envoyé par l'équipe (vu:<bloc> = « revoir|<mot> ») et pas encore repris par l'organisateur
-        blocs = [t["id"] + "-prevu", t["id"] + "-fest", t["id"] + "-art"] + [it.get("id", "") for it in t.get("items", [])] + (["grp-" + t["qui"]] if t.get("qui") else [])
+        blocs = [t["id"] + "-prevu"] + [it.get("id", "") for it in t.get("items", [])] + (["grp-" + t["qui"]] if t.get("qui") else [])
         for k in blocs:
             v = d.get("reponses", {}).get("vu:" + k) or {}
             if str(v.get("texte", "")).startswith("revoir|"):
