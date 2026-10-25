@@ -752,6 +752,39 @@ body.sujet .ctab input:placeholder-shown{border:2px dashed #f7a42b;background:#f
   .hero-in>.hero-p{grid-column:2;grid-row:2 / span 3;align-self:end;margin-top:0}
   .hero-in>.hero-c{grid-column:2;grid-row:5 / span 4;margin-top:12px}
 }
+
+/* Setlist */
+.sl-band{margin:4px 0 10px;padding:9px 12px;border-radius:10px;font-size:15px;background:#eef0fa;color:#2e3bb2}
+.sl-band.t50{background:#fff4dd;color:#6b4300}.sl-band.t75{background:#ffe6c7;color:#7a2e00}.sl-band.t100{background:#fdd9d2;color:#8a1c0e}
+.sl-tab td{min-width:0}.sl-tab .sl-n{font:400 20px "Bebas Neue",sans-serif;color:#2e3bb2;width:36px}.sl-tab .k{white-space:nowrap}
+.sl-tab tr.t50 td{background:#fff4dd}.sl-tab tr.t75 td{background:#ffe6c7}.sl-tab tr.t100 td{background:#fdd9d2}
+.sl-tab tr.rm td:not(.k){color:#9a3d00;text-decoration:line-through}.sl-tab tr.rm td.sl-n{text-decoration:none}
+.sl-p{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;background:#e3e5f6;color:#2e3bb2}
+.sl-p.t50{background:#f7c66b;color:#000}.sl-p.t75{background:#f7a42b;color:#000}.sl-p.t100{background:#e64330;color:#fff}
+.sl-st{display:inline-block;font:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;border:1.5px solid transparent}
+.sl-st.ok{background:#dcf1e4;color:#14633a}.sl-st.no{background:#fff1e6;color:#7a2e00;border-color:#f26b21}
+button.sl-st{cursor:pointer}
+.sl-b{font:inherit;font-weight:700;width:34px;height:34px;border-radius:9px;border:0;background:#e6e8fb;color:#2e3bb2;cursor:pointer;margin-right:4px}
+.sl-b:disabled{opacity:.3;cursor:default}.sl-b.sl-x{background:#fff;border:1.5px solid #c9cde6;color:#6b718f}
+.sl-b.sl-back{width:auto;padding:0 12px}
+.sl-ask{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:#fff;border:2px solid #e64330;border-radius:12px;padding:10px 12px;font-size:15px}
+.sl-ask span{display:flex;gap:8px}
+.sl-ord{position:sticky;bottom:10px;z-index:5;background:#fff;border:2px solid #2e3bb2;border-radius:14px;padding:10px 12px;box-shadow:0 6px 18px rgba(16,21,61,.18);display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-weight:700;color:#2e3bb2}
+.sl-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin:10px 0 4px;align-items:center}.sl-leg span{display:flex;gap:6px;align-items:center}
+.sl-leg i{width:14px;height:14px;border-radius:4px;display:inline-block}.sl-leg i.t50{background:#fff4dd;border:1px solid #f7c66b}.sl-leg i.t75{background:#ffe6c7;border:1px solid #f7a42b}.sl-leg i.t100{background:#fdd9d2;border:1px solid #e64330}.sl-leg i.rmk{background:#fff;border:1px solid #9a3d00;background-image:linear-gradient(#9a3d00,#9a3d00);background-size:100% 1.5px;background-position:center;background-repeat:no-repeat}
+.sl-leg a{color:#2e3bb2;font-weight:700}
+.sl-add{margin-top:8px}.sl-add .fwrap{border:2px dashed #f7a42b;background:#fff7ea;border-radius:12px}
+.sl-conf{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:#dcf1e4;color:#14633a;font-weight:700;font-size:14px}
+.sl-mob{display:none}.sl-l{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.sl-c{display:flex;gap:10px;align-items:center;border:1.5px solid #d7daef;border-radius:14px;padding:9px 10px;background:#fff;touch-action:pan-y}
+.sl-l,.sl-c{-webkit-user-select:none;user-select:none}.sl-c.drag{position:relative;z-index:3;box-shadow:0 8px 20px rgba(16,21,61,.18)}
+.sl-c.t50{background:#fff4dd;border-color:#f7c66b}.sl-c.t75{background:#ffe6c7;border-color:#f7a42b}.sl-c.t100{background:#fdd9d2;border-color:#e64330}
+.sl-c .sl-n{font:400 22px "Bebas Neue",sans-serif;color:#2e3bb2;min-width:20px;text-align:center}
+.sl-h{color:#8a90ad;font-size:22px;padding:6px 4px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.sl-ct{flex:1;min-width:0}.sl-tt{display:block;font-size:16px}.sl-c small{display:block;color:#555;font-size:12.5px;line-height:1.35}
+.sl-c.rm .sl-tt{text-decoration:line-through;color:#9a3d00}
+.sl-eq{display:flex;gap:6px;margin-top:5px}.sl-rt{margin:14px 0 6px;font-weight:800;color:#2e3bb2}.sl-askc{list-style:none}
+@media (max-width:759px){.sl-desk{display:none}.sl-mob{display:block}}
 </style>
 </head>
 <body>
@@ -1455,6 +1488,120 @@ function grilleHTML(p) {
     <tr class="addtr"><td colspan="${p.cols.length + (named ? 1 : 0)}"><button type="button" class="addb" data-addrow2="${p.id}" data-nom="${esc((p.ajoutNom || "Ligne") + " " + (rows.length + 1))}">+ ${esc(p.ajout || "Ajouter une ligne")}</button></td></tr>
     </tbody></table></div></div>`;
 }
+/* ===== Setlist (tableau) =====
+   Chansons du devis : id « sl-s<i> ». Ajoutées : réponse « sl-a<code> » = titre (date = date d'ajout).
+   « <id>-ret » = « retirée » | « remise » ; « <id>-par » / « <id>-aud » = « reçu » | « à envoyer » (équipe) ;
+   « sl-ordre » = ids dans l'ordre ; réponse « sl » = setlist confirmée par l'organisateur.
+   Fond coloré selon le délai avant le concert (conditions de facturation). */
+let SLORD = null, SLASK = "";
+const slNow = () => new Date().toISOString();
+const slDays = iso => { if (!EVENT.iso || !iso) return null; const d = new Date(iso); d.setHours(0, 0, 0, 0); return Math.round((new Date(EVENT.iso + "T00:00:00") - d) / 864e5); };
+const slTier = j => j == null || j > 60 ? "" : j > 30 ? "t50" : j > 15 ? "t75" : "t100";
+const SL_PCT = { t50: "50 %", t75: "75 %", t100: "100 %" };
+const slDate = id => { const x = sent["team-" + id] || sent[id]; return (x && x.date) || ""; };
+function slSongs(p) {
+  const base = (p.chansons || []).map((c, i) => ({ id: "sl-s" + i, t: c.t, par: c.p, aud: c.a, base: true }));
+  const re = /^(?:team-)?(sl-a[a-z0-9]{4,10})$/, add = new Map();
+  Object.keys(sent).forEach(k => { const m = k.match(re); if (!m || add.has(m[1])) return; const id = m[1], v = valOf(id); if (!v) return;
+    add.set(id, { id, t: v, par: false, aud: false, ajout: slDate(id) }); });
+  const all = [...base, ...[...add.values()].sort((a, b) => a.ajout < b.ajout ? -1 : 1)].map(s => {
+    const r = valOf(s.id + "-ret"), par = valOf(s.id + "-par"), aud = valOf(s.id + "-aud");
+    return Object.assign(s, { ret: r === "retirée" ? slDate(s.id + "-ret") : "", par: par ? par === "reçu" : !!s.par, aud: aud ? aud === "reçu" : !!s.aud }); })
+    /* Ajoutée puis retirée le même jour : simple erreur de saisie, on l'efface. */
+    .filter(s => !(s.ajout && s.ret && s.ret.slice(0, 10) === s.ajout.slice(0, 10)));
+  const ord = SLORD || valOf("sl-ordre").split(",").filter(Boolean), pos = id => { const i = ord.indexOf(id); return i < 0 ? 1e4 + all.findIndex(s => s.id === id) : i; };
+  return all.sort((a, b) => pos(a.id) - pos(b.id));
+}
+function slFact(s) {
+  if (s.ret) { const j = slDays(s.ret), tr = slTier(j);
+    if (EVENT.mutualise) return { cls: "t100", pill: "Retirée · due (mutualisation)" };
+    return { cls: tr, pill: tr ? `Retirée · ${SL_PCT[tr]}` : "Retirée · travail fait + frais" }; }
+  if (s.ajout) { const j = slDays(s.ajout), tr = slTier(j);
+    return { cls: tr, pill: j === 0 ? "Ajoutée le jour J · 100 %" : `Ajoutée · J-${j}` }; }
+  return { cls: "", pill: "" };
+}
+function slBandeau() {
+  const j = slDays(slNow()); if (j == null || j < 0) return "";
+  if (EVENT.mutualise) return `<p class="sl-band">Concert mutualisé : toutes les chansons sont dues dès la signature du devis.</p>`;
+  const tr = slTier(j);
+  if (!tr) { const d = new Date(EVENT.iso + "T00:00:00"); d.setDate(d.getDate() - 60);
+    return `<p class="sl-band t0"><b>J-${j}.</b> Jusqu'au ${d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}, retirer une chanson coûte seulement le travail fait et les frais.</p>`; }
+  return `<p class="sl-band ${tr}"><b>${j ? "J-" + j : "Jour J"}.</b> Une chanson retirée maintenant est facturée ${SL_PCT[tr]}.</p>`;
+}
+const slLeg = () => `<div class="sl-leg"><span><i class="t50"></i>Changée entre J-60 et J-31 : 50 %</span><span><i class="t75"></i>J-30 à J-16 : 75 %</span><span><i class="t100"></i>J-15 au jour J : 100 %</span><span><i class="rmk"></i>Barrée = retirée</span><a href="${CG.url}" target="_blank" rel="noopener">Conditions générales</a></div>`;
+function slState(s, k) {
+  const ok = s[k], lab = ok ? "✓ " + (k === "par" ? "Reçues" : "Reçu") : "À envoyer";
+  if (MODE === "equipe") return `<button type="button" class="sl-st ${ok ? "ok" : "no"}" data-slst="${s.id}-${k}" data-v="${ok ? "à envoyer" : "reçu"}" aria-label="${k === "par" ? "Paroles" : "Audio"} de ${esc(s.t)} : ${lab}">${lab}</button>`;
+  return `<span class="sl-st ${ok ? "ok" : "no"}">${lab}</span>`;
+}
+function slHTML(p) {
+  const st = statusOf(p), songs = slSongs(p), live = songs.filter(s => !s.ret), out = songs.filter(s => s.ret);
+  const ddm = iso => iso ? dmOf(iso) : "", n = id => live.findIndex(s => s.id === id) + 1;
+  const ask = s => { const tr = slTier(slDays(slNow())), cout = EVENT.mutualise ? "Elle reste due (mutualisation)." : tr ? `Elle sera facturée ${SL_PCT[tr]}.` : "Seuls le travail fait et les frais seront facturés.";
+    return `<div class="sl-ask" role="alert"><b>Retirer « ${esc(s.t)} » ?</b> ${cout}<span><button type="button" class="btn btn-ok" data-slret="${s.id}">Oui, retirer</button><button type="button" class="btn btn-ghost" data-slno="1">Annuler</button></span></div>`; };
+  const acts = s => s.ret ? `<button type="button" class="sl-b sl-back" data-slback="${s.id}">Remettre</button>`
+    : `<button type="button" class="sl-b" data-slmv="${s.id}" data-d="-1" aria-label="Monter ${esc(s.t)}" ${n(s.id) === 1 ? "disabled" : ""}>↑</button><button type="button" class="sl-b" data-slmv="${s.id}" data-d="1" aria-label="Descendre ${esc(s.t)}" ${n(s.id) === live.length ? "disabled" : ""}>↓</button><button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`;
+  const rows = songs.map(s => { const f = slFact(s);
+    return `<tr class="${f.cls} ${s.ret ? "rm" : ""}"><td class="sl-n">${s.ret ? "✕" : n(s.id)}</td><td class="sl-t">${s.ajout ? `<b>${esc(s.t)}</b>` : esc(s.t)}</td>
+      <td>${s.ajout ? ddm(s.ajout) : esc(p.base || "Devis")}</td><td>${ddm(s.ret)}</td><td class="k">${slState(s, "par")}</td><td class="k">${slState(s, "aud")}</td>
+      <td class="k">${f.pill ? `<span class="sl-p ${f.cls}">${esc(f.pill)}</span>` : `<span class="sl-p">Prévue</span>`}</td><td class="k sl-a">${acts(s)}</td></tr>
+      ${SLASK === s.id ? `<tr class="sl-askr"><td colspan="8">${ask(s)}</td></tr>` : ""}`; }).join("");
+  const card = s => { const f = slFact(s);
+    return `<li class="sl-c ${f.cls} ${s.ret ? "rm" : ""}" data-slid="${s.id}">${s.ret ? `<span class="sl-n">✕</span>` : `<span class="sl-h" aria-hidden="true" data-sldrag="${s.id}">⠿</span><span class="sl-n">${n(s.id)}</span>`}
+      <span class="sl-ct"><span class="sl-tt">${esc(s.t)}</span><small>${f.pill ? esc(f.pill) + (s.ret ? " · le " + ddm(s.ret) : s.ajout ? " · le " + ddm(s.ajout) : "") + "<br>" : ""}Paroles ${s.par ? "✓" : "à envoyer"} · Audio ${s.aud ? "✓" : "à envoyer"}</small>
+      ${MODE === "equipe" ? `<span class="sl-eq">${slState(s, "par")}${slState(s, "aud")}</span>` : ""}</span>
+      ${s.ret ? `<button type="button" class="sl-b sl-back" data-slback="${s.id}">Remettre</button>` : `<button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`}</li>
+      ${SLASK === s.id ? `<li class="sl-askc">${ask(s)}</li>` : ""}`; };
+  const conf = sent["team-" + p.id] || sent[p.id];
+  return `<div class="item sl ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.sous || p.titre)}</span>${pillHTML(p)}</div>
+    ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}${slBandeau()}
+    <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Facturation</th><th>Ordre</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sl-mob"><ol class="sl-l">${live.map(card).join("")}</ol>${out.length ? `<p class="sl-rt">Retirées</p><ol class="sl-l">${out.map(card).join("")}</ol>` : ""}</div>
+    ${SLORD ? `<div class="sl-ord"><span>Ordre modifié.</span><button type="button" class="btn btn-ok" data-slsave="1">Enregistrer le nouvel ordre</button><button type="button" class="btn btn-ghost" data-slcancel="1">Annuler</button></div>` : ""}
+    ${slLeg()}
+    <form class="form sl-add" data-sladd="1"><div class="fwrap"><input type="text" id="f-sladd" name="sladd" placeholder="Ajouter une chanson : titre" aria-label="Titre de la chanson à ajouter"><button class="send" type="submit">+ Ajouter</button></div></form>
+    <p class="hint">Paroles ou audio à envoyer ? Déposez-les à l'étape suivante.</p>
+    ${conf ? `<p class="sl-conf">✓ Setlist confirmée le ${dmOf(conf.date)}${conf.auteur ? " par " + esc(conf.auteur) : ""}.</p>` : ""}
+    ${MODE === "orga" && !SLORD ? `<div class="actions"><button class="btn btn-ok btn-big" type="button" data-slconf="${p.id}">${conf ? "Je confirme à nouveau cette setlist" : "Je confirme cette setlist"}</button></div>` : ""}</div>`;
+}
+function slSet(id, v) { const now = slNow();
+  if (ADMIN && MODE === "equipe") sent["team-" + id] = { texte: v, statut: "ok", date: now }; else sent[id] = { texte: v, date: now };
+  save(); post(id, v, SOURCE()); }
+function slItem() { return allItems().find(x => x.type === "setlist"); }
+/* Nouvel ordre des chansons prévues ; les retirées gardent leur place. */
+function slReorder(live) { const all = slSongs(slItem()); let k = 0; SLORD = all.map(s => s.ret ? s.id : live[k++]); render(false); }
+function slMove(id, d) { const live = slSongs(slItem()).filter(s => !s.ret).map(s => s.id), i = live.indexOf(id), j = i + d;
+  if (i < 0 || j < 0 || j >= live.length) return; [live[i], live[j]] = [live[j], live[i]]; slReorder(live); }
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("button"); if (!b) return;
+  if (b.dataset.slmv) slMove(b.dataset.slmv, +b.dataset.d);
+  else if (b.dataset.slask) { SLASK = b.dataset.slask; render(false); }
+  else if (b.dataset.slno) { SLASK = ""; render(false); }
+  else if (b.dataset.slret) { SLASK = ""; slSet(b.dataset.slret + "-ret", "retirée"); render(false); toast("Chanson retirée. 10 Doigts en Cavale est prévenu."); }
+  else if (b.dataset.slback) { slSet(b.dataset.slback + "-ret", "remise"); render(false); toast("Chanson remise dans la setlist."); }
+  else if (b.dataset.slst) { slSet(b.dataset.slst, b.dataset.v); render(false); }
+  else if (b.dataset.slsave) { const v = SLORD.join(","); SLORD = null; slSet("sl-ordre", v); render(false); toast("Nouvel ordre envoyé."); }
+  else if (b.dataset.slcancel) { SLORD = null; render(false); }
+  else if (b.dataset.slconf) submit(b.dataset.slconf, "Setlist confirmée.", null, b);
+});
+document.addEventListener("submit", e => {
+  const f = e.target.closest && e.target.closest("[data-sladd]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
+  const v = f.querySelector("input").value.trim(); if (!v) { toast("Écrivez le titre de la chanson."); return; }
+  slSet("sl-a" + Math.random().toString(36).slice(2, 8), v); render(false); toast("Chanson ajoutée en bas de la liste.");
+}, true);
+/* Téléphone : on attrape ⠿ et on fait glisser la carte. */
+let SLDRAG = null;
+document.addEventListener("pointerdown", e => { const h = e.target.closest && e.target.closest("[data-sldrag]"); if (!h) return;
+  e.preventDefault(); const li = h.closest(".sl-c"); SLDRAG = { id: h.dataset.sldrag, li, y0: e.clientY }; li.classList.add("drag"); h.setPointerCapture && h.setPointerCapture(e.pointerId); });
+document.addEventListener("pointermove", e => { if (!SLDRAG) return; e.preventDefault();
+  const li = SLDRAG.li, dy = e.clientY - SLDRAG.y0; li.style.transform = `translateY(${dy}px)`;
+  const sib = dy < 0 ? li.previousElementSibling : li.nextElementSibling;
+  if (sib && sib.classList.contains("sl-c") && !sib.classList.contains("rm") && Math.abs(dy) > sib.offsetHeight / 2 + 4) {
+    if (dy < 0) li.parentNode.insertBefore(li, sib); else li.parentNode.insertBefore(sib, li);
+    SLDRAG.y0 = e.clientY; li.style.transform = ""; } }, { passive: false });
+document.addEventListener("pointerup", () => { if (!SLDRAG) return; const li = SLDRAG.li; li.style.transform = ""; li.classList.remove("drag");
+  const ids = [...li.parentNode.querySelectorAll(".sl-c")].map(x => x.dataset.slid), p = slItem(), cur = slSongs(p).filter(s => !s.ret).map(s => s.id);
+  SLDRAG = null; if (ids.join() === cur.join()) return; slReorder(ids); });
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1553,6 +1700,7 @@ function itemHTML(p) {
   if (p.type === "repas") return repasHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
   if (p.type === "grille") return grilleHTML(p);
+  if (p.type === "setlist") return slHTML(p);
   if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
@@ -1772,7 +1920,7 @@ function topicHTML(t) {
   if (t.alerte) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); pre += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
-  if (t.setlist) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
+  if (t.setlist && !(t.items || []).some(it => it.type === "setlist")) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
     <ol>${sl.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("");
   if (MODE === "orga" && ptsF(t).some(p => statusOf(p) === "todo")) body += step("Qui répond ?", auteurHTML(), "st-auteur");
   const gate = gateOf(t), gNo = gateNo(t);
@@ -1792,7 +1940,7 @@ function topicHTML(t) {
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
     if (p.equipe) { body += itemHTML(it); return; }
     const h = (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
-    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" ? " co" : ""), pillHTML(p));
+    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" ? " co" : ""), pillHTML(p));
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
@@ -2069,6 +2217,7 @@ function buildPdf() {
         text(`Réservé par : ${hebQui(p) === "10dec" ? "10 Doigts en Cavale" : "l'organisateur"}`, 10, "normal", null, 6);
         [["nom", "Nom"], ["adr", "Adresse"], ["dates", "Dates"], ["twin", "Chambres twin"], ["single", "Chambres single"], ["pdj", "Petit-déjeuner"], ["conf", "N° de confirmation"]].forEach(([k, l]) => { const x = hebVal(p, k); if (x) text(`${l} : ${x}`, 10, "normal", null, 6); }); y += .8; return; }
       if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; } grilleRows(p).forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "setlist") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); let k = 0; slSongs(p).forEach(x => { const f = slFact(x); text(`${x.ret ? "X" : ++k}. ${x.t}${f.pill ? " (" + f.pill + ")" : ""}`, 10, x.ret ? "italic" : "normal", x.ret ? GRIS : null, 6); }); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "repas") { text(p.titre, 10.5, "bold", BLEU, 2); repasRows(p).forEach(r => text(`${r.nom} · ${r.date} · ${[r.midi && "midi", r.soir && "soir"].filter(Boolean).join(" et ") || "aucun repas"} · régime : ${r.regime || "aucun"}`, 10, "normal", null, 6)); y += .8; return; }

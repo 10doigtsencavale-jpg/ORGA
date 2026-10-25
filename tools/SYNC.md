@@ -39,7 +39,11 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
-     setlist → « 🎵 SETLIST » (ligne ℹ️) ; contacts (`c-…`) → « 📞 CONTACTS SUR PLACE » (Nom / Rôle / Téléphone) ;
+     setlist → « 🎵 SETLIST » (ligne ℹ️). Tableau de setlist (points `sl…`) : `sl-a<code>` = chanson ajoutée (titre) → nouvelle ligne en fin de setlist
+       + ligne ⚠️ CHANGEMENTS « Ajout : <titre> (le JJ/MM, J-<n>) » ; `sl-s<i>-ret` / `sl-a…-ret` = « retirée » ou « remise » (i = rang dans la setlist du devis, à partir de 0)
+       → ⚠️ CHANGEMENTS « Retrait : <titre> (le JJ/MM, J-<n>) — facturation <palier> » (paliers : J-60 à J-31 = 50 %, J-30 à J-16 = 75 %, J-15 au jour J = 100 %, avant J-60 = travail fait + frais ;
+       « mutualise » dans le fichier = dû en entier) ; `sl-ordre` = nouvel ordre → ligne ℹ️ « Nouvel ordre : 1. …, 2. … » (titres via `dechiffrer`) ;
+       `sl` = « Setlist confirmée » ; `…-par` / `…-aud` (paroles, audio reçus, réglés par l'équipe) : rien à reporter. Tout retrait ou ajout à moins de 60 jours va dans la notification ; contacts (`c-…`) → « 📞 CONTACTS SUR PLACE » (Nom / Rôle / Téléphone) ;
      horaires (`hor-…`) → « ⏰ PLANNING DU JOUR J » + une ligne dans « ⚠️ CHANGEMENTS » si un horaire change ;
      parking, pass, accès, runs (`park-…`, `pass-…`, `run-…`, `runs-…` : une case du tableau des runs = `<ligne>-<colonne>`, une ligne ajoutée = `runs-x…` avec son nom) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
      technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
