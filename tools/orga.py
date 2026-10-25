@@ -58,6 +58,7 @@ def appliquer(fichier, cle, lignes_json, code=""):
     vus = set(data.get("vus", []))
     data.setdefault("reponses", {}); data.setdefault("questions", {}); data.setdefault("journal", [])
     nouveau = []
+    envoi = ""
     # Événements jumeaux (ex. deux artistes le même soir, un espace chacun) : une réponse sur un sujet commun
     # (accueil, horaires, com…) pré-remplit l'autre espace, sauf si celui-ci a déjà sa propre réponse.
     jum = data.get("jumeaux") or {}
@@ -109,6 +110,10 @@ def appliquer(fichier, cle, lignes_json, code=""):
             auteur = source[5:].strip()[:60] if source.startswith("orga:") else ""
         if miroir:
             auteur = (auteur + " · " if auteur else "") + "repris de l'espace " + miroir
+        if point == "envoi":  # « lien envoyé » coché dans la page équipe : seulement si signé par l'équipe
+            if src == "10DEC" and not miroir:
+                data["envoye"] = texte; envoi = texte
+            continue
         if point.startswith("question:"):
             data["questions"].setdefault(point[9:], []).append({"texte": texte, "date": date, "source": src, "auteur": auteur})
         else:
@@ -123,10 +128,10 @@ def appliquer(fichier, cle, lignes_json, code=""):
         nouveau.append(e)
     data["journal"] = sorted(data["journal"], key=lambda x: x["date"])[-60:]
     data["vus"] = sorted(vus)
-    if nouveau:
+    if nouveau or envoi:
         data["maj"] = datetime.now(timezone.utc).astimezone().strftime("%d/%m/%Y")
         ecrire(fichier, cle, data)
-    print(json.dumps({"evenement": data.get("artiste", "") + " - " + data.get("lieu", ""), "nouveautes": nouveau}, ensure_ascii=False, indent=1))
+    print(json.dumps({"evenement": data.get("artiste", "") + " - " + data.get("lieu", ""), "nouveautes": nouveau, "envoi": envoi}, ensure_ascii=False, indent=1))
 
 def manquants(fichier, cle):
     """Liste, sujet par sujet, ce qui n'est pas encore complété (même logique que la page),

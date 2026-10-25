@@ -25,6 +25,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `python3 -I tools/orga.py appliquer <fichier> <clé> /tmp/orga/lignes.json <code équipe>` → affiche les nouveautés (JSON).
    Le code équipe = ce qui suit le « ! » dans le lien équipe (colonne G). Sans lui, les réponses « 10DEC » ne sont pas reconnues.
    Chaque nouveauté porte un champ `auteur` (prénom et rôle de l'organisateur) : reporte-le dans la FDR (« par Fred – son »).
+   **Lien envoyé** : si la sortie d'`appliquer` contient `"envoi": "JJ/MM/AAAA"` (coché dans la page équipe au moment de copier le lien),
+   écris cette date en colonne I (« Lien envoyé le ») de la ligne de l'événement dans le tableau des liens, SEULEMENT si I est vide,
+   et mets la colonne F (Statut) à « Envoyé » sauf si elle contient « pause ». Pas de notification pour ça.
 3 bis. **Fichiers déposés (Dropbox)** : `python3 -I tools/orga.py depots <fichier> <clé>` → liste des points avec un dossier Dropbox.
    Pour chaque point avec `"recu": false` : `mcp__Dropbox__list_folder` sur `dossier`. S'il contient au moins un fichier :
    `python3 -I tools/orga.py recu <fichier> <clé> <point> "<noms des fichiers, séparés par des virgules>"` → le point passe à « Reçu » sur la page.

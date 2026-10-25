@@ -105,6 +105,8 @@ main .in{padding-top:20px;padding-bottom:40px;display:grid;gap:18px}
   .c-con{grid-area:c}.c-ring{grid-area:r;align-self:start}.c-fam{grid-area:f}.c-lnk{grid-area:l}.c-nxt{grid-area:n}.c-act{grid-area:a}
 }
 .past .row{opacity:.8}
+.ask{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:#fff;border:2px solid #f26b21;border-radius:18px;box-shadow:0 14px 40px rgba(46,59,178,.22);padding:14px 16px;width:min(460px,calc(100% - 32px));display:flex;flex-direction:column;gap:10px}
+.ask p{margin:0;font-size:15px}.ask-b{display:flex;gap:8px;flex-wrap:wrap}
 .c-go{display:block;color:inherit;text-decoration:none;border-radius:12px;cursor:pointer}
 .c-go:hover .bb,.c-go:hover b{text-decoration:underline}
 .c-go:focus-visible{outline:3px solid #2e3bb2;outline-offset:3px}
@@ -228,7 +230,7 @@ const FAMS = [["urg", "À traiter vite"], ["tech", "Technique"], ["logi", "Accue
 const isPause = e => /pause/i.test(e.statut || "");
 function stageOf(e) {
   const s = STATS[e.fichier];
-  if (!e.envoye && !isPause(e)) return "send";                 /* a. lien pas envoyé (et pas en pause) */
+  if (!sentOf(e) && !isPause(e)) return "send";                 /* a. lien pas envoyé (et pas en pause) */
   if (s && (newOf(e).length || s.questions.length)) return "check"; /* b. nouveautés ou questions */
   if (s && s.n && s.d === s.n) return "ready";                /* c. tout est rempli */
   return "wait";                                              /* d. lien envoyé ou en pause, réponses manquantes */
@@ -277,8 +279,8 @@ function rowHTML(e, past) {
     : `<span class="ring idle" role="img" aria-label="Calcul en cours"><span>…</span></span>`;
   const lk = [];
   if (isPause(e)) lk.push(`<span class="pill p-info">En pause</span>`);
-  else if (!e.envoye) lk.push(`<span class="pill p-no">Lien pas envoyé</span>`);
-  else lk.push(`<span class="pill p-info">Envoyé le ${esc(e.envoye)}</span>`);
+  else if (!sentOf(e)) lk.push(`<span class="pill p-no">Lien pas envoyé</span>`);
+  else lk.push(`<span class="pill p-info">Envoyé le ${esc(sentOf(e))}</span>`);
   if (e.derniereRelance) lk.push(`<small>Relancé le ${esc(e.derniereRelance)}</small>`);
   if (e.erreur) lk.push(`<span class="pill p-err">${esc(e.erreur)}</span>`);
   const nx = [];
@@ -293,7 +295,8 @@ function rowHTML(e, past) {
     if (s.questions.length) nx.push(`<span class="nv" title="${esc(s.questions.join(", "))}">${plur(s.questions.length, "question")}</span>`);
     if (s.recus) nx.push(`<span class="pill p-ok">${s.recus} fichier${s.recus > 1 ? "s" : ""} reçu${s.recus > 1 ? "s" : ""}</span>`);
   }
-  const more = [e.lienOrga ? `<button type="button" role="menuitem" data-copy="${esc(e.lienOrga)}">Copier le lien orga</button>` : "",
+  const more = [e.lienOrga ? `<button type="button" role="menuitem" data-copy="${esc(e.lienOrga)}" data-file="${esc(e.fichier)}">Copier le lien orga</button>` : "",
+    e.lienOrga && !sentOf(e) && e.lienEquipe ? `<button type="button" role="menuitem" data-sent="${esc(e.fichier)}">Marquer « lien envoyé »</button>` : "",
     e.fdr ? `<a role="menuitem" href="${esc(e.fdr)}" target="_blank" rel="noopener">FDR ↗</a>` : "",
     e.dropbox ? `<a role="menuitem" href="${esc(e.dropbox)}" target="_blank" rel="noopener">Dropbox ↗</a>` : ""].join("");
   const open = MENU === e.fichier;
@@ -330,6 +333,30 @@ function render() {
   html += `<div class="foot"><span>Réservé à l'équipe de 10 Doigts en Cavale. Ne transmettez jamais ce lien.</span><button type="button" id="forget">Oublier le code sur cet appareil</button></div>`;
   $("#view").innerHTML = html;
 }
+/* Lien envoyé : noté tout de suite sur cet appareil, et transmis par le formulaire (signé avec le code équipe)
+   pour que la synchro remplisse « Lien envoyé le » dans le tableau des liens. */
+const FORM = { url: "https://docs.google.com/forms/d/e/1FAIpQLSduVfDHGsYRQjoz9kRyZXjB6o-_KfHsIu15AlCrXnDhPfM7kA/formResponse",
+  ev: "338904261", pt: "1150754807", rep: "1563863016", src: "591334309" };
+const sentOf = e => e.envoye || store.get("orga-envoi-" + e.fichier) || "";
+async function markSent(fichier) {
+  const e = DATA.evenements.find(x => x.fichier === fichier); if (!e) return;
+  const d = new Date(), date = String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+  const code = String(e.lienEquipe || "").split("!")[1] || "";
+  let sig = "";
+  if (code) { const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code + "|envoi|" + date)); sig = [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16); }
+  const body = new URLSearchParams();
+  body.append("entry." + FORM.ev, fichier); body.append("entry." + FORM.pt, "envoi");
+  body.append("entry." + FORM.rep, date); body.append("entry." + FORM.src, "10DEC:ok:" + sig);
+  try { await fetch(FORM.url, { method: "POST", mode: "no-cors", body }); } catch (x) { toast("Pas de connexion : réessayez."); return; }
+  store.set("orga-envoi-" + fichier, date); render(); toast("Noté : lien envoyé le " + date + ".");
+}
+function askSent(fichier) {
+  const e = DATA.evenements.find(x => x.fichier === fichier); if (!e || sentOf(e) || !e.lienEquipe) return;
+  const box = document.createElement("div"); box.className = "ask"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Lien envoyé ?");
+  box.innerHTML = `<p><b>Lien copié.</b> Vous l'envoyez maintenant à l'organisateur de ${esc(e.artiste || e.nom)} ?</p>
+    <div class="ask-b"><button type="button" class="btn" data-sent="${esc(fichier)}">Oui, noter « envoyé »</button><button type="button" class="btn2" data-ask-close>Pas encore</button></div>`;
+  document.querySelectorAll(".ask").forEach(x => x.remove()); document.body.appendChild(box); box.querySelector("button").focus();
+}
 async function copy(t) {
   try { await navigator.clipboard.writeText(t); toast("Lien organisateur copié."); }
   catch (e) { const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); toast("Lien organisateur copié."); } catch (x) { toast("Copie impossible : ouvrez l'espace et copiez le lien."); } a.remove(); }
@@ -342,7 +369,9 @@ document.addEventListener("click", e => {
   const b = e.target.closest("button, .menu a");
   if (MENU && !(b && (b.dataset.menu === MENU || b.closest(".menu")))) setMenu("");
   if (!b) return;
-  if (b.dataset.copy) { copy(b.dataset.copy); setMenu(""); }
+  if (b.dataset.copy) { copy(b.dataset.copy); setMenu(""); if (b.dataset.file) askSent(b.dataset.file); }
+  else if (b.dataset.sent) { document.querySelectorAll(".ask").forEach(x => x.remove()); setMenu(""); markSent(b.dataset.sent); }
+  else if (b.hasAttribute("data-ask-close")) { document.querySelectorAll(".ask").forEach(x => x.remove()); }
   else if (b.closest(".menu")) setMenu("");
   else if (b.dataset.menu) setMenu(MENU === b.dataset.menu ? "" : b.dataset.menu, true);
   else if (b.dataset.filter) { FILTER = (b.dataset.filter === FILTER && FILTER !== "all") ? "all" : b.dataset.filter; store.set("orga-acc-filtre", FILTER); render(); }
