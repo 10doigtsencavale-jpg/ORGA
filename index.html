@@ -665,6 +665,7 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .admin-d>summary::-webkit-details-marker{display:none}
 .admin-d[open]>summary{margin-bottom:6px}.admin-d .admin{border-top:0;padding-top:0}
 /* Hébergement */
+.pbsw.tpb span{display:grid;gap:2px}.pbsw.tpb small{font-weight:500;color:#6b5a00}
 .tl-al{display:inline-block;font-size:12px;font-weight:700;background:#fff1e6;color:#7a2e00;border:1.5px solid #f26b21;border-radius:999px;padding:1px 8px;margin-top:4px}
 .alerte.chg{background:#fff1e6;color:#7a2e00;border:2px solid #f26b21;margin-bottom:8px}.alerte.chg p{margin:2px 0 0}.alerte.chg .al-ic{background:#f26b21;color:#fff}
 .who{display:flex;gap:10px;align-items:center;background:#e3e5f6;border-radius:12px;padding:10px 12px;font-size:14px;margin:0}.who b{color:#2e3bb2}
@@ -880,7 +881,10 @@ function visible(x) {
   if (!multiArt() || FILTRE === "tout") return true;
   const tg = tagsOf(x); return FILTRE === "fest" ? !tg.length : tg.includes(FILTRE);
 }
-const ptsF = t => t.artiste ? (visible(t) ? pointsOf(t) : []) : pointsOf(t).filter(visible);
+/* Sujet « pas besoin pour ce concert » (coché par l'équipe, ex. talkback) : il disparaît pour l'organisateur. */
+const topicOff = t => !!t && valOf(t.id + "-pasbesoin") === "oui";
+const topicHidden = t => topicOff(t) && MODE !== "equipe";
+const ptsF = t => topicHidden(t) ? [] : t.artiste ? (visible(t) ? pointsOf(t) : []) : pointsOf(t).filter(visible);
 const artDot = id => { const a = ARTS().find(x => x.id === id); return a ? `<i class="dot" style="background:${a.couleur}"></i>` : ""; };
 const tabLabel = t => (SHORT[baseOf(t.id)] || t.label) + (t.artiste ? " · " + artName(t.artiste) : "");
 const artName = id => id === "fest" ? "Festival" : ((ARTS().find(a => a.id === id) || {}).court || "");
@@ -925,10 +929,10 @@ function pointsOf(t) {
   const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
-  (t.contactsList || []).forEach(e => pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)));
+  (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && topicHidden(EVENT.topics.find(x => x.qui === e.slice(2)))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
   return pts;
 }
-const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsOf(t).forEach(p => m.set(p.id, p))); return [...m.values()]; };
+const allPoints = () => { const m = new Map(); EVENT.topics.filter(t => !topicHidden(t)).forEach(t => pointsOf(t).filter(p => !(p.type === "group" && topicHidden(EVENT.topics.find(x => x.qui === p.group)))).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
@@ -1035,7 +1039,7 @@ function prioHTML() {
   const items = [];
   const tpA = EVENT.topics.find(x => x.alerte), itA = tpA && pointsOf(tpA).find(p => p.id === "pub-places");
   if (tpA && itA && statusOf(itA) === "todo") items.push({ t: tpA, e: "🧏", titre: "Places PSH : indiquer le stock prévu", sous: "Le public sourd est souvent prévenu tardivement.", due: { cls: "urg", txt: "Urgent" }, k: -999 });
-  EVENT.topics.forEach(t => {
+  EVENT.topics.filter(t => !topicHidden(t)).forEach(t => {
     const pts = pointsOf(t), left = pts.filter(p => !isDone(p)).length, du = dueOf(t);
     const top = t.id === "setlist" || t.id === "public"; /* demandés dès la signature du devis : toujours en premier */
     if (!left || !du || (du.days > 21 && !top)) return;
@@ -1512,7 +1516,7 @@ function contactsTableHTML(ids, side) {
 function contactsListHTML(t, vis) {
   vis = vis || visible;
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
-  const roles = t.contactsList.filter(e => e.startsWith("g:")).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
+  const roles = t.contactsList.filter(e => e.startsWith("g:") && !topicHidden(EVENT.topics.find(x => x.qui === e.slice(2)))).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
   const all = [...singles, ...roles].filter(c => vis(contactItem(c)));
   const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
@@ -1634,12 +1638,15 @@ function topicHTML(t) {
       ${pts.length ? `<div class="tl-s sh-s" aria-hidden="true">${pts.map(x => `<i class="${isDone(x) ? "on" : ""}"></i>`).join("")}</div>` : ""}
     </section>
     ${t.rappel ? `<p class="rappel">${SVGL(CLOCKD)}<span>${esc(t.rappel)}</span></p>` : ""}
+    ${MODE === "equipe" && t.masquable ? `<label class="pbsw tpb"><input type="checkbox" data-tpb="${t.id}" ${topicOff(t) ? "checked" : ""}><span>Pas besoin pour ce concert<small>La page disparaît pour l'organisateur.</small></span></label>` : ""}
+    ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
     ${pre}${body}</div></main>`;
 }
 
 function render(scrollTop) {
+  if (CURRENT && topicHidden(topicById(CURRENT))) CURRENT = null;
   renderTop();
   const t = CURRENT && EVENT.topics.find(x => x.id === CURRENT);
   $("#view").innerHTML = CURRENT === "cg" ? cgHTML() : CURRENT === "manque" ? manqueHTML() : t ? topicHTML(t) : homeHTML();
@@ -1699,6 +1706,8 @@ document.addEventListener("change", e => {
   if (e.target.matches && e.target.matches("[data-rowmulti]")) { const id = e.target.dataset.rowmulti;
     const v = [...document.querySelectorAll(`[data-rowmulti="${id}"]:checked`)].map(x => x.value).join(" · ");
     if (v) submit(id, v, null, e.target); else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); } return; }
+  if (e.target.matches && e.target.matches("[data-tpb]")) { const id = e.target.dataset.tpb + "-pasbesoin", v = e.target.checked ? "oui" : "non";
+    sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Masqué pour l'organisateur." : "Visible pour l'organisateur."); return; }
   if (e.target.matches && e.target.matches("[data-hebqui]")) { const v = e.target.value;
     sent["team-heb-qui"] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post("heb-qui", v, "10DEC:ok"); render(false); return; }
   if (e.target.matches && e.target.matches("[data-pb]")) { const id = e.target.dataset.pb + "-pasbesoin", v = e.target.checked ? "oui" : "non";
@@ -1850,7 +1859,7 @@ function buildPdf() {
   text(`Contact : ${r.nom} - ${r.tel} - ${r.mail}`, 10.5, "bold");
   EVENT.arrivees.forEach(a => text(`${a.quand} - ${a.detail}`, 10.5));
   const ans = p => { const t = sent["team-" + p.id], s = sent[p.id]; return (t && t.texte) || (s && s.texte) || p.valeur || ""; };
-  EVENT.topics.forEach(t => {
+  EVENT.topics.filter(t => !topicHidden(t)).forEach(t => {
     h2(t.label);
     if (t.important && t.importantTop) text(`Important : ${asB(t.important).t}`, 10, "bold", null, 2);
     pointsOf(t).forEach(p => {
