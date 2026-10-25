@@ -677,6 +677,14 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .new{font-size:12px;font-weight:700;background:#f7a42b;color:#000;border-radius:999px;padding:3px 9px}
 .rv-f{display:flex;gap:8px;width:100%}.rv-f input{flex:1;min-width:0}
 .vu-page{display:flex;justify-content:center}.b-page{background:#fff;color:#14633a;border:1.5px solid #1e8a4c;width:100%;max-width:520px;min-height:48px}
+/* Dossiers logos / pictos */
+.res-f{background:#fff;border:1.5px solid #d7daef;border-radius:18px;padding:12px 14px}.res-f[open]{grid-column:1/-1}
+.res-f>summary{display:flex;gap:12px;align-items:center;cursor:pointer;list-style:none}.res-f>summary::-webkit-details-marker{display:none}.res-f[open] .res-go{display:none}
+.doc-ic.dir{background:#e3e5f6;font-size:22px;align-items:center;padding:0}
+.res-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
+.res-im{display:grid;gap:6px;text-decoration:none;color:#000;font-size:14px;font-weight:700;text-align:center}
+.res-th{display:grid;place-items:center;height:110px;border:1.5px solid #d7daef;border-radius:12px;background:#fff;padding:8px}.res-th.fonce{background:#2e3bb2}
+.res-th img{max-width:100%;max-height:94px;object-fit:contain}.res-im b{color:#2e3bb2}
 /* Hébergement */
 .quis{display:flex;flex-wrap:wrap;gap:6px}.qb{font:inherit;font-size:13px;font-weight:700;border:1.5px solid #c9cde6;background:#fff;color:#555b7a;border-radius:999px;padding:6px 10px;cursor:pointer;min-height:34px}
 .qb.on{background:#2e3bb2;border-color:#2e3bb2;color:#fff}
@@ -1157,12 +1165,16 @@ function homeHTML() {
 const CG = { titre: "Conditions générales 2026-2027", version: "07/09/2026", url: "https://drive.google.com/file/d/1bta6fgiLXIR49a7F-DYxJF-nQM4C5BtN/view" };
 const RES = [
   { t: CG.titre, s: "PDF · 0,3 Mo", url: CG.url, cg: 1 },
-  { t: "Guide : accueillir le public sourd", s: "PDF · 5 Mo", url: "https://drive.google.com/file/d/1GEfqzFfgVfiJZFiWMV8yGQ_CUoX7AO3B/view" },
-  { t: "Présentation de 10 Doigts en Cavale", s: "PDF · 0,6 Mo", url: "https://drive.google.com/file/d/1To8Jnl3pke7ggVvE2nb5TkL5IXKMx83O/view" },
-  { t: "Nos offres de services", s: "PDF · 11 Mo", url: "res/offres-10dec.pdf" },
-  { t: "Trouver des financements", s: "PDF · 0,2 Mo", url: "https://drive.google.com/file/d/13x8FmD5k5y6EPbUv9oarNLV0GplZw2kS/view" },
-  { t: "Logos 10 Doigts en Cavale", s: "Images · 5 versions", url: "https://drive.google.com/drive/folders/1UwVXNCN7fF_fiqqvhql6aFJjMt6UdtQc", img: 1 },
-  { t: "Pictos accessibilité", s: "Chansigne, gilets vibrants, boucle", url: "https://drive.google.com/drive/folders/1XGxA3t0f-LJKslmcFo8wgJU2hfINPk6d", img: 1 }
+  { t: "Nos offres de services", s: "PDF · 11 Mo", url: "res/docs/offres-de-services-10dec.pdf" },
+  { t: "Guide : accueillir le public sourd", s: "PDF · 5 Mo", url: "res/docs/guide-accueil-public-sourd.pdf" },
+  { t: "Placement du chansigne sur scène", s: "PDF · 0,5 Mo", url: "res/docs/placement-chansigne-sur-scene.pdf" },
+  { t: "Présentation de 10 Doigts en Cavale", s: "PDF · 0,6 Mo", url: "res/docs/presentation-10dec.pdf" },
+  { t: "Trouver des financements", s: "PDF · 0,2 Mo", url: "res/docs/trouver-des-financements.pdf" }
+];
+/* Dossiers d'images : logos et pictos (téléchargement direct). */
+const DOSSIERS = [
+  { t: "Logos 10 Doigts en Cavale", files: [["logo-10dec-couleur.png", "Couleur"], ["logo-10dec-turquoise.png", "Turquoise"], ["logo-10dec-noir.png", "Noir"], ["logo-10dec-blanc.png", "Blanc", 1]].map(([f, l, fonce]) => ({ url: "res/logos/" + f, l, fonce })) },
+  { t: "Pictos accessibilité", files: [["chansigne-10dec.png", "Chansigne"], ["gilets-vibrants.png", "Gilets vibrants"], ["boucle-magnetique.gif", "Boucle magnétique"]].map(([f, l]) => ({ url: "res/pictos/" + f, l })) }
 ];
 /* Accord : réponse « cg » = « Accepté · Nom · Fonction · Structure · CG … version du … ». */
 function cgAcc() {
@@ -1179,7 +1191,9 @@ function cgBannerHTML() {
 function resHTML() {
   const a = cgAcc();
   return `<section class="res" aria-labelledby="resT"><h2 id="resT">Ressources</h2><p>Nos documents, à garder sous la main.</p><div class="res-g">
-    ${RES.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic ${x.img ? "img" : ""}" aria-hidden="true">${x.img ? "IMG" : "PDF"}</span><span class="res-t"><b>${esc(x.t)}</b><small>${x.cg ? (a ? "Accepté ✓" : "À accepter") : esc(x.s)}</small></span><span class="res-go">${x.img ? "Voir" : "Ouvrir"}<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}</div></section>`;
+    ${RES.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic" aria-hidden="true">PDF</span><span class="res-t"><b>${esc(x.t)}</b><small>${x.cg ? (a ? "Accepté ✓" : "À accepter") : esc(x.s)}</small></span><span class="res-go">Ouvrir<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}</div>
+    <div class="res-g">${DOSSIERS.map(d => `<details class="res-f"><summary><span class="doc-ic dir" aria-hidden="true">📁</span><span class="res-t"><b>${esc(d.t)}</b><small>${d.files.length} images · touchez pour ouvrir</small></span><span class="res-go">Ouvrir</span></summary>
+      <div class="res-imgs">${d.files.map(f => `<a class="res-im" href="${f.url}" download><span class="res-th ${f.fonce ? "fonce" : ""}"><img src="${f.url}" alt="" loading="lazy"></span><span>${esc(f.l)} <b>⤓</b></span></a>`).join("")}</div></details>`).join("")}</div></section>`;
 }
 function cgHTML() {
   const a = cgAcc(), team = ADMIN && MODE === "equipe";
