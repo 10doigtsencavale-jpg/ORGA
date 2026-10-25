@@ -666,6 +666,12 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .admin-d>summary::-webkit-details-marker{display:none}
 .admin-d[open]>summary{margin-bottom:6px}.admin-d .admin{border-top:0;padding-top:0}
 /* Hébergement */
+.quis{display:flex;flex-wrap:wrap;gap:6px}.qb{font:inherit;font-size:13px;font-weight:700;border:1.5px solid #c9cde6;background:#fff;color:#555b7a;border-radius:999px;padding:6px 10px;cursor:pointer;min-height:34px}
+.qb.on{background:#2e3bb2;border-color:#2e3bb2;color:#fff}
+.addb{font:inherit;font-size:14px;font-weight:700;color:#2e3bb2;background:#fff;border:1.5px dashed #2e3bb2;border-radius:12px;padding:10px 14px;cursor:pointer;margin-top:4px}
+.ttab.grille .addtr td{background:#f7f8fc;padding:8px 10px}
+.ttab.grille td.c-qui{min-width:150px}.ttab.grille .g-n .fwrap input[type=text]{min-width:150px}.ttab.grille .g-n:has(form){min-width:190px}
+@media (max-width:759px){.ttab.grille .addtr td{display:block}.ttab.grille .addtr td::before{content:none}}
 .pbsw.tpb span{display:grid;gap:2px}.pbsw.tpb small{font-weight:500;color:#6b5a00}
 .tl-al{display:inline-block;font-size:12px;font-weight:700;background:#fff1e6;color:#7a2e00;border:1.5px solid #f26b21;border-radius:999px;padding:1px 8px;margin-top:4px}
 .alerte.chg{background:#fff1e6;color:#7a2e00;border:2px solid #f26b21;margin-bottom:8px}.alerte.chg p{margin:2px 0 0}.alerte.chg .al-ic{background:#f26b21;color:#fff}
@@ -1231,10 +1237,10 @@ function repasHTML(p) {
   return `<div class="item ${eq ? "is-done" : "fourni"}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}
     <div class="tab-w"><table class="ttab"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
-    ${repasRows(p).map(r => `<tr><td><b>${esc(r.nom)}</b>${r.extra && eq ? ` <button type="button" class="linkbtn rm" data-rmrow="${r.k}">Retirer</button>` : ""}</td><td>${r.extra ? txt(r, "date", "ex. Sam. 14/11") : esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
+    ${repasRows(p).map(r => `<tr><td>${r.extra && eq ? `<form class="form" data-form="${r.k}">${fw(`<input type="text" id="f-${r.k}" name="${r.k}" value="${esc(r.nom)}" aria-label="Prénom et rôle">`, r.nom, "OK")}</form><button type="button" class="linkbtn rm" data-rmrow="${r.k}">Retirer</button>` : `<b>${esc(r.nom)}</b>`}</td><td>${r.extra ? txt(r, "date", "ex. Sam. 14/11") : esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
       <td>${txt(r, "regime", "Aucun")}</td></tr>`).join("")}
     </tbody></table></div>
-    ${eq ? addRowHTML(p, "Ajouter une personne (vidéaste, photographe…)", "Prénom et rôle") : ""}
+    ${eq ? `<button type="button" class="addb" data-addrow2="${p.id}" data-nom="Nouvelle personne">+ Ajouter une personne (vidéaste, photographe…)</button>` : ""}
     ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
 }
 /* Placeholders : jamais d'horaire fictif. « ex. 16h30 – 16h45 » → « ??h?? - ??h?? ». */
@@ -1300,10 +1306,13 @@ const grilleCells = (p, rows) => (rows || grilleRows(p)).flatMap(r => p.cols.map
 function grilleHTML(p) {
   if (isPB(p) && MODE !== "equipe") return pbBlockHTML(p);
   const st = statusOf(p), team = MODE === "equipe", rows = grilleRows(p), named = rows.some(r => r.nom);
+  const prenoms = teamList().map(t => String(t.nom).trim().split(/\s+/)[0]).filter(Boolean);
   const cell = x => {
+    if (x.c.k === "qui" && team) { const on = x.v.split(/\s*,\s*/).filter(Boolean), extra = on.filter(n => !prenoms.includes(n));
+      return `<div class="quis">${[...prenoms, ...extra].map(n => `<button type="button" class="qb ${on.includes(n) ? "on" : ""}" data-quitog="${x.id}" data-n="${esc(n)}" aria-pressed="${on.includes(n)}">${esc(n)}</button>`).join("")}</div>`; }
     if (!team && x.v && (x.fixe || !sent[x.id])) return `<span class="tv">${esc(x.v)}</span>`;
     if (!team && x.v) return `<span class="tv">${esc(x.v)}</span> <button type="button" class="linkbtn" data-edit="${x.id}">Modifier</button>`;
-    const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || { date: "jj/mm", nb: "?", a: "Lieu", b: "Lieu" }[x.c.k] || "À compléter");
+    const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || { date: "jj/mm", nb: "?", a: "Lieu", b: "Lieu", qui: "Prénoms" }[x.c.k] || "À compléter");
     return `<form class="form" data-form="${x.id}">${fw(`<input type="text" id="f-${x.id}" name="${x.id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + x.id] || (team ? x.v : ""))}" aria-label="${esc(x.c.l)}${x.r.nom ? " · " + esc(x.r.nom) : ""}">`, sent["draft-" + x.id] || (team ? x.v : ""), "OK")}</form>`;
   };
   const cells = grilleCells(p, rows);
@@ -1312,9 +1321,11 @@ function grilleHTML(p) {
     ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<p class="det">Les cases en pointillés jaunes sont à compléter.</p>
     ${pbSwitchHTML(p)}
     <div class="tab-w"><table class="ttab grille"><thead><tr>${named ? "<th></th>" : ""}${p.cols.map(c => `<th>${esc(c.l)}</th>`).join("")}</tr></thead><tbody>
-    ${rows.map(r => `<tr>${named ? `<th scope="row" class="g-n">${esc(r.nom || "")}${r.extra && (team || sent[r.id]) ? ` <button type="button" class="linkbtn rm" data-rmrow="${r.id}" aria-label="Retirer ${esc(r.nom)}">Retirer</button>` : ""}</th>` : ""}${cells.filter(x => x.r === r).map(x => `<td data-l="${esc(x.c.l)}" class="c-${esc(x.c.k)} ${x.v ? "" : "vide"}">${cell(x)}</td>`).join("")}</tr>`).join("")}
-    </tbody></table></div>
-    ${addRowHTML(p, p.ajout || "Ajouter une ligne", p.ajoutPh || "Nom de la ligne")}</div>`;
+    ${rows.map(r => { const mine = r.extra && (team || sent[r.id]);
+      const nomH = mine ? `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" value="${esc(sent["draft-" + r.id] || r.nom)}" aria-label="Nom de la ligne">`, r.nom, "OK")}</form><button type="button" class="linkbtn rm" data-rmrow="${r.id}" aria-label="Retirer ${esc(r.nom)}">Retirer</button>` : esc(r.nom || "");
+      return `<tr>${named ? `<th scope="row" class="g-n">${nomH}</th>` : ""}${cells.filter(x => x.r === r).map(x => `<td data-l="${esc(x.c.l)}" class="c-${esc(x.c.k)} ${x.v ? "" : "vide"}">${cell(x)}</td>`).join("")}</tr>`; }).join("")}
+    <tr class="addtr"><td colspan="${p.cols.length + (named ? 1 : 0)}"><button type="button" class="addb" data-addrow2="${p.id}" data-nom="${esc((p.ajoutNom || "Ligne") + " " + (rows.length + 1))}">+ ${esc(p.ajout || "Ajouter une ligne")}</button></td></tr>
+    </tbody></table></div></div>`;
 }
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
@@ -1674,7 +1685,9 @@ function submit(id, texte, extra, origin) {
   texte = String(texte || "").trim(); if (!texte) { toast("Merci d'écrire une réponse avant d'envoyer."); return; }
   const tops = topicsOfPoint(id);
   const before = tops.map(t => progress(pointsOf(t)).full), beforeAll = progress(allPoints()).full;
-  sent[id] = Object.assign({ texte, date: new Date().toISOString() }, extra || {}); delete sent["draft-" + id]; save();
+  sent[id] = Object.assign({ texte, date: new Date().toISOString() }, extra || {}); delete sent["draft-" + id];
+  if (ADMIN && MODE === "equipe") sent["team-" + id] = { texte, statut: "ok", date: sent[id].date }; /* vue équipe : la correction s'affiche tout de suite */
+  save();
   post(id, texte, SOURCE());
   const r = origin ? origin.getBoundingClientRect() : null;
   render(false);
@@ -1809,6 +1822,13 @@ document.addEventListener("click", e => {
     const h = hebItem(), v = String(Math.max(0, (+hebVal(h, id.slice(4)) || 0) + (+b.dataset.d)));
     if (team) sent["team-" + id] = { texte: v, statut: "ok", date: now }; else sent[id] = { texte: v, date: now };
     save(); post(id, v, SOURCE()); render(false); }
+  else if (b.dataset.addrow2) { const p = allItems().find(x => x.id === b.dataset.addrow2), id = newRowId(p), team = ADMIN && MODE === "equipe", now = new Date().toISOString(), nom = b.dataset.nom;
+    if (team) sent["team-" + id] = { texte: nom, statut: "ok", date: now }; else sent[id] = { texte: nom, date: now };
+    save(); post(id, nom, SOURCE()); render(false); toast("Ligne ajoutée. Remplissez ses cases."); }
+  else if (b.dataset.quitog) { const id = b.dataset.quitog, n = b.dataset.n, now = new Date().toISOString();
+    const it = allItems().find(x => x.type === "grille" && grilleCells(x).some(c => c.id === id)), c = it && grilleCells(it).find(x => x.id === id);
+    const cur = (c ? c.v : valOf(id)).split(/\s*,\s*/).filter(Boolean), nv = cur.includes(n) ? cur.filter(x => x !== n) : [...cur, n];
+    const v = nv.join(", ") || "—"; sent["team-" + id] = { texte: v, statut: "ok", date: now }; save(); post(id, v, "10DEC:ok"); render(false); }
   else if (b.dataset.rmrow) { const id = b.dataset.rmrow, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
     if (team) sent["team-" + id] = { texte: "✗ Retiré", statut: "ok", date: now }; delete sent[id];
     save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Ligne retirée."); }

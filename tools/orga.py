@@ -385,6 +385,11 @@ def trajets(fichier, cle, values_json):
         d.setdefault("alertes", []).append({"bloc": bloc, "texte": texte, "date": now}); d["alertes"] = d["alertes"][-10:]; out["alertes"].append(texte)
     for t in d.get("topics", []):
         for it in t.get("items", []):
+            if it.get("id") == "runs":  # « Qui » : rempli une fois depuis les billets, ensuite l'équipe garde la main
+                for r, gens in (("run-aller", aller), ("run-retour", retour)):
+                    row = next((x for x in it["rows"] if x["id"] == r), None)
+                    if row is not None and gens and not row.setdefault("cells", {}).get("qui"):
+                        row["cells"]["qui"] = ", ".join(sorted(gens, key=lambda q: hm((aller if r == "run-aller" else retour)[q]))); change = True
             if it.get("id") == "runs" and arr:
                 for r in it["rows"]:
                     if r["id"] == "run-aller":
