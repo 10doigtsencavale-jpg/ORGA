@@ -2120,6 +2120,7 @@ function topicHTML(t) {
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
+  let frDone = false;
   const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
   its.forEach(it => {
     const p = itemOf(it);
@@ -2127,6 +2128,7 @@ function topicHTML(t) {
     if (p.equipe) { body += itemHTML(it); return; }
     const h = (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
     body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" ? " co" : ""), pillHTML(p));
+    if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
@@ -2134,7 +2136,7 @@ function topicHTML(t) {
   if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
   if (PH) body += topicResHTML(t);
-  if ((t.base || t.id) === "horaires") body += friseHTML(t);
+  if ((t.base || t.id) === "horaires" && !frDone) body += friseHTML(t);
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
