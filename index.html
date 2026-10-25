@@ -288,17 +288,9 @@ body::before{background:#ffffff}
 .bout .arr .t{color:var(--electrique)}
 .btn-turq{background:var(--turquoise);color:#0b1a3a}
 .feed{background:#fff}
-.tabs{background:#fff;border-bottom:1px solid #e8eaf3;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 .stick{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:#fff}
-.stick .tabs{position:static}
 .afband{background:#fff;border-bottom:1px solid #e8eaf3}
 .afband .wrap{display:grid;gap:6px;padding-block:8px}
-.tabs-in{max-width:900px;margin:0 auto;display:flex;gap:6px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;scrollbar-width:none}
-.tabs-in::-webkit-scrollbar{display:none}
-@media (min-width:900px){.tabs-in{flex-wrap:wrap;overflow:visible}}
-.tab{flex:none;font:inherit;font-size:14px;font-weight:800;background:#f1f2f8;color:var(--encre);border:0;border-radius:999px;padding:7px 12px;cursor:pointer;min-height:36px}
-.tab small{font-size:12px;opacity:.75;font-weight:700}
-.tab.full:not(.cur) small{color:var(--ok);opacity:1}
 .wrap.topic{max-width:900px}
 footer .wrap{max-width:900px}
 .thb{border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px}
@@ -482,14 +474,44 @@ body.sujet .topbar{background:#fff;border-bottom:1px solid #e3e5f3}
 body.sujet .topbar .wrap{gap:10px}
 body.sujet .ct-ev{font-family:"Bebas Neue",var(--display);font-weight:400;font-size:24px;line-height:1.05;letter-spacing:.01em;color:#000;min-width:0;overflow-wrap:anywhere}
 body.sujet .ct-n{flex:none;background:#eef0fa;color:#2e3bb2;font-weight:700;font-size:14px;border-radius:999px;padding:4px 12px}
-body.sujet .tabs{background:#fff;border-bottom:1px solid #e3e5f3}
-body.sujet .tabs-in{gap:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
-body.sujet .tab{scroll-snap-align:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;background:#fff;color:#000;border:1.5px solid #d7daef;border-radius:999px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;white-space:nowrap}
-body.sujet .tab small{font-family:"Bebas Neue",var(--display);font-size:16px;font-weight:400;opacity:1;line-height:1;padding-top:2px}
-body.sujet .tab.full:not(.cur) small{color:#2e3bb2}
-body.sujet .tab.tab-home{background:#eef0fa;color:#2e3bb2;border-color:#eef0fa}
-body.sujet .tab:focus-visible{outline:3px solid #2e3bb2;outline-offset:2px}
-@media (min-width:700px){body.sujet .tabs-in{flex-wrap:wrap;overflow:visible}}
+body.sujet .tb-home{flex:none;font:inherit;font-size:14px;font-weight:700;background:#eef0fa;color:#2e3bb2;border:0;border-radius:999px;min-height:44px;padding:0 14px;cursor:pointer}
+body.sujet .topbar .wrap{justify-content:flex-start}
+body.sujet .ct-ev{flex:1;color:#2e3bb2}
+/* Menu des sujets : un bouton déroulant + précédent / suivant ; panneau par catégorie. */
+.tmenu{background:#fff;border-bottom:1px solid #e3e5f3}
+.tm-in{max-width:900px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.tm-row{display:flex;gap:8px;align-items:stretch}
+.tm-nav{flex:none;width:48px;min-height:48px;border-radius:14px;border:0;background:#eef0fa;color:#2e3bb2;display:grid;place-items:center;cursor:pointer;padding:0}
+.tm-nav[disabled]{opacity:.4;cursor:default}
+.tm-sel{position:relative;flex:1;min-width:0;min-height:48px;border-radius:14px;border:2px solid var(--b);background:#fff;color:#000;display:flex;align-items:center;gap:10px;padding:4px 12px;font:700 15px "DM Sans",sans-serif;cursor:pointer;text-align:left}
+.tm-d{flex:none;width:12px;height:12px;border-radius:50%;background:var(--b)}
+.tm-tx{flex:1;min-width:0;display:flex;align-items:baseline;gap:6px}
+.tm-k{flex:none;color:var(--t);white-space:nowrap}
+.tm-s{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-n{flex:none;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:16px;line-height:1;padding-top:2px}
+.tm-ch{flex:none;transition:transform .2s}
+.tm-sel[aria-expanded="true"] .tm-ch{transform:rotate(180deg)}
+.tm-nav:focus-visible,.tm-sel:focus-visible,.tm-it:focus-visible{outline:3px solid #2e3bb2;outline-offset:2px}
+.tm-p{margin-top:8px;background:#fff;border-radius:20px;box-shadow:0 12px 32px rgba(46,59,178,.16);padding:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-height:calc(100dvh - 190px);overflow-y:auto;overscroll-behavior:contain}
+.tm-col{min-width:0}
+.tm-h{margin:0 0 8px;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:22px;line-height:1.05;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:3px solid var(--b);color:var(--t)}
+.tm-l{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.tm-it{width:100%;font:700 14px "DM Sans",sans-serif;color:#000;background:transparent;border:0;border-radius:10px;min-height:40px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;cursor:pointer}
+.tm-it:hover{background:#eef0fa}
+.tm-it.cur{background:var(--c);color:var(--cf)}
+.tm-it .tm-n{font-size:17px}
+@media (max-width:699px){
+  .tm-p{grid-template-columns:1fr}
+  .tm-tx{flex-direction:column;align-items:flex-start;gap:0}
+  .tm-k{font-size:12px;line-height:1.2}
+  .tm-sep{display:none}
+  .tm-s{max-width:100%}
+  /* Planning : bouton OK sous le champ, pour lire « xxhxx – xxhxx » en entier. */
+  body.sujet main .ttab .fwrap{display:grid;gap:6px}
+  body.sujet main .ttab.hor td:first-child{width:60%}
+  body.sujet main .ttab .fwrap input[type=text]{padding-left:8px;padding-right:8px;min-width:0}
+  body.sujet main .ttab .fwrap .send{position:static;min-height:40px;width:100%}
+}
 body.sujet main .wrap.topic{gap:14px;padding-top:16px}
 .sh{background:#fff;border:2px solid var(--b);border-radius:22px;padding:16px;display:grid;gap:14px}
 .sh-top{display:flex;align-items:flex-start;gap:12px}
@@ -626,10 +648,10 @@ const ICONS = {
 /* Accueil « Vous êtes en charge de… » : trois familles, chaque carte regroupe ses sujets. */
 const FAM = {
   /* fg = titre, tab/tabFg = pastille date, bd = cadre des tuiles, bg = fond pastille icône, bar = remplissage */
-  urg:  { label: "À traiter au plus vite", bg: "#fde3bb", bar: "#f7a42b", fg: "#b46f00", tab: "#f7a42b", tabFg: "#000000", bd: "#f7a42b" },
-  tech: { label: "Technique", bg: "#fde0dc", bar: "#e64330", fg: "#c4321f", tab: "#e64330", tabFg: "#000000", bd: "#e64330" },
-  logi: { label: "Accueil · VHR", bg: "#e3e5f6", bar: "#2e3bb2", fg: "#2e3bb2", tab: "#2e3bb2", tabFg: "#ffffff", bd: "#2e3bb2" },
-  com:  { label: "Presse · après le concert", bg: "#d6eeea", bar: "#4fa597", fg: "#2f8a7c", tab: "#87cabe", tabFg: "#000000", bd: "#4fa597" }
+  urg:  { label: "À traiter au plus vite", court: "À traiter vite", bg: "#fde3bb", bar: "#f7a42b", fg: "#b46f00", tab: "#f7a42b", tabFg: "#000000", bd: "#f7a42b" },
+  tech: { label: "Technique", court: "Technique", bg: "#fde0dc", bar: "#e64330", fg: "#c4321f", tab: "#e64330", tabFg: "#000000", bd: "#e64330" },
+  logi: { label: "Accueil · VHR", court: "Accueil", bg: "#e3e5f6", bar: "#2e3bb2", fg: "#2e3bb2", tab: "#2e3bb2", tabFg: "#ffffff", bd: "#2e3bb2" },
+  com:  { label: "Presse · après le concert", court: "Presse · après", bg: "#d6eeea", bar: "#4fa597", fg: "#2f8a7c", tab: "#87cabe", tabFg: "#000000", bd: "#4fa597" }
 };
 const ROLES = [
   { fam: "urg", e: "setlist", label: "Setlist / Dresscode", topics: ["setlist"] },
@@ -856,7 +878,7 @@ function renderTop() {
   document.body.classList.toggle("home", !CURRENT);
   document.body.classList.toggle("sujet", !!CURRENT);
   tb.innerHTML = CURRENT
-    ? `<span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n}</span>`
+    ? `<button type="button" class="tb-home" data-home>← Accueil</button><span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span><span class="ct-n">${pr.d} / ${pr.n}</span>`
     : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span><span class="eo">Espace organisateur</span>`;
   $("#previewBanner").hidden = !ADMIN;
   const r = EVENT.referente;
@@ -1243,14 +1265,43 @@ function checkHTML(p) {
     <input type="checkbox" id="c-${p.id}" data-check="${p.id}" ${on ? "checked" : ""}>
     <span class="chk-t"><strong>${p.important ? `<em class="tag-imp">Important</em>` : ""}${esc(p.titre)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}${extra}</span></label>${p.sous ? subsHTML(p.sous) : ""}</div>`;
 }
+const CHEV = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"></path></svg>`;
+const famKey = id => roleOf(id).fam;
+const cnt = p => p.full ? "✓" : `${p.d}/${p.n}`;
 function tabsHTML() {
-  return `<nav class="tabs" aria-label="Sujets"><div class="tabs-in">
-    <button type="button" class="tab tab-home" data-home>← Accueil</button>
-    ${tabOrder().map(id => { const t = topicById(id), p = progress(ptsF(t)), cur = id === CURRENT;
-      const f = famOf(id), st = cur ? `border-color:${f.bd};background:${f.tab};color:${f.tabFg}` : `border-color:${f.bd}`;
-      return `<button type="button" class="tab ${cur ? "cur" : ""} ${p.full ? "full" : ""}" style="${st}" data-topic="${id}" ${cur ? 'aria-current="page"' : ""}>${t.artiste ? artDot(t.artiste) : ""}${esc(tabLabel(t))} <small>${p.full ? "✓" : `${p.d}/${p.n}`}</small></button>`; }).join("")}
-  </div></nav>`;
+  const order = tabOrder(), i = order.indexOf(CURRENT), cur = topicById(CURRENT), f = famOf(CURRENT);
+  const prev = topicById(order[i - 1]), next = topicById(order[i + 1]);
+  const nav = (t, dir) => `<button type="button" class="tm-nav" ${t ? `data-topic="${t.id}" aria-label="Sujet ${dir === "p" ? "précédent" : "suivant"} : ${esc(tabLabel(t))}"` : `disabled aria-label="Pas de sujet ${dir === "p" ? "précédent" : "suivant"}"`}>${CHEV(dir === "p" ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6")}</button>`;
+  const cols = Object.keys(FAM).map(k => ({ k, f: FAM[k], ids: order.filter(id => famKey(id) === k) })).filter(c => c.ids.length).map(c =>
+    `<div class="tm-col" style="--b:${c.f.bd};--t:${c.f.fg};--c:${c.f.tab};--cf:${c.f.tabFg}"><h2 class="tm-h"><span>${esc(c.f.court)}</span><span class="tm-n">${cnt(progress(uniq(c.ids.flatMap(id => ptsF(topicById(id))))))}</span></h2>
+      <ul class="tm-l">${c.ids.map(id => { const t = topicById(id), p = progress(ptsF(t)), on = id === CURRENT;
+        return `<li><button type="button" class="tm-it ${on ? "cur" : ""}" data-topic="${id}" ${on ? 'aria-current="page"' : ""}><span>${t.artiste ? artDot(t.artiste) + " " : ""}${esc(tabLabel(t))}</span><span class="tm-n" ${p.full ? 'aria-label="complet"' : ""}>${cnt(p)}</span></button></li>`; }).join("")}</ul></div>`).join("");
+  const pc = progress(ptsF(cur));
+  return `<nav class="tmenu" aria-label="Sujets"><div class="tm-in">
+    <div class="tm-row">${nav(prev, "p")}
+      <button type="button" class="tm-sel" data-menu aria-expanded="false" aria-controls="tmP" style="--b:${f.bd};--t:${f.fg}">
+        <span class="tm-d" aria-hidden="true"></span><span class="tm-tx"><span class="tm-k">${esc(f.court)}</span><span class="tm-sep" aria-hidden="true">·</span><span class="tm-s">${cur.artiste ? artDot(cur.artiste) + " " : ""}${esc(tabLabel(cur))}</span></span>
+        <span class="tm-n">${cnt(pc)}</span>${CHEV("M6 9l6 6 6-6").replace("<svg", '<svg class="tm-ch"')}<span class="vh"> : changer de sujet</span></button>
+      ${nav(next, "n")}</div>
+    <div class="tm-p" id="tmP" hidden>${cols}</div></div></nav>`;
 }
+/* Ouverture / fermeture du panneau, sans re-rendu (les saisies en cours sont gardées). */
+function menuOpen(open, focusBtn) {
+  const b = document.querySelector("[data-menu]"), pnl = document.getElementById("tmP"); if (!b || !pnl) return;
+  b.setAttribute("aria-expanded", String(open)); pnl.hidden = !open;
+  if (open) { /* le panneau reste dans l'écran : hauteur max = espace visible sous son bord haut, défilement interne */
+    pnl.style.maxHeight = Math.max(220, innerHeight - pnl.getBoundingClientRect().top - 12) + "px";
+    const c = pnl.querySelector(".tm-it.cur"); if (c) c.focus({ preventScroll: true }); pnl.scrollTop = 0; }
+  else if (focusBtn) b.focus();
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-menu]");
+  if (b) { menuOpen(b.getAttribute("aria-expanded") !== "true"); return; }
+  const pnl = document.getElementById("tmP");
+  if (pnl && !pnl.hidden && !e.target.closest(".tmenu")) menuOpen(false);
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") { const pnl = document.getElementById("tmP"); if (pnl && !pnl.hidden) menuOpen(false, true); } });
+
 /* Pastille d'échéance, aux couleurs de la catégorie. */
 function dlHTML(t, pr, f) {
   if (pr.full) return "";
@@ -1320,9 +1371,6 @@ function render(scrollTop) {
   const t = CURRENT && EVENT.topics.find(x => x.id === CURRENT);
   $("#view").innerHTML = t ? topicHTML(t) : homeHTML();
   if (scrollTop) window.scrollTo(0, 0);
-  /* Pastille du sujet ouvert visible dans la rangée (défilement horizontal du menu seulement). */
-  const tc = t && document.querySelector(".tabs-in"), tb = tc && tc.querySelector(".tab.cur");
-  if (tb && tc.scrollWidth > tc.clientWidth) { const a = tb.getBoundingClientRect(), c = tc.getBoundingClientRect(); tc.scrollLeft += (a.left + a.width / 2) - (c.left + c.width / 2); }
 }
 function go(id, fromHistory) {
   CURRENT = id || null;
