@@ -817,6 +817,13 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .pc-f{width:100%;display:grid;grid-template-columns:200px 1fr;gap:6px 10px;align-items:center}.pc-f .fwrap{width:100%}
 .pc-go{margin:4px 0 8px 6px;font-size:12.5px;font-weight:700;color:#9aa0bd}.pc-go.on{color:#2e3bb2}
 @media (max-width:759px){.pc-f{grid-template-columns:1fr}.pc-st{width:64px}.pc-b{width:42px;height:42px;font-size:19px}.pc-line{top:19px;left:32px;right:32px}.pc-c{font-size:11.5px}}
+
+/* Phases (voyage du spectateur) */
+.phs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px;scroll-margin-top:90px}
+.phc{font:inherit;text-align:left;display:flex;gap:10px;align-items:center;border:2px solid #d7daef;border-radius:16px;padding:12px;background:#fff;cursor:pointer;color:#10153d}
+.phc.on{border-color:#f7a42b;background:#fffaf2;box-shadow:0 0 0 4px #fff1d9}.phc.full:not(.on){background:#f3fbf6;border-color:#b8e2c8}
+.phe{font-size:30px}.phc b{display:block;font:400 22px "Bebas Neue",sans-serif;letter-spacing:.01em}.phc small{display:block;font-size:12.5px;font-weight:700;color:#6b718f}
+@media (max-width:759px){.phs{grid-template-columns:1fr;gap:6px}.phc{padding:8px 12px}.phe{font-size:22px}.phc b{font-size:19px}}
 </style>
 </head>
 <body>
@@ -871,7 +878,7 @@ const FAM = {
 };
 const ROLES = [
   { fam: "urg", e: "setlist", label: "Setlist / Dresscode", topics: ["setlist"] },
-  { fam: "urg", e: "mains", label: "Public sourd et com", topics: ["public"] },
+  { fam: "urg", e: "mains", label: "Com et public sourd", topics: ["public"] },
   { fam: "urg", e: "horloge", label: "L'équipe / Horaires", topics: ["horaires"] },
   { fam: "tech", e: "inear", label: "Les retours son", topics: ["son", "talkback"] },
   { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
@@ -920,7 +927,7 @@ function dueOf(t) {
 /* Un seul nom par sujet, partout (tuiles de l'accueil, menu, titre du sujet, « Ce qu'il manque », bouton « Suivant »). */
 const SHORT = { setlist: "Setlist / Dresscode", son: "Les retours son", talkback: "Micro talkback", lumiere: "La lumière", emplacement: "Le plateau",
   ecran: "Retransmission sur écrans", contacts: "Contacts - Technique & Logistique", accueil: "Loge et catering", parking: "Parking et runs",
-  pass: "Pass / Tickets catering / Accréditation", hebergement: "Hébergement", horaires: "L'équipe / Horaires", public: "Public sourd et com",
+  pass: "Pass / Tickets catering / Accréditation", hebergement: "Hébergement", horaires: "L'équipe / Horaires", public: "Com et public sourd",
   presse: "Presse et captation", photos: "Après le concert", securite: "Sécurité et assurances" };
 
 /* ===== État ===== */
@@ -984,6 +991,18 @@ function contactItem(cid, extra) {
 /* Plusieurs artistes le même soir : sélecteur « Tout · Festival · artiste A · artiste B ».
    Un point sans « artiste » est commun au festival ; « artiste » peut être un id ou une liste d'ids. */
 let FILTRE = "tout";
+/* Sujet en « voyage » (ex. Com et public sourd) : 3 phases (cartes en haut), on n'affiche que la phase choisie. */
+const PHASE = {};
+const phPts = (t, k) => ptsF(t).filter(p => (p.phase || t.phases[0].k) === k);
+function phaseCur(t) { if (PHASE[t.id]) return PHASE[t.id]; const f = t.phases.find(ph => phPts(t, ph.k).some(p => statusOf(p) === "todo")); return (f || t.phases[0]).k; }
+function phasesHTML(t) {
+  const cur = phaseCur(t);
+  return `<div class="phs" role="tablist">${t.phases.map((ph, i) => { const pp = phPts(t, ph.k), d = pp.filter(isDone).length, full = pp.length && d === pp.length;
+    return `<button type="button" role="tab" aria-selected="${ph.k === cur}" class="phc ${ph.k === cur ? "on" : ""} ${full ? "full" : ""}" data-phase="${t.id}" data-k="${ph.k}">
+      <span class="phe" aria-hidden="true">${ph.ic}</span><span><b>${i + 1}. ${esc(ph.t)}</b><small>${esc(ph.s)}${pp.length ? ` · ${full ? "✓ fait" : d + "/" + pp.length}` : ""}</small></span></button>`; }).join("")}</div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-phase]"); if (!b) return;
+  PHASE[b.dataset.phase] = b.dataset.k; render(false); const x = document.querySelector(".phs"); if (x && x.scrollIntoView) x.scrollIntoView({ behavior: "smooth", block: "start" }); });
 const ARTS = () => (EVENT && EVENT.artistes) || [];
 const multiArt = () => ARTS().length > 1;
 const tagsOf = x => [].concat((x && x.artiste) || []);
@@ -2033,7 +2052,8 @@ function topicHTML(t) {
   let n = 0;
   const step = (titre, inner, cls, extra) => `<section class="step ${cls || ""}"><h2 class="st-h"><span class="st-n" style="background:${f.tab};color:${f.tabFg}" aria-hidden="true">${++n}</span><span class="st-t"><span class="vh">Étape ${n} : </span>${titre}</span>${extra || ""}</h2>${inner}</section>`;
   let pre = "", body = "";
-  if (t.alerte) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
+  const PH = t.phases ? phaseCur(t) : null;
+  if (t.alerte && (!PH || PH === (t.alerte.phase || t.phases[0].k))) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); pre += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
   if (t.setlist && !(t.items || []).some(it => it.type === "setlist")) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
@@ -2050,7 +2070,7 @@ function topicHTML(t) {
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
-  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && vis(itemOf(it)));
+  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
@@ -2079,7 +2099,7 @@ function topicHTML(t) {
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
-    ${pre}${topicResHTML(t)}${body}</div></main>`;
+    ${t.phases ? phasesHTML(t) : ""}${pre}${topicResHTML(t)}${body}</div></main>`;
 }
 
 function render(scrollTop) {
