@@ -41,9 +41,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
      setlist → « 🎵 SETLIST » (ligne ℹ️) ; contacts (`c-…`) → « 📞 CONTACTS SUR PLACE » (Nom / Rôle / Téléphone) ;
      horaires (`hor-…`) → « ⏰ PLANNING DU JOUR J » + une ligne dans « ⚠️ CHANGEMENTS » si un horaire change ;
-     parking, pass, accès (`park-…`, `pass-…`) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
+     parking, pass, accès, runs (`park-…`, `pass-…`, `run-…`, `runs-…` : une case du tableau des runs = `<ligne>-<colonne>`, une ligne ajoutée = `runs-x…` avec son nom) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
      technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
      com, presse, public (`com-…`, `pub-…`, `cap-captation`) → « 📝 INFOS & REMARQUES ».
+     `…-pasbesoin` (« Pas besoin, l'équipe est autonome », coché par l'équipe) et les lignes de repas ajoutées par l'équipe (`acc-repas-x…`) : rien à reporter.
      Les questions (`question:…`) ne vont PAS dans la FDR (elles sont pour Aurélie et Périnne).
      **Conditions générales** (point `cg`, texte « Accepté · Nom · Fonction · Structure · Conditions générales … version du … ») →
      « 📝 INFOS & REMARQUES » : « ✍️ CG acceptées par <Nom> (<Fonction>, <Structure>) le JJ/MM/AAAA à HHhMM ». Toujours signalé dans la notification.
