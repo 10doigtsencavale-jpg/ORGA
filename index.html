@@ -678,6 +678,7 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .rv-f{display:flex;gap:8px;width:100%}.rv-f input{flex:1;min-width:0}
 .vu-page{display:flex;justify-content:center}.b-page{background:#fff;color:#14633a;border:1.5px solid #1e8a4c;width:100%;max-width:520px;min-height:48px}
 /* Dossiers logos / pictos */
+.tres{display:grid;gap:4px}.tres-h{margin:0;font-size:15px;font-weight:700;color:#2e3bb2}.tres .res-g{margin-top:4px}
 .res-f{background:#fff;border:1.5px solid #d7daef;border-radius:18px;padding:12px 14px}.res-f[open]{grid-column:1/-1}
 .res-f>summary{display:flex;gap:12px;align-items:center;cursor:pointer;list-style:none}.res-f>summary::-webkit-details-marker{display:none}.res-f[open] .res-go{display:none}
 .doc-ic.dir{background:#e3e5f6;font-size:22px;align-items:center;padding:0}
@@ -1162,7 +1163,7 @@ function homeHTML() {
 
 
 /* ===== Conditions générales et ressources (Drive 10DEC, dossier organisateurs) ===== */
-const CG = { titre: "Conditions générales 2026-2027", version: "07/09/2026", url: "https://drive.google.com/file/d/1bta6fgiLXIR49a7F-DYxJF-nQM4C5BtN/view" };
+const CG = { titre: "Conditions générales 2026-2027", version: "07/09/2026", url: "res/docs/conditions-generales-2026-2027.pdf" };
 const RES = [
   { t: CG.titre, s: "PDF · 0,3 Mo", url: CG.url, cg: 1 },
   { t: "Nos offres de services", s: "PDF · 11 Mo", url: "res/docs/offres-de-services-10dec.pdf" },
@@ -1171,6 +1172,17 @@ const RES = [
   { t: "Présentation de 10 Doigts en Cavale", s: "PDF · 0,6 Mo", url: "res/docs/presentation-10dec.pdf" },
   { t: "Trouver des financements", s: "PDF · 0,2 Mo", url: "res/docs/trouver-des-financements.pdf" }
 ];
+/* Documents rappelés dans les sujets concernés. */
+const TOPIC_RES = { emplacement: { docs: ["res/docs/placement-chansigne-sur-scene.pdf"] },
+  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0, 1] } };
+function topicResHTML(t) {
+  const r = TOPIC_RES[t.base || t.id]; if (!r) return "";
+  const docs = (r.docs || []).map(u => RES.find(x => x.url === u)).filter(Boolean);
+  return `<section class="tres" aria-label="Documents utiles"><h2 class="tres-h">📎 Documents utiles</h2><div class="res-g">
+    ${docs.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic" aria-hidden="true">PDF</span><span class="res-t"><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span><span class="res-go">Ouvrir<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}
+    ${(r.dossiers || []).map(i => DOSSIERS[i]).map(d => `<details class="res-f"><summary><span class="doc-ic dir" aria-hidden="true">📁</span><span class="res-t"><b>${esc(d.t)}</b><small>${d.files.length} images à télécharger</small></span><span class="res-go">Ouvrir</span></summary>
+      <div class="res-imgs">${d.files.map(f => `<a class="res-im" href="${f.url}" download><span class="res-th ${f.fonce ? "fonce" : ""}"><img src="${f.url}" alt="" loading="lazy"></span><span>${esc(f.l)} <b>⤓</b></span></a>`).join("")}</div></details>`).join("")}</div></section>`;
+}
 /* Dossiers d'images : logos et pictos (téléchargement direct). */
 const DOSSIERS = [
   { t: "Logos 10 Doigts en Cavale", files: [["logo-10dec-couleur.png", "Couleur"], ["logo-10dec-turquoise.png", "Turquoise"], ["logo-10dec-noir.png", "Noir"], ["logo-10dec-blanc.png", "Blanc", 1]].map(([f, l, fonce]) => ({ url: "res/logos/" + f, l, fonce })) },
@@ -1730,7 +1742,7 @@ function topicHTML(t) {
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
-    ${pre}${body}</div></main>`;
+    ${pre}${topicResHTML(t)}${body}</div></main>`;
 }
 
 function render(scrollTop) {
