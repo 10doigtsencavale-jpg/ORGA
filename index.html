@@ -1569,10 +1569,10 @@ function slHTML(p) {
   const conf = sent["team-" + p.id] || sent[p.id];
   return `<div class="item sl ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.sous || p.titre)}</span>${pillHTML(p)}</div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}${SLFACT ? slBandeau() : ""}
-    <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Ordre</th>${SLFACT ? `<th class="sl-fh">Facturation <button type="button" class="linkbtn" data-slfact="0">Masquer</button></th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Ordre</th>${SLFACT ? `<th class="sl-fh">Conditions de facturation <button type="button" class="linkbtn" data-slfact="0">Masquer</button></th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="sl-mob"><ol class="sl-l">${live.map(card).join("")}</ol>${out.length ? `<p class="sl-rt">Retirées</p><ol class="sl-l">${out.map(card).join("")}</ol>` : ""}</div>
     ${SLORD ? `<div class="sl-ord"><span>Ordre modifié.</span><button type="button" class="btn btn-ok" data-slsave="1">Enregistrer le nouvel ordre</button><button type="button" class="btn btn-ghost" data-slcancel="1">Annuler</button></div>` : ""}
-    ${SLFACT ? slLeg() : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher la facturation</button></p>`}
+    ${SLFACT ? slLeg() : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher les conditions de facturation</button></p>`}
     <form class="form sl-add" data-sladd="1"><div class="fwrap"><input type="text" id="f-sladd" name="sladd" placeholder="Ajouter une chanson : titre" aria-label="Titre de la chanson à ajouter"><button class="send" type="submit">+ Ajouter</button></div></form>
     ${slDepot(p)}
     ${conf ? `<p class="sl-conf">✓ Setlist confirmée le ${dmOf(conf.date)}${conf.auteur ? " par " + esc(conf.auteur) : ""}.</p>` : ""}
