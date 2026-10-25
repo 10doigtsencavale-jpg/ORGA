@@ -47,6 +47,7 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      Hébergement réservé par l'organisateur (`heb-nom`, `heb-adr`, `heb-dates`, `heb-twin`, `heb-single`, `heb-pdj`, `heb-conf`) → « 🛏️ HÉBERGEMENT » :
      un bloc « Nom » (nom suivi de « (réservé par l'orga) »), « Adresse (GPS) », « 🛏️ Nuit » (dates, chambres, petit-déjeuner, n° de confirmation).
      `heb-qui` (« orga » ou « 10dec », réglé par l'équipe) : rien à reporter.
+     `vu:…` (« ✓ Vu & noté » ou « ↩ À revoir|<mot> », cliqué par l'équipe) : rien à reporter dans la FDR ; les « À revoir » partent dans les relances.
      `…-pasbesoin` (« Pas besoin, l'équipe est autonome », coché par l'équipe) et les lignes de repas ajoutées par l'équipe (`acc-repas-x…`) : rien à reporter.
      Les questions (`question:…`) ne vont PAS dans la FDR (elles sont pour Aurélie et Périnne).
      **Conditions générales** (point `cg`, texte « Accepté · Nom · Fonction · Structure · Conditions générales … version du … ») →

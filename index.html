@@ -665,6 +665,18 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .admin-d>summary{cursor:pointer;font-size:14px;font-weight:700;color:#2e3bb2;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:36px}
 .admin-d>summary::-webkit-details-marker{display:none}
 .admin-d[open]>summary{margin-bottom:6px}.admin-d .admin{border-top:0;padding-top:0}
+/* Vu & noté */
+.vu-ok{background:#e6f4ec;border:1.5px solid #9fd3b3;border-radius:12px;padding:10px 12px;font-size:14px;color:#14633a;font-weight:700;margin-top:10px}
+.vu-ok small{display:block;font-weight:500;color:#2f6b47}
+.vu-rv{background:#fff1e6;border:1.5px solid #f26b21;border-radius:12px;padding:10px 12px;font-size:14px;color:#7a2e00;margin-top:10px}.vu-rv b{display:block}
+.vubar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;filter:none!important;opacity:1!important}
+.b-vu,.b-rv,.b-page{font:inherit;font-size:14px;font-weight:700;border-radius:12px;padding:8px 12px;cursor:pointer;min-height:40px}
+.b-vu{background:#dcf1e4;color:#14633a;border:1.5px solid #9fd3b3}.b-rv{background:#fff1e6;color:#7a2e00;border:1.5px solid #f26b21}
+.vu-pill{font-size:13px;font-weight:700;background:#dcf1e4;color:#14633a;border-radius:999px;padding:4px 10px}
+.rv-pill{font-size:13px;font-weight:700;background:#fff1e6;color:#7a2e00;border:1px solid #f26b21;border-radius:999px;padding:4px 10px}
+.new{font-size:12px;font-weight:700;background:#f7a42b;color:#000;border-radius:999px;padding:3px 9px}
+.rv-f{display:flex;gap:8px;width:100%}.rv-f input{flex:1;min-width:0}
+.vu-page{display:flex;justify-content:center}.b-page{background:#fff;color:#14633a;border:1.5px solid #1e8a4c;width:100%;max-width:520px;min-height:48px}
 /* Hébergement */
 .quis{display:flex;flex-wrap:wrap;gap:6px}.qb{font:inherit;font-size:13px;font-weight:700;border:1.5px solid #c9cde6;background:#fff;color:#555b7a;border-radius:999px;padding:6px 10px;cursor:pointer;min-height:34px}
 .qb.on{background:#2e3bb2;border-color:#2e3bb2;color:#fff}
@@ -1210,6 +1222,55 @@ function manqueHTML() {
   </section></div></main>`;
 }
 
+/* ===== « Vu & noté » / « À revoir » (équipe 10DEC) =====
+   Réponse « vu:<bloc> » = « ok » ou « revoir|<mot> ». Si l'organisateur répond après, le « vu » ne compte plus : badge « Nouveau » chez l'équipe. */
+function idsOfPoint(p) {
+  if (!p) return [];
+  const ids = [p.id];
+  (p.rows || []).forEach(r => ids.push(r.id || ""));
+  if (p.type === "grille") grilleRows(p).forEach(r => ids.push(r.id));
+  if (p.type === "group") (EVENT.groups[p.group] || { roles: [] }).roles.forEach(r => ids.push(r.c));
+  if (p.type === "hebergement") ids.push("heb");
+  return ids.filter(Boolean);
+}
+function lastAns(ids) {
+  let d = "";
+  Object.keys(sent).forEach(k => { if (/^(team-|draft-|vu:|__)/.test(k)) return; if (ids.some(i => k === i || k.startsWith(i + "-"))) { const x = (sent[k] || {}).date || ""; if (x > d) d = x; } });
+  return d;
+}
+function vuState(key, ids) {
+  const v = (sent["team-vu:" + key] || sent["vu:" + key]) || null, ans = lastAns(ids);
+  if (!v || !v.texte || v.texte === "—") return { ans, etat: ans ? "avoir" : "" };
+  if (ans && ans > (v.date || "")) return { ans, etat: "nouveau", v };
+  return { ans, etat: v.texte.startsWith("revoir") ? "revoir" : "vu", note: v.texte.split("|").slice(1).join("|"), v };
+}
+const dmOf = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }); };
+function vuHTML(key, ids) {
+  const st = vuState(key, ids);
+  if (MODE !== "equipe") {
+    if (st.etat === "vu") return `<div class="vu-ok">✓ Merci, vu &amp; bien noté par 10 Doigts en Cavale.<small>Le ${dmOf(st.v.date)}</small></div>`;
+    if (st.etat === "revoir") return `<div class="vu-rv"><b>↩ À revoir par vous</b>${esc(st.note)}</div>`;
+    return "";
+  }
+  if (!st.ans && !st.v) return "";
+  const btns = `<button type="button" class="b-vu" data-vu="${key}">✓ Vu &amp; noté</button><button type="button" class="b-rv" data-rv="${key}">↩ À revoir</button>`;
+  if (st.etat === "vu") return `<div class="vubar"><span class="vu-pill">✓ Vu &amp; noté le ${dmOf(st.v.date)}</span><button type="button" class="linkbtn" data-unvu="${key}">Annuler</button></div>`;
+  if (st.etat === "revoir") return `<div class="vubar"><span class="rv-pill">↩ À revoir : ${esc(st.note)}</span><button type="button" class="linkbtn" data-unvu="${key}">Annuler</button></div>`;
+  return `<div class="vubar">${st.etat === "nouveau" ? `<span class="new">Nouveau</span>` : ""}${btns}</div>`;
+}
+/* Les blocs d'un sujet (pour le bouton « Toute cette page » et le compte « à voir »). */
+function blocsOf(t) {
+  const out = [], checks = checksOf(t).filter(visible);
+  if (checks.length) out.push({ key: t.id + "-prevu", ids: checks.flatMap(idsOfPoint) });
+  (t.items || []).forEach(it => { const p = itemOf(it); if (!p.equipe) out.push({ key: p.id, ids: idsOfPoint(p) }); });
+  if (t.qui) out.push({ key: "grp-" + t.qui, ids: idsOfPoint(groupItem(t.qui)) });
+  return out;
+}
+const aVoir = t => blocsOf(t).filter(b => ["avoir", "nouveau"].includes(vuState(b.key, b.ids).etat)).length;
+function setVu(key, texte) {
+  const now = new Date().toISOString(); sent["team-vu:" + key] = { texte, statut: "ok", date: now }; save(); post("vu:" + key, texte, "10DEC:ok");
+}
+
 /* ===== Vue sujet ===== */
 function fileButtons(p, label) {
   label = label || "Déposer un fichier";
@@ -1624,20 +1685,21 @@ function topicHTML(t) {
     if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">Je coche tout, tout est confirmé</button>`);
     if (reste && t.confirm && t.confirm.nonConcerne) acts.push(`<button class="btn btn-ghost btn-big" type="button" data-allok="${t.id}" data-label="Non concerné">Non concerné</button>`);
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
-      ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}`);
+      ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
   const its = (t.items || []).filter(it => vis(itemOf(it)));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
     if (p.equipe) { body += itemHTML(it); return; }
-    const h = it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it);
+    const h = (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
     body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" ? " co" : ""), pillHTML(p));
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
   if (t.docs && t.docs.length) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
-  if (t.qui && vis({})) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, ""), "st-qui");
+  if (t.qui && vis({})) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
+  if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
@@ -1762,6 +1824,9 @@ document.addEventListener("change", e => {
   else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
 });
 document.addEventListener("submit", e => {
+  const rvf = e.target.closest("[data-rvf]");
+  if (rvf) { e.preventDefault(); const v = rvf.querySelector("input").value.trim().replace(/\|/g, "/"); if (!v) { toast("Écrivez ce qui est à revoir."); return; }
+    setVu(rvf.dataset.rvf, "revoir|" + v); render(false); toast("Envoyé. L'organisateur le voit en orange."); return; }
   const ar = e.target.closest("[data-addrow]");
   if (ar) { e.preventDefault(); const nom = ar.querySelector("input").value.trim().replace(/^✗/, "").slice(0, 60);
     if (!nom) { toast("Merci d'écrire un nom pour la ligne."); return; }
@@ -1829,6 +1894,12 @@ document.addEventListener("click", e => {
     const it = allItems().find(x => x.type === "grille" && grilleCells(x).some(c => c.id === id)), c = it && grilleCells(it).find(x => x.id === id);
     const cur = (c ? c.v : valOf(id)).split(/\s*,\s*/).filter(Boolean), nv = cur.includes(n) ? cur.filter(x => x !== n) : [...cur, n];
     const v = nv.join(", ") || "—"; sent["team-" + id] = { texte: v, statut: "ok", date: now }; save(); post(id, v, "10DEC:ok"); render(false); }
+  else if (b.dataset.vu) { setVu(b.dataset.vu, "ok"); render(false); toast("Vu & noté. L'organisateur le voit en vert."); }
+  else if (b.dataset.unvu) { setVu(b.dataset.unvu, "—"); render(false); }
+  else if (b.dataset.rv) { const bar = b.closest(".vubar"); if (bar.querySelector(".rv-f")) return;
+    bar.insertAdjacentHTML("beforeend", `<form class="rv-f" data-rvf="${b.dataset.rv}"><input type="text" maxlength="200" placeholder="Votre mot pour l'organisateur (ex. il manque le téléphone)" aria-label="Ce qui est à revoir"><button type="submit" class="b-rv">Envoyer</button></form>`);
+    bar.querySelector(".rv-f input").focus(); }
+  else if (b.dataset.vupage) { const t = topicById(b.dataset.vupage); blocsOf(t).forEach(x => { if (["avoir", "nouveau"].includes(vuState(x.key, x.ids).etat)) setVu(x.key, "ok"); }); render(false); toast("Toute la page : vu & noté."); }
   else if (b.dataset.rmrow) { const id = b.dataset.rmrow, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
     if (team) sent["team-" + id] = { texte: "✗ Retiré", statut: "ok", date: now }; delete sent[id];
     save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Ligne retirée."); }
@@ -1968,7 +2039,7 @@ function postStats() {
   const next = EVENT.topics.map(t => ({ t, d: dueOf(t) })).filter(x => x.d && x.d.days >= 0 && x.t.id !== "photos" && pointsOf(x.t).some(p => !isDone(p))).sort((a, b) => a.d.days - b.d.days)[0];
   const recus = Object.values(EVENT.reponses || {}).filter(r => String(r.texte || "").startsWith("Reçu")).length;
   const journal = (EVENT.journal || []).filter(j => j.source !== "10DEC").slice(-15).map(j => ({ date: j.date, point: j.point, texte: String(j.texte || "").slice(0, 120), auteur: j.auteur || "" }));
-  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal, fams: famStats(), cg: cgAcc() }, location.origin);
+  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal, fams: famStats(), cg: cgAcc(), avoir: EVENT.topics.filter(t => !topicHidden(t)).reduce((n, t) => n + aVoir(t), 0) }, location.origin);
 }
 /* Mêmes chiffres que les titres de colonnes du menu des sujets (tabsHTML). */
 function famStats() {

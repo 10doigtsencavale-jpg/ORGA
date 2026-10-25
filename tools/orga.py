@@ -210,6 +210,13 @@ def manquants(fichier, cle):
                 reste.append(it["titre"])
         if t.get("confirm") and not t.get("besoins") and not fait(t["confirm"]["id"]):
             reste.append("Confirmation : " + t["label"])
+        # « ↩ À revoir » envoyé par l'équipe (vu:<bloc> = « revoir|<mot> ») et pas encore repris par l'organisateur
+        blocs = [t["id"] + "-prevu"] + [it.get("id", "") for it in t.get("items", [])] + (["grp-" + t["qui"]] if t.get("qui") else [])
+        for k in blocs:
+            v = d.get("reponses", {}).get("vu:" + k) or {}
+            if str(v.get("texte", "")).startswith("revoir|"):
+                apres = [r for pid, r in rep.items() if not pid.startswith("vu:") and (pid == k or pid.startswith(k + "-")) and r.get("date", "") > v.get("date", "")]
+                if not apres: reste.append("À revoir : " + v["texte"].split("|", 1)[1])
         gs = ([t["qui"]] if t.get("qui") else []) + [e[2:] for e in t.get("contactsList", []) if e.startswith("g:")]
         for g in gs:
             cids += [r["c"] for r in d["groups"][g]["roles"]]
