@@ -1651,7 +1651,13 @@ function postStats() {
   const next = EVENT.topics.map(t => ({ t, d: dueOf(t) })).filter(x => x.d && x.d.days >= 0 && x.t.id !== "photos" && pointsOf(x.t).some(p => !isDone(p))).sort((a, b) => a.d.days - b.d.days)[0];
   const recus = Object.values(EVENT.reponses || {}).filter(r => String(r.texte || "").startsWith("Reçu")).length;
   const journal = (EVENT.journal || []).filter(j => j.source !== "10DEC").slice(-15).map(j => ({ date: j.date, point: j.point, texte: String(j.texte || "").slice(0, 120), auteur: j.auteur || "" }));
-  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal }, location.origin);
+  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal, fams: famStats() }, location.origin);
+}
+/* Mêmes chiffres que les titres de colonnes du menu des sujets (tabsHTML). */
+function famStats() {
+  const order = tabOrder(), o = {};
+  Object.keys(FAM).forEach(k => { const p = progress(uniq(order.filter(id => famKey(id) === k).flatMap(id => ptsF(topicById(id))))); o[k] = { d: p.d, n: p.n }; });
+  return o;
 }
 </script>
 
