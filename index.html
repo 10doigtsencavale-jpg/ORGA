@@ -500,6 +500,13 @@ body.sujet .ct-ev{flex:1;color:#2e3bb2}
 .tm-it:hover{background:#eef0fa}
 .tm-it.cur{background:var(--c);color:var(--cf)}
 .tm-it .tm-n{font-size:17px}
+/* Ordinateur : le panneau des sujets est toujours ouvert (plus lisible), sans bouton déroulant ni barre collante. */
+@media (min-width:900px){
+  body.sujet .stick{position:static}
+  .tm-row{display:none}
+  .tm-p[hidden]{display:grid!important}
+  .tm-p{margin-top:0;box-shadow:none;max-height:none;overflow:visible;padding:6px 0 4px}
+}
 @media (max-width:699px){
   .tm-p{grid-template-columns:1fr}
   .tm-tx{flex-direction:column;align-items:flex-start;gap:0}
@@ -1287,6 +1294,7 @@ function tabsHTML() {
 }
 /* Ouverture / fermeture du panneau, sans re-rendu (les saisies en cours sont gardées). */
 function menuOpen(open, focusBtn) {
+  if (matchMedia("(min-width:900px)").matches) return;
   const b = document.querySelector("[data-menu]"), pnl = document.getElementById("tmP"); if (!b || !pnl) return;
   b.setAttribute("aria-expanded", String(open)); pnl.hidden = !open;
   if (open) { /* le panneau reste dans l'écran : hauteur max = espace visible sous son bord haut, défilement interne */
