@@ -824,6 +824,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .phc.on{border-color:#f7a42b;background:#fffaf2;box-shadow:0 0 0 4px #fff1d9}.phc.full:not(.on){background:#f3fbf6;border-color:#b8e2c8}
 .phe{font-size:30px}.phc b{display:block;font:400 22px "Bebas Neue",sans-serif;letter-spacing:.01em}.phc small{display:block;font-size:12.5px;font-weight:700;color:#6b718f}
 @media (max-width:759px){.phs{grid-template-columns:1fr;gap:6px}.phc{padding:8px 12px}.phe{font-size:22px}.phc b{font-size:19px}}
+.tres-n{margin:-2px 0 8px;font-size:14px;color:#444}
 </style>
 </head>
 <body>
@@ -1299,11 +1300,11 @@ const RES = [
 ];
 /* Documents rappelés dans les sujets concernés. */
 const TOPIC_RES = { emplacement: { docs: ["res/docs/placement-chansigne-sur-scene.pdf"] },
-  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0, 1] } }; /* guide, logos et pictos rassemblés en « Ressources utiles » */
+  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0, 1], note: "Mettez le picto LSF sur la page du concert et sur la billetterie." } }; /* guide, logos et pictos rassemblés en « Ressources utiles » */
 function topicResHTML(t) {
   const r = TOPIC_RES[t.base || t.id]; if (!r) return "";
   const docs = (r.docs || []).map(u => RES.find(x => x.url === u)).filter(Boolean);
-  return `<section class="tres" aria-label="Ressources utiles"><h2 class="tres-h">📎 Ressources utiles</h2><div class="res-g">
+  return `<section class="tres" aria-label="Ressources utiles"><h2 class="tres-h">📎 Ressources utiles</h2>${r.note ? `<p class="tres-n">${esc(r.note)}</p>` : ""}<div class="res-g">
     ${docs.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic" aria-hidden="true">PDF</span><span class="res-t"><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span><span class="res-go">Ouvrir<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}
     ${(r.dossiers || []).map(i => DOSSIERS[i]).map(d => `<details class="res-f"><summary><span class="doc-ic dir" aria-hidden="true">📁</span><span class="res-t"><b>${esc(d.t)}</b><small>${d.files.length} images à télécharger</small></span><span class="res-go">Ouvrir</span></summary>
       <div class="res-imgs">${d.files.map(f => `<a class="res-im" href="${f.url}" download><span class="res-th ${f.fonce ? "fonce" : ""}"><img src="${f.url}" alt="" loading="lazy"></span><span>${esc(f.l)} <b>⤓</b></span></a>`).join("")}</div></details>`).join("")}</div></section>`;
@@ -2083,7 +2084,7 @@ function topicHTML(t) {
   if (t.docs && t.docs.length && !TOPIC_RES[t.base || t.id]) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
   if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
-  if (PH && PH !== t.phases[0].k) body += topicResHTML(t);
+  if (PH) body += topicResHTML(t);
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");
   body += `<div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Tous les sujets</button>${next ? `<button class="btn btn-main" type="button" data-topic="${next.id}">Suivant : ${esc(tabLabel(next))} →</button>` : ""}</div>`;
@@ -2100,7 +2101,7 @@ function topicHTML(t) {
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${(t.base || t.id) === "horaires" ? teamTableHTML() : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
-    ${t.phases ? phasesHTML(t) : ""}${pre}${!PH || PH === t.phases[0].k ? topicResHTML(t) : ""}${body}</div></main>`;
+    ${t.phases ? phasesHTML(t) : ""}${pre}${!PH ? topicResHTML(t) : ""}${body}</div></main>`;
 }
 
 function render(scrollTop) {
