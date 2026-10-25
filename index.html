@@ -578,18 +578,18 @@ body.sujet .st-q .fwrap textarea{border:1.5px solid #d7daef;background:#fff;bord
 body.sujet .fwrap input:focus,body.sujet .fwrap textarea:focus{border-style:solid;border-color:#2e3bb2}
 body.sujet .cf.off input{border:1.5px solid #d7daef;background:#f3f4f8}
 body.sujet .send{background:#eef0fa;color:#5a6080}
-body.sujet .fwrap.has .send,body.sujet .send.ok-row{background:#dcf1e4;color:#14633a}
-body.sujet .fwrap.has .send:hover,body.sujet .send.ok-row:hover{background:#c9e9d6}
+body.sujet .fwrap.has .send,body.sujet .send.ok-row{background:#e6e8fb;color:#2e3bb2}
+body.sujet .fwrap.has .send:hover,body.sujet .send.ok-row:hover{background:#d7dbf7}
 body.sujet .st-auteur .fwrap input[type=text]{min-height:46px;border-radius:12px}
-body.sujet .st-auteur .fwrap .send{border-radius:12px;background:#dcf1e4;color:#14633a;padding:0 18px}
+body.sujet .st-auteur .fwrap .send{border-radius:12px;background:#e6e8fb;color:#2e3bb2;padding:0 18px}
 body.sujet .ttab{border:1.5px solid #d7daef}
 /* Boutons */
 body.sujet .btn{border-radius:14px;min-height:48px;font-family:"DM Sans",sans-serif}
 body.sujet .btn-main{background:#2e3bb2;color:#fff;border-color:#2e3bb2}
 body.sujet .btn-main:hover{background:#25309a}
-/* Confirmer, OK, Enregistrer : vert pâle (vert = validé). Le bleu plein reste pour « Suivant ». */
-body.sujet .btn-ok,.btn.btn-vert{background:#dcf1e4;color:#14633a;border-color:#dcf1e4}
-body.sujet .btn-ok:hover,.btn.btn-vert:hover{background:#c9e9d6;border-color:#c9e9d6}
+/* Confirmer, OK, Enregistrer : bleu pâle. Le vert pâle est réservé aux états « Noté / Validé ». Le bleu plein reste pour « Suivant ». */
+body.sujet .btn-ok,.btn.btn-vert{background:#e6e8fb;color:#2e3bb2;border-color:#e6e8fb}
+body.sujet .btn-ok:hover,.btn.btn-vert:hover{background:#d7dbf7;border-color:#d7dbf7}
 body.sujet .btn-ghost,body.sujet .btn-ask,body.sujet .btn-line{background:#fff;color:#2e3bb2;border:1.5px solid #2e3bb2}
 body.sujet .btn-ghost:hover,body.sujet .btn-ask:hover{background:#eef0fa}
 body.sujet .btn svg{flex:none}
@@ -1102,7 +1102,7 @@ function cgHTML() {
       <label>Fonction<input type="text" name="fonction" placeholder="ex. directrice, programmateur" value="${esc((AUTEUR || "").split(/ [–-] /)[1] || "")}"></label>
       <label>Structure<input type="text" name="structure" placeholder="ex. nom du festival ou de la salle"></label></form>`);
     body += step("Valider", `<label class="cg-ck"><input type="checkbox" form="cgF" name="ok"><span>J'ai lu les ${esc(CG.titre.toLowerCase())}. Je les accepte au nom de ma structure, pour ce concert.</span></label>
-      <div><button class="btn btn-vert btn-big" type="submit" form="cgF">✓ Valider mon accord</button></div>`);
+      <div><button class="btn btn-vert btn-big" type="submit" form="cgF">Valider mon accord</button></div>`);
   }
   return `<main><div class="wrap topic cg-v"><section class="cg-h"><span class="doc-ic" aria-hidden="true">PDF</span><h1>${esc(CG.titre)}</h1></section>${body}
     <div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Retour à l'accueil</button></div></div></main>`;
@@ -1433,7 +1433,7 @@ function topicHTML(t) {
   const reste = checks.some(p => statusOf(p) === "todo");
   if (checks.length) {
     const acts = [];
-    if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">✓ Tout est confirmé</button>`);
+    if (reste) acts.push(`<button class="btn btn-ok btn-big" type="button" data-allok="${t.id}" data-label="✓ Prévu">Je coche tout, tout est confirmé</button>`);
     if (reste && t.confirm && t.confirm.nonConcerne) acts.push(`<button class="btn btn-ghost btn-big" type="button" data-allok="${t.id}" data-label="Non concerné">Non concerné</button>`);
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}`);
