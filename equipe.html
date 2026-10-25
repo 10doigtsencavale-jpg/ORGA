@@ -294,6 +294,8 @@ function rowHTML(e, past) {
     if (nv) nx.push(`<span class="nv">${nv} nouvelle${nv > 1 ? "s" : ""} réponse${nv > 1 ? "s" : ""}</span>`);
     if (s.questions.length) nx.push(`<span class="nv" title="${esc(s.questions.join(", "))}">${plur(s.questions.length, "question")}</span>`);
     if (s.recus) nx.push(`<span class="pill p-ok">${s.recus} fichier${s.recus > 1 ? "s" : ""} reçu${s.recus > 1 ? "s" : ""}</span>`);
+    if (s.cg) nx.push(`<span class="pill p-ok" title="Par ${esc(s.cg.nom)}, ${esc(s.cg.structure)}, le ${esc(s.cg.quand)}">CG acceptées ✓</span>`);
+    else if (!past && !isPause(e)) nx.push(`<span class="pill p-no">CG pas acceptées</span>`);
   }
   const more = [e.lienOrga ? `<button type="button" role="menuitem" data-copy="${esc(e.lienOrga)}" data-file="${esc(e.fichier)}">Copier le lien orga</button>` : "",
     e.lienOrga && !sentOf(e) && e.lienEquipe ? `<button type="button" role="menuitem" data-sent="${esc(e.fichier)}">Marquer « lien envoyé »</button>` : "",

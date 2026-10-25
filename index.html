@@ -608,6 +608,30 @@ body.sujet .ttab .fwrap .send{padding:0 10px;min-width:40px}
   body.home .topbar .eo{display:none}
   body.home .hero{border-radius:0 0 28px 28px;margin:-18px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-top:20px}
 }
+/* Conditions générales et ressources */
+.cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
+.cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
+.cgb-pill{font-size:13px;font-weight:700;background:#f7a42b;color:#000;border-radius:999px;padding:4px 10px}
+.cgb.ok{border-color:#1e8a4c;padding:10px 14px}.cgb.ok .cgb-pill{background:#1e8a4c;color:#fff}
+.doc-ic{width:42px;height:50px;border-radius:8px;background:#fde4d3;color:#9a3d00;display:flex;align-items:flex-end;justify-content:center;font-size:11px;font-weight:700;padding-bottom:6px;flex:none;box-sizing:border-box}
+.doc-ic.img{background:#e3e5f6;color:#2e3bb2}
+.btn-blue{background:#2e3bb2;color:#fff}.btn-blue:hover{background:#1f2880}
+.btn-out{background:#fff;color:#2e3bb2;border-color:#2e3bb2;min-height:42px;padding:8px 14px;font-size:14px}
+.res{display:grid;gap:4px}.res h2{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:30px;color:#2e3bb2;line-height:1}
+.res>p{margin:0;font-size:14px;color:#444}
+.res-g{display:grid;gap:10px;margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.res-d{background:#fff;border:1.5px solid #d7daef;border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;text-decoration:none;color:var(--encre)}
+.res-d:hover{border-color:#2e3bb2}.res-t{flex:1;display:grid;gap:2px;min-width:0}.res-t b{font-size:15px}.res-t small{color:#555;font-size:13px}
+.res-go{font-size:14px;font-weight:700;color:#2e3bb2;border:1.5px solid #2e3bb2;border-radius:999px;padding:8px 14px;white-space:nowrap}
+.cg-v{display:grid;gap:14px}
+.cg-h{background:#fff;border:2px solid #f7a42b;border-radius:22px;padding:16px;display:flex;gap:14px;align-items:center}
+.cg-h h1{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:36px;line-height:1}
+.cg-f{display:grid;gap:10px}.cg-f label{font-size:14px;font-weight:700;display:grid;gap:4px}
+.cg-f input[type=text]{border:2px dashed #f7a42b;background:#fff7ea}
+.cg-ck{display:flex;gap:12px;align-items:flex-start;background:#fff7ea;border:2px solid #f7a42b;border-radius:14px;padding:12px 14px;font-size:15px;font-weight:500!important;cursor:pointer}
+.cg-ck input{width:24px;height:24px;flex:none;margin:0;accent-color:#2e3bb2}
+.cg-ok{background:#e6f4ec;border:2px solid #1e8a4c;border-radius:16px;padding:14px 16px;display:grid;gap:4px;font-size:15px}
+.cg-ok b{color:#14633a;font-size:17px}
 /* Ordinateur (900px et plus) : pleine largeur. Le téléphone ne change pas. */
 @media (min-width:900px){
   .wrap,.topbar .wrap,.wrap.bhome,.wrap.topic,footer .wrap,.preview .wrap,.tm-in{max-width:none;padding-left:40px;padding-right:40px}
@@ -1017,14 +1041,63 @@ function homeHTML() {
         <div class="hero-c"><a class="hero-ln" href="tel:${esc(telHref(r.tel))}">${SVGL(ICONS.tel)}<span>Référente : <b>${esc(nomAff(r.nom))}</b> · <b class="nw">${esc(r.tel)}</b></span></a><a class="hero-ln" href="mailto:${esc(r.mail)}">${SVGL(MAILD)}<span><b>${esc(r.mail)}</b></span></a></div>
       </div>
     </section>
+    ${cgBannerHTML()}
     <h2 class="charge">Vous êtes en charge de…</h2>
     ${fams.map(x => `<section class="gp"><div class="gp-h"><h3 class="gp-t" style="color:${x.f.fg}">${esc(x.f.label)}</h3>${famDueHTML(x.rs, x.f)}</div><div class="tls">${x.rs.map(ro => tile(ro, x.f)).join("")}</div></section>`).join("")}
     <button type="button" class="ball" data-topic="${tabOrder()[0]}">Tout voir, sujet par sujet →</button>
+    ${resHTML()}
     ${feedHTML()}
     <section class="bout" aria-labelledby="fdrT"><h2 class="disp" id="fdrT">La feuille de route</h2>
       <p style="margin:0">Toutes les informations du concert dans un seul PDF, avec vos réponses.</p>
       <div class="actions"><button class="btn btn-turq" type="button" data-pdf>Télécharger le PDF</button></div></section>
   </div></main>`;
+}
+
+
+/* ===== Conditions générales et ressources (Drive 10DEC, dossier organisateurs) ===== */
+const CG = { titre: "Conditions générales 2026-2027", version: "07/09/2026", url: "https://drive.google.com/file/d/1bta6fgiLXIR49a7F-DYxJF-nQM4C5BtN/view" };
+const RES = [
+  { t: CG.titre, s: "PDF · 0,3 Mo", url: CG.url, cg: 1 },
+  { t: "Guide : accueillir le public sourd", s: "PDF · 5 Mo", url: "https://drive.google.com/file/d/1GEfqzFfgVfiJZFiWMV8yGQ_CUoX7AO3B/view" },
+  { t: "Présentation de 10 Doigts en Cavale", s: "PDF · 0,6 Mo", url: "https://drive.google.com/file/d/1To8Jnl3pke7ggVvE2nb5TkL5IXKMx83O/view" },
+  { t: "Trouver des financements", s: "PDF · 0,2 Mo", url: "https://drive.google.com/file/d/13x8FmD5k5y6EPbUv9oarNLV0GplZw2kS/view" },
+  { t: "Logos 10 Doigts en Cavale", s: "Images · 5 versions", url: "https://drive.google.com/drive/folders/1UwVXNCN7fF_fiqqvhql6aFJjMt6UdtQc", img: 1 },
+  { t: "Pictos accessibilité", s: "Chansigne, gilets vibrants, boucle", url: "https://drive.google.com/drive/folders/1XGxA3t0f-LJKslmcFo8wgJU2hfINPk6d", img: 1 }
+];
+/* Accord : réponse « cg » = « Accepté · Nom · Fonction · Structure · CG … version du … ». */
+function cgAcc() {
+  const r = sent.cg; if (!r || !String(r.texte || "").startsWith("Accepté")) return null;
+  const x = String(r.texte).split(" · "), d = new Date(r.date || "");
+  return { nom: x[1] || "", fonction: x[2] || "", structure: x[3] || "", version: (x[4] || "").replace(/^.*version du /, ""),
+    quand: isNaN(d) ? "" : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) + " à " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h") };
+}
+function cgBannerHTML() {
+  const a = cgAcc();
+  if (a) return `<div class="cgb ok"><span class="doc-ic" aria-hidden="true">PDF</span><div class="cgb-tx"><b>${esc(CG.titre)}</b><span>Acceptées par ${esc(a.nom)}, le ${esc(a.quand)}.</span></div><span class="cgb-pill">Accepté ✓</span><button type="button" class="btn btn-out" data-topic="cg">Voir</button></div>`;
+  return `<div class="cgb"><span class="doc-ic" aria-hidden="true">PDF</span><div class="cgb-tx"><b>${esc(CG.titre)}</b><span>À lire et accepter avant le concert.</span></div><span class="cgb-pill">À accepter</span><button type="button" class="btn btn-blue" data-topic="cg">Lire et accepter →</button></div>`;
+}
+function resHTML() {
+  const a = cgAcc();
+  return `<section class="res" aria-labelledby="resT"><h2 id="resT">Ressources</h2><p>Nos documents, à garder sous la main.</p><div class="res-g">
+    ${RES.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic ${x.img ? "img" : ""}" aria-hidden="true">${x.img ? "IMG" : "PDF"}</span><span class="res-t"><b>${esc(x.t)}</b><small>${x.cg ? (a ? "Accepté ✓" : "À accepter") : esc(x.s)}</small></span><span class="res-go">${x.img ? "Voir" : "Ouvrir"}<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}</div></section>`;
+}
+function cgHTML() {
+  const a = cgAcc(), team = ADMIN && MODE === "equipe";
+  let n = 0;
+  const step = (titre, inner) => `<section class="step"><h2 class="st-h"><span class="st-n" style="background:#f7a42b;color:#000" aria-hidden="true">${++n}</span><span class="st-t"><span class="vh">Étape ${n} : </span>${titre}</span></h2>${inner}</section>`;
+  let body = step("Lire les conditions", `<p class="hint" style="margin:0">Version du ${CG.version}.</p><div><a class="btn btn-blue" href="${CG.url}" target="_blank" rel="noopener">Ouvrir le PDF<span class="vh"> (nouvel onglet)</span></a></div>`);
+  if (a) body += `<div class="cg-ok" role="status"><b>Accepté ✓</b><span>Par ${esc(a.nom)}${a.fonction ? ", " + esc(a.fonction) : ""}${a.structure ? " · " + esc(a.structure) : ""}.</span><span>Le ${esc(a.quand)} · version du ${esc(a.version || CG.version)}.</span></div>`;
+  else if (team) body += `<p class="det">À accepter par l'organisateur. Rien n'est envoyé depuis la vue équipe.</p>`;
+  else {
+    body += step("Qui accepte ?", `<form class="cg-f" id="cgF" data-cg="1">
+      <label>Nom et prénom<input type="text" name="nom" autocomplete="name" value="${esc((AUTEUR || "").split(/ [–-] /)[0])}"></label>
+      <label>Fonction<input type="text" name="fonction" placeholder="ex. directrice, programmateur" value="${esc((AUTEUR || "").split(/ [–-] /)[1] || "")}"></label>
+      <label>Structure<input type="text" name="structure" placeholder="ex. nom du festival ou de la salle"></label></form>`);
+    body += step("Valider", `<label class="cg-ck"><input type="checkbox" form="cgF" name="ok"><span>J'ai lu les ${esc(CG.titre.toLowerCase())}. Je les accepte au nom de ma structure, pour ce concert.</span></label>
+      <div><button class="btn btn-blue btn-big" type="submit" form="cgF">Valider mon accord</button></div>`);
+  }
+  return `<main><div class="wrap topic cg-v"><section class="cg-h"><span class="doc-ic" aria-hidden="true">PDF</span><h1>${esc(CG.titre)}</h1></section>${body}
+    <div class="tnav"><button class="btn btn-ghost" type="button" data-home>← Retour à l'accueil</button></div></div></main>`;
 }
 
 /* ===== Vue sujet ===== */
@@ -1387,7 +1460,7 @@ function topicHTML(t) {
 function render(scrollTop) {
   renderTop();
   const t = CURRENT && EVENT.topics.find(x => x.id === CURRENT);
-  $("#view").innerHTML = t ? topicHTML(t) : homeHTML();
+  $("#view").innerHTML = CURRENT === "cg" ? cgHTML() : t ? topicHTML(t) : homeHTML();
   if (scrollTop) window.scrollTo(0, 0);
 }
 function go(id, fromHistory) {
@@ -1396,7 +1469,7 @@ function go(id, fromHistory) {
   render(true);
 }
 /* Retour : bouton « précédent » du navigateur ou du téléphone, et glissement du doigt vers la droite. */
-window.addEventListener("popstate", () => { if (!EVENT) return; const h = topicFromHash(); go(EVENT.topics.some(t => t.id === h) ? h : null, true); });
+window.addEventListener("popstate", () => { if (!EVENT) return; const h = topicFromHash(); go(h === "cg" || EVENT.topics.some(t => t.id === h) ? h : null, true); });
 let sx = null, sy = 0;
 document.addEventListener("touchstart", e => { if (!CURRENT || e.touches.length !== 1 || e.target.closest("input,textarea,select")) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
 document.addEventListener("touchend", e => {
@@ -1480,6 +1553,14 @@ document.addEventListener("change", e => {
   else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
 });
 document.addEventListener("submit", e => {
+  const cgf = e.target.closest("[data-cg]");
+  if (cgf) { e.preventDefault(); const el = cgf.elements, g = k => el[k].value.trim().replace(/ · /g, " ").slice(0, 80);
+    if (!g("nom")) { toast("Merci d'indiquer votre nom."); return; }
+    if (!g("fonction")) { toast("Merci d'indiquer votre fonction."); return; }
+    if (!g("structure")) { toast("Merci d'indiquer votre structure."); return; }
+    if (!el.ok.checked) { toast("Merci de cocher la case pour accepter."); return; }
+    const texte = ["Accepté", g("nom"), g("fonction"), g("structure"), CG.titre + " version du " + CG.version].join(" · ");
+    sent.cg = { texte, date: new Date().toISOString() }; save(); post("cg", texte, "orga"); render(true); toast("Merci ! Votre accord est enregistré."); return; }
   const au = e.target.closest("[data-auteur]");
   if (au) { e.preventDefault(); const v = au.querySelector("input").value.trim(); if (!v) { toast("Merci d'indiquer votre prénom et votre rôle."); return; }
     AUTEUR = v.slice(0, 60); try { localStorage.setItem("orga-auteur", AUTEUR); } catch (x) {} delete sent.__editAuteur; render(false); toast("Merci, " + AUTEUR.split(/[ –-]/)[0] + " !"); return; }
@@ -1619,7 +1700,7 @@ function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) 
     EVENT = window.EMBED; ADMIN = true; ADMINPART = ""; TOKEN = "apercu"; FILEID = "apercu"; LS = "orga-apercu";
     document.title = `${EVENT.artiste} · ${EVENT.lieu} · Espace organisateur`;
     prepEvent(); loadLocal(); mergeServer();
-    const t1 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t1) ? t1 : null;
+    const t1 = topicFromHash(); CURRENT = t1 === "cg" || EVENT.topics.some(t => t.id === t1) ? t1 : null;
     return render(false);
   }
   const full = decodeURIComponent((location.hash || "").slice(1)).split("~")[0];
@@ -1641,7 +1722,7 @@ function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) 
     if ([...new Uint8Array(dg)].map(b => b.toString(16).padStart(2, "0")).join("") === EVENT.adminHash) { ADMIN = true; ADMINPART = "!" + code; }
   }
   prepEvent(); loadLocal(); mergeServer();
-  const t0 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t0) ? t0 : null;
+  const t0 = topicFromHash(); CURRENT = t0 === "cg" || EVENT.topics.some(t => t.id === t0) ? t0 : null;
   render(false);
   if (ADMIN && window.parent !== window) postStats();
 })();
@@ -1653,7 +1734,7 @@ function postStats() {
   const next = EVENT.topics.map(t => ({ t, d: dueOf(t) })).filter(x => x.d && x.d.days >= 0 && x.t.id !== "photos" && pointsOf(x.t).some(p => !isDone(p))).sort((a, b) => a.d.days - b.d.days)[0];
   const recus = Object.values(EVENT.reponses || {}).filter(r => String(r.texte || "").startsWith("Reçu")).length;
   const journal = (EVENT.journal || []).filter(j => j.source !== "10DEC").slice(-15).map(j => ({ date: j.date, point: j.point, texte: String(j.texte || "").slice(0, 120), auteur: j.auteur || "" }));
-  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal, fams: famStats() }, location.origin);
+  window.parent.postMessage({ type: "orga-stats", fichier: FILEID, d: pr.d, n: pr.n, questions: qs, late, next: next ? { label: next.t.label, dm: next.d.dm, days: next.d.days } : null, recus, journal, fams: famStats(), cg: cgAcc() }, location.origin);
 }
 /* Mêmes chiffres que les titres de colonnes du menu des sujets (tabsHTML). */
 function famStats() {

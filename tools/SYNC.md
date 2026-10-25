@@ -45,6 +45,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
      com, presse, public (`com-…`, `pub-…`, `cap-captation`) → « 📝 INFOS & REMARQUES ».
      Les questions (`question:…`) ne vont PAS dans la FDR (elles sont pour Aurélie et Périnne).
+     **Conditions générales** (point `cg`, texte « Accepté · Nom · Fonction · Structure · Conditions générales … version du … ») →
+     « 📝 INFOS & REMARQUES » : « ✍️ CG acceptées par <Nom> (<Fonction>, <Structure>) le JJ/MM/AAAA à HHhMM ». Toujours signalé dans la notification.
+     C'est un accord en ligne, pas une signature certifiée : ne le présente jamais comme une signature.
      Les réponses `10DEC` viennent de l'équipe : statut « ✓ OK ».
    - **Google Agenda** (événement ✅ de la même date, calendrier principal, notificationLevel NONE) : seulement pour un horaire,
      un lieu de parking, un lien GPS ou un référent sur place. Ajoute à la fin de la description, sans rien effacer :
