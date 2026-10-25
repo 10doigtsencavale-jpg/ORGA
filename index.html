@@ -1264,6 +1264,10 @@ function blocsOf(t) {
   if (checks.length) out.push({ key: t.id + "-prevu", ids: checks.flatMap(idsOfPoint) });
   (t.items || []).forEach(it => { const p = itemOf(it); if (!p.equipe) out.push({ key: p.id, ids: idsOfPoint(p) }); });
   if (t.qui) out.push({ key: "grp-" + t.qui, ids: idsOfPoint(groupItem(t.qui)) });
+  if (t.contactsList) { const all = t.contactsList.flatMap(e => e.startsWith("g:") ? (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c) : [e]);
+    const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste");
+    if (!multiArt()) { out.push({ key: t.id + "-fest", ids: fest }); out.push({ key: t.id + "-art", ids: art }); }
+    else { out.push({ key: t.id + "-fest", ids: fest }); ARTS().forEach(a => out.push({ key: t.id + "-art-" + a.id, ids: art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)) })); } }
   return out;
 }
 const aVoir = t => blocsOf(t).filter(b => ["avoir", "nouveau"].includes(vuState(b.key, b.ids).etat)).length;
@@ -1458,8 +1462,7 @@ function teamHTML(p) {
   /* Vue équipe : formulaire replié derrière « ✎ Compléter ou corriger », pour alléger la page. */
   return `<details class="admin-d"><summary>✎ Compléter ou corriger <span class="vh">(équipe 10DEC)</span></summary><form class="admin" data-team="${p.id}"><label class="small" for="t-${p.id}">Votre texte (équipe 10DEC)</label>
     <textarea id="t-${p.id}" name="t-${p.id}">${esc(t.texte || "")}</textarea>
-    <div class="actions"><select id="s-${p.id}" aria-label="Statut"><option value="ok" ${st !== "todo" ? "selected" : ""}>✓ Validé</option><option value="todo" ${st === "todo" ? "selected" : ""}>À compléter</option></select>
-    <button class="btn btn-ok" type="submit">Enregistrer</button></div></form></details>`;
+    <div class="actions"><button class="btn btn-ok" type="submit">Enregistrer</button></div></form></details>`;
 }
 function pillHTML(p) {
   if (p.type === "hebergement" && !isPB(p) && hebQui(p) === "10dec") return `<span class="pill p-eq">Réservé par 10 Doigts en Cavale</span>`;
@@ -1595,10 +1598,10 @@ function contactsListHTML(t, vis) {
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   /* Une étape numérotée par tableau. */
   const steps = [];
-  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") });
-  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") });
+  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") + vuHTML(t.id + "-fest", fest) });
+  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") + vuHTML(t.id + "-art", art) });
   else ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id)))
-    .forEach(a => steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)), "artiste") }));
+    .forEach(a => { const ids = art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)); steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(ids, "artiste") + vuHTML(t.id + "-art-" + a.id, ids) }); });
   return { intro: `<p class="intro">${esc(t.intro)}</p><p class="hint">Les cases en pointillés jaunes sont à compléter.</p>`, steps };
 }
 function subsHTML(sub) {
@@ -1868,7 +1871,7 @@ document.addEventListener("submit", e => {
   if (q) { e.preventDefault(); const v = q.querySelector("textarea").value.trim(); if (!v) { toast("Merci d'écrire votre question."); return; }
     sent["q-" + q.dataset.question] = { texte: v, date: new Date().toISOString() }; save(); post("question:" + q.dataset.question, v, SOURCE()); render(false); toast("Question envoyée. Merci !"); return; }
   const t = e.target.closest("[data-team]");
-  if (t) { e.preventDefault(); const tx = t.querySelector("textarea").value.trim(), st = t.querySelector("select").value;
+  if (t) { e.preventDefault(); const tx = t.querySelector("textarea").value.trim(), st = "ok"; if (!tx) { toast("Écrivez votre texte avant d'enregistrer."); return; }
     sent["team-" + t.dataset.team] = { texte: tx, statut: st, date: new Date().toISOString() }; save();
     post(t.dataset.team, tx || (st === "ok" ? "Validé par 10 Doigts en Cavale." : "À compléter."), "10DEC:" + st);
     toast("Enregistré. Visible par l'organisateur après la prochaine mise à jour."); render(false); }
