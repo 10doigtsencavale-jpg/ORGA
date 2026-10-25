@@ -10,6 +10,7 @@ La clé de chaque événement n'existe que dans le lien envoyé à l'organisateu
   python3 tools/orga.py chiffrer <data.json> <fichier> <clé>   -> écrit e/<fichier>.json
   python3 tools/orga.py dechiffrer <fichier> <clé>    -> affiche le JSON en clair (vérification)
   python3 tools/orga.py appliquer <fichier> <clé> <lignes.json> -> applique les réponses du formulaire, affiche les nouveautés
+  python3 tools/orga.py equipe <fichier> <clé> <fdr.json>     -> tableau de l'équipe (noms + téléphones) depuis la fiche FDR
 """
 import base64, json, os, sys
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -291,6 +292,29 @@ def profils(fichier, cle, values_json):
         d["maj"] = datetime.now(timezone.utc).astimezone().strftime("%d/%m/%Y"); ecrire(fichier, cle, d)
     print(json.dumps({"mis_a_jour": n}))
 
+def equipe(fichier, cle, values_json):
+    """Tableau « L'équipe de chansigneurs » de l'espace : noms de la ligne « Équipe 10 Doigts » de la fiche FDR,
+    téléphones pris dans la partie « 📞 CONTACTS SUR PLACE » de la même fiche (même prénom). N'affiche aucun numéro."""
+    import re
+    d = lire(fichier, cle); rows = json.load(open(values_json)); rows = rows.get("values", rows) if isinstance(rows, dict) else rows
+    rows = [[str(x).strip() for x in (list(r) + [""] * 5)[:5]] for r in rows]
+    noms, contacts, zone = [], [], False
+    for r in rows:
+        if r[0] == "Équipe 10 Doigts": noms = [n for n in re.split(r"\s*(?:,|\bet\b|&|\+)\s*", r[2]) if n]
+        if r[0].startswith("📞"): zone = True; continue
+        if zone:
+            if not any(r): zone = False; continue
+            if r[0] != "Nom" and r[3]: contacts.append((r[0], r[3]))
+    pre = lambda n: n.strip().split(" ")[0].lower()
+    eq = []
+    for n in noms:
+        c = next((c for c in contacts if pre(c[0]) == pre(n)), None)
+        eq.append({"nom": c[0] if c else n, "tel": c[1] if c else ""})
+    if eq and eq != d.get("equipe"):
+        d["equipe"] = eq; ecrire(fichier, cle, d); print(json.dumps({"mis_a_jour": True, "equipe": [[e["nom"], bool(e["tel"])] for e in eq]}, ensure_ascii=False))
+    else:
+        print(json.dumps({"mis_a_jour": False, "equipe": [[e["nom"], bool(e["tel"])] for e in eq]}, ensure_ascii=False))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -301,4 +325,4 @@ if __name__ == "__main__":
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
      "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
      "accueil": lambda: accueil(*a[1:5]),
-     "profils": lambda: profils(*a[1:4])}[a[0]]()
+     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4])}[a[0]]()

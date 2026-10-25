@@ -50,6 +50,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    « REPAS & TAILLES » : get_values `'REPAS & TAILLES'!A1:E30` → écris `values` dans `/tmp/orga/repas.json` (hors du dépôt), puis
    `python3 -I tools/orga.py profils <fichier> <clé> /tmp/orga/repas.json`. Le régime va dans le tableau des repas, les tailles dans le tableau du dresscode.
    Données personnelles (santé) : ne les recopie jamais dans un message, une notification, la FDR ou l'Agenda. Pas de notification pour ces mises à jour.
+3 quater. **L'équipe de chansigneurs** (tableau du sujet « L'équipe / Horaires ») : pour chaque événement, lis la fiche FDR (colonne H)
+   `'FDR'!A1:E200` → écris `values` dans `/tmp/orga/fdr.json` (hors du dépôt), puis `python3 -I tools/orga.py equipe <fichier> <clé> /tmp/orga/fdr.json`.
+   Les noms viennent de la ligne « Équipe 10 Doigts », les téléphones de « 📞 CONTACTS SUR PLACE » (même prénom). Un numéro manquant s'affiche « À venir » :
+   ne l'invente jamais. Ne recopie aucun numéro dans un message ou une notification.
 4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
