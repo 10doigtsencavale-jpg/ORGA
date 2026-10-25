@@ -634,6 +634,7 @@ button.hero-p:hover{background:rgba(255,255,255,.18)}
 .ttab.grille .g-n{background:#f7f8fc;color:#2e3bb2;font-size:13px;white-space:nowrap}
 .ttab.grille .fwrap input[type=text]{padding-right:56px;min-height:42px;font-size:15px}
 .ttab.grille .fwrap .send{padding:0 10px}
+.ttab.grille td.c-heure{min-width:175px}.ttab.grille td.c-date{min-width:125px}.ttab.grille td.c-chauf{min-width:200px}.ttab.grille td.c-a,.ttab.grille td.c-b{min-width:140px}
 @media (max-width:759px){
   .ttab.grille,.ttab.grille tbody,.ttab.grille tr,.ttab.grille td,.ttab.grille .g-n{display:block;width:auto}
   .ttab.grille{border:0;background:transparent}.ttab.grille thead{display:none}
@@ -645,6 +646,15 @@ button.hero-p:hover{background:rgba(255,255,255,.18)}
   body.sujet main .ttab.grille .fwrap input[type=text]{padding-right:52px}
   body.sujet main .ttab.grille .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 10px}
 }
+/* Lignes ajoutées et « pas besoin » */
+.addrow{margin-top:10px;display:grid;gap:4px;max-width:520px}.addrow .fwrap input[type=text]{border:1.5px solid #d7daef!important;background:#fff!important;padding-right:120px}
+body.sujet .addrow .send{background:#e6e8fb;color:#2e3bb2}
+.linkbtn.rm{font-size:12px;color:#8a90ad;margin-left:4px}
+.pbsw{display:flex;gap:10px;align-items:center;background:#fff7d6;border:1.5px solid #f0d27a;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:700;cursor:pointer;margin:6px 0}
+.pbsw input{width:22px;height:22px;accent-color:#2e3bb2;margin:0}
+.item.pbgris,.step:has(>.item.pbgris){background:#f3f4f8;border-color:#c9cde6;border-style:dashed}
+.item.pbgris .lbl,.item.pbgris .det{color:#6b7090}.p-pb{background:#e3e5ee;color:#555b7a}
+.tl.nb{border-style:dashed;border-color:#c9cde6!important;background:#f3f4f8}.tl.nb .tl-l{color:#6b7090}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -903,6 +913,7 @@ const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsO
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
+  if (p.type === "grille" && isPB(p)) return "ok";
   if (p.type === "grille") { const cs = grilleCells(p).filter(c => !c.fixe); return cs.every(c => c.v) ? (cs.some(c => sent[c.id]) ? "sent" : "ok") : "todo"; }
   if (p.type === "tableau") { const rs = rowsOf(p).filter(r => !r.equipe); return rs.every(r => rowVal(r)) ? (rs.some(r => sent[r.id]) ? "sent" : "ok") : "todo"; }
   const t = sent["team-" + p.id]; if (t) return t.statut;
@@ -1060,6 +1071,8 @@ function homeHTML() {
   const tile = (ro, f) => {
     const pts = uniq(ro.tps.flatMap(ptsF)), p = progress(pts), pp = p.n ? Math.round(p.d / p.n * 100) : 0;
     const segs = pts.map(x => `<i class="${isDone(x) ? "on" : ""}"></i>`).join("");
+    if (pts.length && pts.every(isPB)) return `<button type="button" class="tl nb" data-topic="${ro.tps[0].id}" style="--b:#c9cde6;--f:#c9cde6;--t:#6b7090;--ib:#e3e5ee" aria-label="${esc(ro.label)} : ${PB_TXT}">
+      <span class="tl-h"><span class="tl-ic" aria-hidden="true">${emo(ro.e, 30)}</span></span><span class="tl-l">${esc(ro.label)}</span><span class="det" style="font-size:13px">${PB_TXT}</span></button>`;
     return `<button type="button" class="tl ${p.full ? "ok" : ""}" data-topic="${ro.tps[0].id}" style="--b:${f.bd};--f:${f.bar};--t:${f.fg};--ib:${f.bg}" aria-label="${esc(ro.label)} : ${p.full ? "fait" : `${p.d} sur ${p.n}`}">
       <span class="tl-h"><span class="tl-ic" aria-hidden="true">${emo(ro.e, 30)}</span><span class="rg" style="--p:${p.full ? 100 : pp}%" aria-hidden="true"><span>${p.full ? "Fait" : `${p.d}/${p.n}`}</span></span></span>
       <span class="tl-l">${esc(ro.label)}</span>
@@ -1178,20 +1191,22 @@ function fw(ctl, val, label, ta) {
 }
 /* Repas (rempli par l'équipe 10DEC) : midi / soir par intervenant + régime alimentaire. */
 const valOf = id => { const t = sent["team-" + id], r = sent[id]; return (t && t.texte) || (r && r.texte) || ""; };
-function repasRows(p) { return p.rows.map((r, i) => {
-  const g = k => { const v = valOf(`${p.id}-${i}-${k}`); return v ? v === "oui" : r[k]; };
-  return { nom: r.nom, date: r.date, midi: g("midi"), soir: g("soir"), regime: valOf(`${p.id}-${i}-regime`) || r.regime || "", i };
+function repasRows(p) { return [...p.rows.map((r, i) => Object.assign({ k: `${p.id}-${i}` }, r)), ...extraRows(p).map(x => ({ k: x.id, nom: x.nom, extra: true }))].map(r => {
+  const g = k => { const v = valOf(`${r.k}-${k}`); return v ? v === "oui" : !!r[k]; };
+  return { nom: r.nom, date: valOf(`${r.k}-date`) || r.date || "", midi: g("midi"), soir: g("soir"), regime: valOf(`${r.k}-regime`) || r.regime || "", k: r.k, extra: r.extra };
 }); }
 const repasHas = k => EVENT.topics.some(t => (t.items || []).some(it => it.type === "repas" && repasRows(it).some(r => r[k])));
 function repasHTML(p) {
   const eq = MODE === "equipe";
-  const box = (r, k) => `<label class="sub"><input type="checkbox" ${r[k] ? "checked" : ""} ${eq ? `data-repas="${p.id}-${r.i}-${k}"` : "disabled"}><span>${k === "midi" ? "Midi" : "Soir"}</span></label>`;
+  const box = (r, k) => `<label class="sub"><input type="checkbox" ${r[k] ? "checked" : ""} ${eq ? `data-repas="${r.k}-${k}"` : "disabled"}><span>${k === "midi" ? "Midi" : "Soir"}</span></label>`;
+  const txt = (r, k, ph) => eq ? `<form class="form" data-form="${r.k}-${k}">${fw(`<input type="text" id="f-${r.k}-${k}" name="${r.k}-${k}" value="${esc(r[k])}" placeholder="${ph}">`, r[k], "OK")}</form>` : esc(r[k] || (k === "regime" ? "Aucun" : "—"));
   return `<div class="item ${eq ? "is-done" : "fourni"}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}
     <div class="tab-w"><table class="ttab"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
-    ${repasRows(p).map(r => `<tr><td><b>${esc(r.nom)}</b></td><td>${esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
-      <td>${eq ? `<form class="form" data-form="${p.id}-${r.i}-regime">${fw(`<input type="text" id="f-${p.id}-${r.i}-regime" name="${p.id}-${r.i}-regime" value="${esc(r.regime)}" placeholder="Aucun">`, r.regime, "OK")}</form>` : esc(r.regime || "Aucun")}</td></tr>`).join("")}
+    ${repasRows(p).map(r => `<tr><td><b>${esc(r.nom)}</b>${r.extra && eq ? ` <button type="button" class="linkbtn rm" data-rmrow="${r.k}">Retirer</button>` : ""}</td><td>${r.extra ? txt(r, "date", "ex. Sam. 14/11") : esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
+      <td>${txt(r, "regime", "Aucun")}</td></tr>`).join("")}
     </tbody></table></div>
+    ${eq ? addRowHTML(p, "Ajouter une personne (vidéaste, photographe…)", "Prénom et rôle") : ""}
     ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
 }
 /* Placeholders : jamais d'horaire fictif. « ex. 16h30 – 16h45 » → « ??h?? - ??h?? ». */
@@ -1199,24 +1214,43 @@ const HRE = /\b\d{1,2}h\d{0,2}\b/g;
 /* Un seul format pour tous les horaires : « ??h?? - ??h?? » (le reste du texte, ex. « , loge », est gardé). */
 const PH_T = "\\d{1,2}h\\d{0,2}", PH_R = new RegExp(`${PH_T}(?:\\s*[–-]\\s*${PH_T})?(?:\\s+ou\\s+${PH_T}(?:\\s*[–-]\\s*${PH_T})?)*(?:\\s*\\?)?`, "g");
 const phHeure = ph => { ph = String(ph || ""); return /\b\d{1,2}h\d{0,2}\b/.test(ph) ? ph.replace(/^ex\.\s*/i, "").replace(PH_R, "??h?? - ??h??") : ph; };
+/* Lignes ajoutées (par l'organisateur ou l'équipe) : réponse « <item>-x<code> » = nom de la ligne ; « ✗ Retiré » l'enlève. */
+const extraRows = p => { const re = new RegExp("^(?:team-)?(" + p.id + "-x[a-z0-9]{4,10})$"), seen = new Map();
+  Object.keys(sent).forEach(k => { const m = k.match(re); if (!m) return; const id = m[1], v = valOf(id); if (!v || v.startsWith("✗")) return;
+    const d = ((sent["team-" + id] || sent[id]) || {}).date || ""; if (!seen.has(id) || d < seen.get(id).d) seen.set(id, { id, nom: v, d, extra: true }); });
+  return [...seen.values()].sort((a, b) => a.d < b.d ? -1 : 1); };
+const newRowId = p => p.id + "-x" + Math.random().toString(36).slice(2, 8);
+function addRowHTML(p, label, ph) {
+  return `<form class="form addrow" data-addrow="${p.id}"><div class="fwrap"><input type="text" name="nom" placeholder="${esc(ph)}" aria-label="${esc(label)}"><button class="send" type="submit">+ Ajouter</button></div><span class="hint">${esc(label)}</span></form>`;
+}
+/* « Pas besoin, l'équipe est autonome » : coché par l'équipe 10DEC, le bloc est grisé pour l'organisateur et compte comme fait. */
+const PB_TXT = "Pas besoin, l'équipe est autonome.";
+const isPB = p => valOf(p.id + "-pasbesoin") === "oui";
+function pbSwitchHTML(p) { return MODE === "equipe" ? `<label class="pbsw"><input type="checkbox" data-pb="${p.id}" ${isPB(p) ? "checked" : ""}><span>${PB_TXT}</span></label>` : ""; }
+function pbBlockHTML(p) { return `<div class="item pbgris" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span></div><p class="det">${PB_TXT} Rien à faire.</p></div>`; }
 /* Tableau à plusieurs colonnes (ex. les runs), rempli par l'organisateur et par 10 Doigts en Cavale.
    Case = « <ligne>-<colonne> ». Case pré-remplie dans le fichier = fixe pour l'organisateur ; l'équipe peut tout corriger. */
-const grilleCells = p => p.rows.flatMap(r => p.cols.map(c => { const id = r.id + "-" + c.k, fixe = !!(r.cells || {})[c.k];
+const allItems = () => EVENT.topics.flatMap(t => t.items || []);
+const grilleRows = p => [...p.rows, ...extraRows(p)];
+const grilleCells = (p, rows) => (rows || grilleRows(p)).flatMap(r => p.cols.map(c => { const id = r.id + "-" + c.k, fixe = !!(r.cells || {})[c.k];
   return { id, r, c, fixe, v: valOf(id) || (r.cells || {})[c.k] || "" }; }));
 function grilleHTML(p) {
-  const st = statusOf(p), team = MODE === "equipe";
+  if (isPB(p) && MODE !== "equipe") return pbBlockHTML(p);
+  const st = statusOf(p), team = MODE === "equipe", rows = grilleRows(p), named = rows.some(r => r.nom);
   const cell = x => {
     if (!team && x.v && (x.fixe || !sent[x.id])) return `<span class="tv">${esc(x.v)}</span>`;
     if (!team && x.v) return `<span class="tv">${esc(x.v)}</span> <button type="button" class="linkbtn" data-edit="${x.id}">Modifier</button>`;
-    const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || "À compléter");
+    const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || { date: "jj/mm", nb: "?", a: "Lieu", b: "Lieu" }[x.c.k] || "À compléter");
     return `<form class="form" data-form="${x.id}">${fw(`<input type="text" id="f-${x.id}" name="${x.id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + x.id] || (team ? x.v : ""))}" aria-label="${esc(x.c.l)}${x.r.nom ? " · " + esc(x.r.nom) : ""}">`, sent["draft-" + x.id] || (team ? x.v : ""), "OK")}</form>`;
   };
-  const cells = grilleCells(p);
+  const cells = grilleCells(p, rows);
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
     ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<p class="det">Les cases en pointillés jaunes sont à compléter.</p>
-    <div class="tab-w"><table class="ttab grille"><thead><tr>${p.rows.some(r => r.nom) ? "<th></th>" : ""}${p.cols.map(c => `<th>${esc(c.l)}</th>`).join("")}</tr></thead><tbody>
-    ${p.rows.map(r => `<tr>${p.rows.some(x => x.nom) ? `<th scope="row" class="g-n">${esc(r.nom || "")}</th>` : ""}${cells.filter(x => x.r === r).map(x => `<td data-l="${esc(x.c.l)}" class="${x.v ? "" : "vide"}">${cell(x)}</td>`).join("")}</tr>`).join("")}
-    </tbody></table></div></div>`;
+    ${pbSwitchHTML(p)}
+    <div class="tab-w"><table class="ttab grille"><thead><tr>${named ? "<th></th>" : ""}${p.cols.map(c => `<th>${esc(c.l)}</th>`).join("")}</tr></thead><tbody>
+    ${rows.map(r => `<tr>${named ? `<th scope="row" class="g-n">${esc(r.nom || "")}${r.extra && (team || sent[r.id]) ? ` <button type="button" class="linkbtn rm" data-rmrow="${r.id}" aria-label="Retirer ${esc(r.nom)}">Retirer</button>` : ""}</th>` : ""}${cells.filter(x => x.r === r).map(x => `<td data-l="${esc(x.c.l)}" class="c-${esc(x.c.k)} ${x.v ? "" : "vide"}">${cell(x)}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    ${addRowHTML(p, p.ajout || "Ajouter une ligne", p.ajoutPh || "Nom de la ligne")}</div>`;
 }
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
@@ -1291,6 +1325,7 @@ function teamHTML(p) {
     <button class="btn btn-ok" type="submit">Enregistrer</button></div></form>`;
 }
 function pillHTML(p) {
+  if (p.type === "grille" && isPB(p)) return `<span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span>`;
   const st = statusOf(p);
   if (st === "todo") return `<span class="pill p-todo">À compléter</span>`;
   if (st === "sent") return `<span class="pill p-sent">✓ Envoyé</span>`;
@@ -1602,6 +1637,8 @@ document.addEventListener("change", e => {
   if (e.target.matches && e.target.matches("[data-rowmulti]")) { const id = e.target.dataset.rowmulti;
     const v = [...document.querySelectorAll(`[data-rowmulti="${id}"]:checked`)].map(x => x.value).join(" · ");
     if (v) submit(id, v, null, e.target); else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); } return; }
+  if (e.target.matches && e.target.matches("[data-pb]")) { const id = e.target.dataset.pb + "-pasbesoin", v = e.target.checked ? "oui" : "non";
+    sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); return; }
   if (e.target.matches && e.target.matches("[data-repas]")) { const id = e.target.dataset.repas, v = e.target.checked ? "oui" : "non";
     sent[id] = { texte: v, date: new Date().toISOString() }; save(); post(id, v, SOURCE()); toast("Enregistré."); return; }
   if (e.target.matches && e.target.matches("[data-multi] input[name=opt]")) { const f = e.target.closest("form");
@@ -1638,6 +1675,12 @@ document.addEventListener("change", e => {
   else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); }
 });
 document.addEventListener("submit", e => {
+  const ar = e.target.closest("[data-addrow]");
+  if (ar) { e.preventDefault(); const nom = ar.querySelector("input").value.trim().replace(/^✗/, "").slice(0, 60);
+    if (!nom) { toast("Merci d'écrire un nom pour la ligne."); return; }
+    const p = allItems().find(x => x.id === ar.dataset.addrow), id = newRowId(p), team = ADMIN && MODE === "equipe", now = new Date().toISOString();
+    if (team) sent["team-" + id] = { texte: nom, statut: "ok", date: now }; else sent[id] = { texte: nom, date: now };
+    save(); post(id, nom, SOURCE()); render(false); toast("Ligne ajoutée."); return; }
   const cgf = e.target.closest("[data-cg]");
   if (cgf) { e.preventDefault(); const el = cgf.elements, g = k => el[k].value.trim().replace(/ · /g, " ").slice(0, 80);
     if (!g("nom")) { toast("Merci d'indiquer votre nom."); return; }
@@ -1688,6 +1731,9 @@ document.addEventListener("click", e => {
   if (b.dataset.filtre) { FILTRE = b.dataset.filtre; render(false); return; }
   if (b.dataset.topic) go(b.dataset.topic);
   else if (b.hasAttribute("data-home")) go(null);
+  else if (b.dataset.rmrow) { const id = b.dataset.rmrow, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
+    if (team) sent["team-" + id] = { texte: "✗ Retiré", statut: "ok", date: now }; delete sent[id];
+    save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Ligne retirée."); }
   else if (b.hasAttribute("data-pdf")) downloadPdf();
   else if (b.dataset.copy) copy(b.dataset.copy, b.dataset.msg);
   else if (b.dataset.allok) confirmAll(b.dataset.allok, b.dataset.label, b);
@@ -1746,7 +1792,7 @@ function buildPdf() {
         g.roles.forEach(r => { const v = contactValue(r.c); if (v) text(`${r.q} ${v}`, 10, "normal", null, 6); });
         y += .8; return;
       }
-      if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); p.rows.forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; } grilleRows(p).forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "repas") { text(p.titre, 10.5, "bold", BLEU, 2); repasRows(p).forEach(r => text(`${r.nom} · ${r.date} · ${[r.midi && "midi", r.soir && "soir"].filter(Boolean).join(" et ") || "aucun repas"} · régime : ${r.regime || "aucun"}`, 10, "normal", null, 6)); y += .8; return; }

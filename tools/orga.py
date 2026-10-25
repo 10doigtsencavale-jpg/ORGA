@@ -180,7 +180,10 @@ def manquants(fichier, cle):
                 vides = [r["label"] for r in vis if r.get("type") != "note" and not r.get("opt") and r["id"] not in rep]
                 if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif it.get("type") == "grille":  # tableau à colonnes (runs) : case « <ligne>-<colonne> »
-                vides = [f'{r.get("nom", r["id"])} : {c["l"]}' for r in it["rows"] for c in it["cols"]
+                if str((d.get("reponses", {}).get(it["id"] + "-pasbesoin") or {}).get("texte", "")) == "oui":
+                    continue  # « Pas besoin, l'équipe est autonome » coché par l'équipe
+                ext = [{"id": k, "nom": v["texte"]} for k, v in rep.items() if re.fullmatch(re.escape(it["id"]) + r"-x[a-z0-9]{4,10}", k)]
+                vides = [f'{r.get("nom", r["id"])} : {c["l"]}' for r in it["rows"] + ext for c in it["cols"]
                          if not (r.get("cells") or {}).get(c["k"]) and f'{r["id"]}-{c["k"]}' not in rep]
                 if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif it.get("type") == "tableau":
