@@ -443,7 +443,22 @@ body.home{font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 .hring{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#f7a42b 0 var(--p),rgba(255,255,255,.25) var(--p) 100%)}
 .hring span{width:42px;height:42px;border-radius:50%;background:#2e3bb2;display:grid;place-items:center;font-family:"Bebas Neue",var(--display);font-size:20px;line-height:1;padding-top:2px}
 .hero .aps{margin-top:2px}
-.hero-c{margin-top:12px;display:flex;gap:10px}
+.hero-c{margin-top:12px;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.12);border-radius:16px;padding:6px 12px}
+.hero-ln{min-height:44px;display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.hero-ln svg{flex:none;width:20px;height:20px;color:#f7a42b}
+.hero-ln+.hero-ln{border-top:1px solid rgba(255,255,255,.18)}
+.hero-ln:hover span,.hero-ln:focus-visible span{text-decoration:underline}
+.nw{white-space:nowrap}
+.eqb{background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:16px;margin:0 0 18px}
+.eqb-t{margin:0 0 10px;font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:28px;letter-spacing:.02em;line-height:1}
+.eqt{width:100%;border-collapse:collapse;font-size:15px}
+.eqt th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#555;padding:0 8px 6px 0;border-bottom:2px solid #ecedf5}
+.eqt td{padding:10px 8px 10px 0;border-bottom:1px solid #ecedf5;font-weight:700;vertical-align:middle}
+.eqt td a{color:#2e3bb2;white-space:nowrap}
+.eq-ref{display:inline-block;font-size:11px;font-weight:700;background:#fde3bb;color:#7a4300;border-radius:999px;padding:2px 8px;margin-left:4px;vertical-align:middle}
+.eq-m{margin:12px 0 0;display:flex;gap:8px;align-items:flex-start;font-size:14px;overflow-wrap:anywhere}
+.eq-m svg{flex:none;color:#2e3bb2;margin-top:1px}
+.eq-m a{color:#2e3bb2;font-weight:700}
 .hero-call{flex:1;min-height:48px;border-radius:14px;background:#fff;color:#2e3bb2;font-weight:700;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px}
 .hero-mail{flex:none;width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
 .hero-call:hover{background:#eef0fa}.hero-mail:hover{background:rgba(255,255,255,.26)}
@@ -532,7 +547,7 @@ const FAM = {
 const ROLES = [
   { fam: "urg", e: "setlist", label: "Setlist / Dresscode", topics: ["setlist"] },
   { fam: "urg", e: "mains", label: "Public sourd et com", topics: ["public"] },
-  { fam: "urg", e: "horloge", label: "Horaires et balances", topics: ["horaires"] },
+  { fam: "urg", e: "horloge", label: "L'équipe / Horaires", topics: ["horaires"] },
   { fam: "tech", e: "inear", label: "Les retours son", topics: ["son", "talkback"] },
   { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
   { fam: "tech", e: "scene", label: "Le plateau", topics: ["emplacement"] },
@@ -576,7 +591,7 @@ function dueOf(t) {
   return { days, dm, cls: days < 0 ? "late" : days <= 3 ? "urg" : "", txt: days < 0 ? "En retard" : days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : "Avant le " + dm };
 }
 const SHORT = { setlist: "Setlist / Dresscode", son: "Retours son", lumiere: "Lumière", emplacement: "Plateau", ecran: "Écrans", talkback: "Talkback",
-  contacts: "Contacts", accueil: "Accueil", parking: "Parking", pass: "Pass", horaires: "Horaires", public: "Com & public sourd",
+  contacts: "Contacts", accueil: "Accueil", parking: "Parking", pass: "Pass", horaires: "Équipe / Horaires", public: "Com & public sourd",
   presse: "Presse / Média", photos: "Photos", securite: "Sécurité" };
 
 /* ===== État ===== */
@@ -820,6 +835,28 @@ function famDueHTML(rs, f) {
   return pill(d.days < 0 ? "Date dépassée" : "Avant le " + d.dm);
 }
 const SVGL = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"></path></svg>`;
+const MAILD = "M3 5h18v14H3zM3 6l9 7 9-7";
+const telHref = t => String(t || "").replace(/[^\d+]/g, "");
+/* « Périnne Diot » → « Périnne DIOT » */
+const nomAff = n => { const w = String(n || "").trim().split(/\s+/); return w.length > 1 ? w[0] + " " + w.slice(1).join(" ").toUpperCase() : w[0] || ""; };
+/* L'équipe 10DEC du concert : EVENT.equipe [{nom, tel}] si présent, sinon les chansigneurs (le numéro de la référente est repris). */
+function teamList() {
+  const r = EVENT.referente || {};
+  const list = Array.isArray(EVENT.equipe) && EVENT.equipe.length ? EVENT.equipe.map(x => ({ nom: x.nom, tel: x.tel || "" }))
+    : String(EVENT.chansigneurs || "").split(/\s*(?:,|\bet\b|&)\s*/).filter(Boolean).map(nom => ({ nom, tel: "" }));
+  const p0 = String(r.nom || "").trim().split(/\s+/)[0].toLowerCase();
+  list.forEach(x => { if (!x.tel && p0 && String(x.nom).trim().split(/\s+/)[0].toLowerCase() === p0) { x.tel = r.tel; if (!/\s/.test(String(x.nom).trim())) x.nom = r.nom; } });
+  return list;
+}
+function teamTableHTML(f) {
+  const r = EVENT.referente || {}, list = teamList();
+  if (!list.length) return "";
+  return `<section class="eqb" aria-labelledby="eqbT"><h2 class="eqb-t" id="eqbT" style="color:${f.fg}">L'équipe</h2>
+    <table class="eqt"><thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th></tr></thead><tbody>
+    ${list.map(x => `<tr><td>${esc(nomAff(x.nom))}${x.nom && r.nom && nomAff(x.nom) === nomAff(r.nom) ? ` <span class="eq-ref">Référente</span>` : ""}</td><td>${x.tel ? `<a href="tel:${esc(telHref(x.tel))}">${esc(x.tel)}</a>` : `<span class="det">À venir</span>`}</td></tr>`).join("")}
+    </tbody></table>
+    ${r.mail ? `<p class="eq-m">${SVGL(MAILD)}<span>Un seul mail pour toute l'équipe : <a href="mailto:${esc(r.mail)}">${esc(r.mail)}</a></span></p>` : ""}</section>`;
+}
 function homeHTML() {
   const pr = progress(allPoints()), pc = pr.n ? Math.round(pr.d / pr.n * 100) : 0;
   const r = EVENT.referente, prenom = String(r.nom || "").trim().split(/\s+/)[0];
@@ -847,7 +884,7 @@ function homeHTML() {
         <p class="hero-s">${!multiArt() && EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</p>
         <div class="hero-p"><span class="hring" style="--p:${pc}%" aria-hidden="true"><span>${pc}%</span></span><b>${pr.d} sur ${pr.n} réponses<span class="vh"> (${pc} %)</span></b></div>
         ${artPctHTML()}
-        <div class="hero-c"><a class="hero-call" href="tel:${esc(String(r.tel || "").replace(/[^\d+]/g, ""))}">${SVGL(ICONS.tel)}Appeler ${esc(prenom)}</a><a class="hero-mail" href="mailto:${esc(r.mail)}" aria-label="Écrire un mail à ${esc(prenom)}">${SVGL("M3 5h18v14H3zM3 6l9 7 9-7")}</a></div>
+        <div class="hero-c"><a class="hero-ln" href="tel:${esc(telHref(r.tel))}">${SVGL(ICONS.tel)}<span>Référente : <b>${esc(nomAff(r.nom))}</b> · <b class="nw">${esc(r.tel)}</b></span></a><a class="hero-ln" href="mailto:${esc(r.mail)}">${SVGL(MAILD)}<span><b>${esc(r.mail)}</b></span></a></div>
       </div>
     </section>
     <h2 class="charge">Vous êtes en charge de…</h2>
@@ -1163,6 +1200,7 @@ function topicHTML(t) {
       <div class="tm"><h1 class="disp">${esc(t.label)}</h1>
         <div class="progress-row"><div class="bar ${pr.full ? "full" : ""}" role="img" aria-label="${pr.d} sur ${pr.n}"><i class="b-done" style="width:${pr.n ? pr.d / pr.n * 100 : 0}%;${pr.full ? "" : `background:${famOf(t.id).bar}`}"></i></div><span>${pr.full ? "✓ Complet" : `${pr.d} / ${pr.n}`}</span></div></div>
       ${dlHTML(t, pr)}</div>
+    ${(t.base || t.id) === "horaires" ? teamTableHTML(FAM.urg) : ""}
     ${MODE === "orga" ? auteurHTML() : ""}
     ${t.rappel ? `<p class="rappel">⏰ ${esc(t.rappel)}</p>` : ""}
     <p class="pour">👤 Pour ${esc(t.pour)}</p>
@@ -1396,11 +1434,12 @@ function fail(msg) {
   $("#view").innerHTML = `<main><div class="wrap"><section class="team"><h2 class="disp">Lien incomplet</h2><p>${esc(msg)}</p>
     <p>Pour toute question : 10doigtsencavale@gmail.com</p></section></div></main>`;
 }
+function prepEvent() { (EVENT.topics || []).forEach(t => { if ((t.base || t.id) === "horaires") t.label = t.artiste ? t.label.replace(/^Horaires et balances/, "L'équipe / Horaires") : "L'équipe / Horaires"; }); }
 (async () => {
   if (window.EMBED) {
     EVENT = window.EMBED; ADMIN = true; ADMINPART = ""; TOKEN = "apercu"; FILEID = "apercu"; LS = "orga-apercu";
     document.title = `${EVENT.artiste} · ${EVENT.lieu} · Espace organisateur`;
-    loadLocal(); mergeServer();
+    prepEvent(); loadLocal(); mergeServer();
     const t1 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t1) ? t1 : null;
     return render(false);
   }
@@ -1422,7 +1461,7 @@ function fail(msg) {
     const dg = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code));
     if ([...new Uint8Array(dg)].map(b => b.toString(16).padStart(2, "0")).join("") === EVENT.adminHash) { ADMIN = true; ADMINPART = "!" + code; }
   }
-  loadLocal(); mergeServer();
+  prepEvent(); loadLocal(); mergeServer();
   const t0 = topicFromHash(); CURRENT = EVENT.topics.some(t => t.id === t0) ? t0 : null;
   render(false);
   if (ADMIN && window.parent !== window) postStats();
