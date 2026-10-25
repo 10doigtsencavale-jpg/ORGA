@@ -608,6 +608,10 @@ body.sujet .ttab .fwrap .send{padding:0 10px;min-width:40px}
   body.home .topbar .eo{display:none}
   body.home .hero{border-radius:0 0 28px 28px;margin:-18px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-top:20px}
 }
+/* Dépôt de fichier : zone en pointillés jaunes (même code que les cases à remplir), pas de bleu vif. */
+.btn.btn-depot,body.sujet .btn.btn-depot{background:#fff7ea;color:#7a4300;border:2px dashed #f7a42b;border-radius:14px;width:100%;justify-content:center;min-height:56px}
+.btn.btn-depot:hover{background:#fdeccf}.btn.btn-depot .ic,.btn.btn-depot svg{color:#7a4300}
+.actions:has(>.btn-depot){display:block}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -1106,8 +1110,8 @@ function fileButtons(p, label) {
   label = label || "Déposer un fichier";
   const url = p.depot || EVENT.depotFichiers, t = sent["team-" + p.id], got = t && t.statut === "ok" ? t.texte : "";
   return `<div class="actions">${url
-    ? `<a class="btn btn-main" href="${esc(url)}" target="_blank" rel="noopener">${SVGL(UPD)}${esc(label)}</a>`
-    : `<button class="btn btn-main" type="button" disabled>${esc(label)}</button>`}</div>
+    ? `<a class="btn btn-depot" href="${esc(url)}" target="_blank" rel="noopener">${SVGL(UPD)}${esc(label)}</a>`
+    : `<button class="btn btn-depot" type="button" disabled>${esc(label)}</button>`}</div>
     <span class="hint">${url ? (got ? `✓ ${esc(got)}` : "Sans compte Dropbox. Le point passe à « Reçu » dès que le fichier arrive.") : "Le bouton de dépôt sera actif à la mise en ligne."}</span>`;
 }
 /* Champ + bouton « Envoyer → » dans la case : gris tant que vide, bleu pâle quand rempli. */
