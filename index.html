@@ -1543,7 +1543,7 @@ function slHTML(p) {
     : `<button type="button" class="sl-b" data-slmv="${s.id}" data-d="-1" aria-label="Monter ${esc(s.t)}" ${n(s.id) === 1 ? "disabled" : ""}>↑</button><button type="button" class="sl-b" data-slmv="${s.id}" data-d="1" aria-label="Descendre ${esc(s.t)}" ${n(s.id) === live.length ? "disabled" : ""}>↓</button><button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`;
   const rows = songs.map(s => { const f = slFact(s);
     return `<tr class="${f.cls} ${s.ret ? "rm" : ""}"><td class="sl-n">${s.ret ? "✕" : n(s.id)}</td><td class="sl-t">${s.ajout ? `<b>${esc(s.t)}</b>` : esc(s.t)}</td>
-      <td>${s.ajout ? ddm(s.ajout) : esc(p.base || "Devis")}</td><td>${ddm(s.ret)}</td><td class="k">${slState(s, "par")}</td><td class="k">${slState(s, "aud")}</td>
+      <td>${s.ajout ? ddm(s.ajout) : "Dès le départ"}</td><td>${ddm(s.ret)}</td><td class="k">${slState(s, "par")}</td><td class="k">${slState(s, "aud")}</td>
       <td class="k sl-a">${acts(s)}</td>${SLFACT ? `<td class="k">${f.pill ? `<span class="sl-p ${f.cls}">${esc(f.pill)}</span>` : ""}</td>` : ""}</tr>
       ${SLASK === s.id ? `<tr class="sl-askr"><td colspan="${SLFACT ? 8 : 7}">${ask(s)}</td></tr>` : ""}`; }).join("");
   const card = s => { const f = slFact(s);
