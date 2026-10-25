@@ -171,6 +171,8 @@ def manquants(fichier, cle):
         if imp and not t.get("importantTop") and not fait(t["id"] + "-imp"):
             reste.append(imp["t"] if isinstance(imp, dict) else imp)
         for it in t.get("items", []):
+            if it.get("dans"):  # rangé dans un autre bloc (ex. dépôt paroles/audio dans le tableau de setlist)
+                continue
             if "contact" in it:
                 cids.append(it["contact"])
                 if not contact_fait(it["contact"]): reste.append(d["contacts"][it["contact"]]["role"])

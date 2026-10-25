@@ -763,7 +763,13 @@ body.sujet .ctab input:placeholder-shown{border:2px dashed #f7a42b;background:#f
 .sl-p.t50{background:#f7c66b;color:#000}.sl-p.t75{background:#f7a42b;color:#000}.sl-p.t100{background:#e64330;color:#fff}
 .sl-st{display:inline-block;font:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;border:1.5px solid transparent}
 .sl-st.ok{background:#dcf1e4;color:#14633a}.sl-st.no{background:#fff1e6;color:#7a2e00;border-color:#f26b21}
-button.sl-st{cursor:pointer}
+button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-color:#8fcca7}
+.sl-cell{display:inline-flex;flex-direction:column;gap:3px;align-items:flex-start}.sl-org{font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 6px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-org.no{color:#7a2e00;background:#fff1e6}.sl-org.env{color:#2e3bb2;background:#e6e8fb}
+.sl-sel{font:inherit;font-size:13px;font-weight:700;border-radius:999px;padding:4px 8px;max-width:150px;border:1.5px solid #f26b21;background:#fff1e6;color:#7a2e00;cursor:pointer}
+.sl-sel.env{border-color:#c5cae9;background:#e6e8fb;color:#2e3bb2}.sl-sel.txt{border-color:#f7a42b;background:#fff7ea;color:#6b4300}
+.sl-note{display:flex;gap:4px}.sl-note input{font:inherit;font-size:14px;width:150px;border:2px dashed #f7a42b;background:#fff7ea;border-radius:8px;padding:5px 8px}.sl-note .sl-b{width:auto;padding:0 8px}
+.sl-dep{margin-top:10px}.sl-dep .hint{display:block;margin-top:4px}
 .sl-b{font:inherit;font-weight:700;width:34px;height:34px;border-radius:9px;border:0;background:#e6e8fb;color:#2e3bb2;cursor:pointer;margin-right:4px}
 .sl-b:disabled{opacity:.3;cursor:default}.sl-b.sl-x{background:#fff;border:1.5px solid #c9cde6;color:#6b718f}
 .sl-b.sl-back{width:auto;padding:0 12px}
@@ -783,7 +789,7 @@ button.sl-st{cursor:pointer}
 .sl-h{color:#8a90ad;font-size:22px;padding:6px 4px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .sl-ct{flex:1;min-width:0}.sl-tt{display:block;font-size:16px}.sl-c small{display:block;color:#555;font-size:12.5px;line-height:1.35}
 .sl-c.rm .sl-tt{text-decoration:line-through;color:#9a3d00}
-.sl-eq{display:flex;gap:6px;margin-top:5px}.sl-rt{margin:14px 0 6px;font-weight:800;color:#2e3bb2}.sl-askc{list-style:none}
+.sl-eq{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}.sl-eq>span{display:flex;flex-direction:column;gap:2px}.sl-eq>span>small{font-size:11px;color:#6b718f}.sl-rt{margin:14px 0 6px;font-weight:800;color:#2e3bb2}.sl-askc{list-style:none}
 @media (max-width:759px){.sl-desk{display:none}.sl-mob{display:block}}
 </style>
 </head>
@@ -1011,7 +1017,7 @@ function checksOf(t) {
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
 function pointsOf(t) {
   if (gateNo(t)) return [itemOf(gateOf(t))];
-  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe).map(itemOf)];
+  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe && !it.dans).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
   (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && grpOff(e.slice(2))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
@@ -1493,7 +1499,7 @@ function grilleHTML(p) {
    « <id>-ret » = « retirée » | « remise » ; « <id>-par » / « <id>-aud » = « reçu » | « à envoyer » (équipe) ;
    « sl-ordre » = ids dans l'ordre ; réponse « sl » = setlist confirmée par l'organisateur.
    Fond coloré selon le délai avant le concert (conditions de facturation). */
-let SLORD = null, SLASK = "", SLFACT = true; try { SLFACT = localStorage.getItem("orga-slfact") !== "0"; } catch (e) {}
+let SLORD = null, SLASK = "", SLEDIT = "", SLFACT = true; try { SLFACT = localStorage.getItem("orga-slfact") !== "0"; } catch (e) {}
 const slNow = () => new Date().toISOString();
 const slDays = iso => { if (!EVENT.iso || !iso) return null; const d = new Date(iso); d.setHours(0, 0, 0, 0); return Math.round((new Date(EVENT.iso + "T00:00:00") - d) / 864e5); };
 const slTier = j => j == null || j > 60 ? "" : j > 30 ? "t50" : j > 15 ? "t75" : "t100";
@@ -1505,8 +1511,8 @@ function slSongs(p) {
   Object.keys(sent).forEach(k => { const m = k.match(re); if (!m || add.has(m[1])) return; const id = m[1], v = valOf(id); if (!v) return;
     add.set(id, { id, t: v, par: false, aud: false, ajout: slDate(id) }); });
   const all = [...base, ...[...add.values()].sort((a, b) => a.ajout < b.ajout ? -1 : 1)].map(s => {
-    const r = valOf(s.id + "-ret"), par = valOf(s.id + "-par"), aud = valOf(s.id + "-aud");
-    return Object.assign(s, { ret: r === "retirée" ? slDate(s.id + "-ret") : "", par: par ? par === "reçu" : !!s.par, aud: aud ? aud === "reçu" : !!s.aud }); })
+    const r = valOf(s.id + "-ret"), st = k => { const ok = valOf(s.id + "-" + k + "ok"); return { rec: ok ? ok === "reçu" : !!s[k], org: valOf(s.id + "-" + k) }; };
+    return Object.assign(s, { ret: r === "retirée" ? slDate(s.id + "-ret") : "", par: st("par"), aud: st("aud") }); })
     /* Ajoutée puis retirée le même jour : simple erreur de saisie, on l'efface. */
     .filter(s => !(s.ajout && s.ret && s.ret.slice(0, 10) === s.ajout.slice(0, 10)));
   const ord = SLORD || valOf("sl-ordre").split(",").filter(Boolean), pos = id => { const i = ord.indexOf(id); return i < 0 ? 1e4 + all.findIndex(s => s.id === id) : i; };
@@ -1529,10 +1535,18 @@ function slBandeau() {
   return `<p class="sl-band ${tr}"><b>${j ? "J-" + j : "Jour J"}.</b> Une chanson retirée maintenant est facturée ${SL_PCT[tr]}.</p>`;
 }
 const slLeg = () => `<div class="sl-leg"><span><i class="t50"></i>Changée entre J-60 et J-31 : 50 %</span><span><i class="t75"></i>J-30 à J-16 : 75 %</span><span><i class="t100"></i>J-15 au jour J : 100 %</span><span><i class="rmk"></i>Barrée = retirée</span><a href="${CG.url}" target="_blank" rel="noopener">Conditions générales</a></div>`;
+/* Paroles / Audio : l'organisateur choisit « À envoyer », « Envoyé » ou écrit un mot (ex. « envoi semaine prochaine ») ;
+   l'équipe 10DEC coche « Reçu » (vert pâle = validé par nous). */
+const slOrgLab = v => v === "envoyé" ? "Envoyé" : v && v !== "à envoyer" ? v : "À envoyer";
 function slState(s, k) {
-  const ok = s[k], lab = ok ? "✓ " + (k === "par" ? "Reçues" : "Reçu") : "À envoyer";
-  if (MODE === "equipe") return `<button type="button" class="sl-st ${ok ? "ok" : "no"}" data-slst="${s.id}-${k}" data-v="${ok ? "à envoyer" : "reçu"}" aria-label="${k === "par" ? "Paroles" : "Audio"} de ${esc(s.t)} : ${lab}">${lab}</button>`;
-  return `<span class="sl-st ${ok ? "ok" : "no"}">${lab}</span>`;
+  const x = s[k], key = s.id + "-" + k, nom = (k === "par" ? "Paroles" : "Audio") + " de " + s.t, cls = x.org === "envoyé" ? "env" : "no";
+  if (MODE === "equipe") return `<span class="sl-cell">${x.rec ? "" : `<small class="sl-org ${cls}">${esc(slOrgLab(x.org))}</small>`}<button type="button" class="sl-st ${x.rec ? "ok" : "chk"}" data-slok="${key}ok" data-v="${x.rec ? "non" : "reçu"}" aria-pressed="${x.rec}" aria-label="${esc(nom)} : reçu">${x.rec ? "✓ Reçu" : "☐ Reçu"}</button></span>`;
+  if (x.rec) return `<span class="sl-st ok">✓ Reçu</span>`;
+  if (SLEDIT === key) return `<form class="sl-note" data-slnote="${key}"><input type="text" maxlength="80" value="${esc(x.org && !["envoyé", "à envoyer"].includes(x.org) ? x.org : "")}" placeholder="ex. envoi la semaine prochaine" aria-label="${esc(nom)} : votre mot"><button type="submit" class="sl-b">OK</button></form>`;
+  const custom = x.org && !["envoyé", "à envoyer"].includes(x.org);
+  return `<select class="sl-sel ${custom ? "txt" : cls}" data-slsel="${key}" aria-label="${esc(nom)}">
+    <option value="à envoyer" ${!x.org || x.org === "à envoyer" ? "selected" : ""}>À envoyer</option><option value="envoyé" ${x.org === "envoyé" ? "selected" : ""}>Envoyé</option>
+    ${custom ? `<option value="${esc(x.org)}" selected>${esc(x.org)}</option>` : ""}<option value="__autre">${custom ? "Modifier le mot…" : "Autre (écrire)…"}</option></select>`;
 }
 function slHTML(p) {
   const st = statusOf(p), songs = slSongs(p), live = songs.filter(s => !s.ret), out = songs.filter(s => s.ret);
@@ -1548,21 +1562,28 @@ function slHTML(p) {
       ${SLASK === s.id ? `<tr class="sl-askr"><td colspan="${SLFACT ? 8 : 7}">${ask(s)}</td></tr>` : ""}`; }).join("");
   const card = s => { const f = slFact(s);
     return `<li class="sl-c ${f.cls} ${s.ret ? "rm" : ""}" data-slid="${s.id}">${s.ret ? `<span class="sl-n">✕</span>` : `<span class="sl-h" aria-hidden="true" data-sldrag="${s.id}">⠿</span><span class="sl-n">${n(s.id)}</span>`}
-      <span class="sl-ct"><span class="sl-tt">${esc(s.t)}</span><small>${f.pill && SLFACT ? esc(f.pill) + (s.ret ? " · le " + ddm(s.ret) : s.ajout ? " · le " + ddm(s.ajout) : "") + "<br>" : ""}Paroles ${s.par ? "✓" : "à envoyer"} · Audio ${s.aud ? "✓" : "à envoyer"}</small>
-      ${MODE === "equipe" ? `<span class="sl-eq">${slState(s, "par")}${slState(s, "aud")}</span>` : ""}</span>
+      <span class="sl-ct"><span class="sl-tt">${esc(s.t)}</span><small>${f.pill && SLFACT ? esc(f.pill) + (s.ret ? " · le " + ddm(s.ret) : s.ajout ? " · le " + ddm(s.ajout) : "") : ""}</small>
+      <span class="sl-eq"><span><small>Paroles</small>${slState(s, "par")}</span><span><small>Audio</small>${slState(s, "aud")}</span></span></span>
       ${s.ret ? `<button type="button" class="sl-b sl-back" data-slback="${s.id}">Remettre</button>` : `<button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`}</li>
       ${SLASK === s.id ? `<li class="sl-askc">${ask(s)}</li>` : ""}`; };
   const conf = sent["team-" + p.id] || sent[p.id];
   return `<div class="item sl ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.sous || p.titre)}</span>${pillHTML(p)}</div>
-    ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}${slBandeau()}
+    ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}${SLFACT ? slBandeau() : ""}
     <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Ordre</th>${SLFACT ? `<th class="sl-fh">Facturation <button type="button" class="linkbtn" data-slfact="0">Masquer</button></th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="sl-mob"><ol class="sl-l">${live.map(card).join("")}</ol>${out.length ? `<p class="sl-rt">Retirées</p><ol class="sl-l">${out.map(card).join("")}</ol>` : ""}</div>
     ${SLORD ? `<div class="sl-ord"><span>Ordre modifié.</span><button type="button" class="btn btn-ok" data-slsave="1">Enregistrer le nouvel ordre</button><button type="button" class="btn btn-ghost" data-slcancel="1">Annuler</button></div>` : ""}
     ${SLFACT ? slLeg() : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher la facturation</button></p>`}
     <form class="form sl-add" data-sladd="1"><div class="fwrap"><input type="text" id="f-sladd" name="sladd" placeholder="Ajouter une chanson : titre" aria-label="Titre de la chanson à ajouter"><button class="send" type="submit">+ Ajouter</button></div></form>
-    <p class="hint">Paroles ou audio à envoyer ? Déposez-les à l'étape suivante.</p>
+    ${slDepot(p)}
     ${conf ? `<p class="sl-conf">✓ Setlist confirmée le ${dmOf(conf.date)}${conf.auteur ? " par " + esc(conf.auteur) : ""}.</p>` : ""}
     ${MODE === "orga" && !SLORD ? `<div class="actions"><button class="btn btn-ok btn-big" type="button" data-slconf="${p.id}">${conf ? "Je confirme à nouveau cette setlist" : "Je confirme cette setlist"}</button></div>` : ""}</div>`;
+}
+function slDepot(p) {
+  const f = (EVENT.topics.find(t => (t.items || []).includes(p)) || { items: [] }).items.find(x => x.dans === p.id && x.type === "fichier");
+  if (!f || !f.depot) return "";
+  const t = sent["team-" + f.id], got = t && t.statut === "ok" ? t.texte : "";
+  return `<div class="sl-dep"><a class="btn btn-depot" href="${esc(f.depot)}" target="_blank" rel="noopener">${SVGL(UPD)}Déposer paroles ou audio</a>
+    <span class="hint">${got ? "✓ " + esc(got) : "Sans compte Dropbox. Fichiers strictement confidentiels."}</span></div>`;
 }
 function slSet(id, v) { const now = slNow();
   if (ADMIN && MODE === "equipe") sent["team-" + id] = { texte: v, statut: "ok", date: now }; else sent[id] = { texte: v, date: now };
@@ -1579,12 +1600,22 @@ document.addEventListener("click", e => {
   else if (b.dataset.slno) { SLASK = ""; render(false); }
   else if (b.dataset.slret) { SLASK = ""; slSet(b.dataset.slret + "-ret", "retirée"); render(false); toast("Chanson retirée. 10 Doigts en Cavale est prévenu."); }
   else if (b.dataset.slback) { slSet(b.dataset.slback + "-ret", "remise"); render(false); toast("Chanson remise dans la setlist."); }
-  else if (b.dataset.slst) { slSet(b.dataset.slst, b.dataset.v); render(false); }
+  else if (b.dataset.slok) { slSet(b.dataset.slok, b.dataset.v); render(false); }
   else if (b.dataset.slsave) { const v = SLORD.join(","); SLORD = null; slSet("sl-ordre", v); render(false); toast("Nouvel ordre envoyé."); }
   else if (b.dataset.slcancel) { SLORD = null; render(false); }
   else if (b.dataset.slfact) { SLFACT = b.dataset.slfact === "1"; try { localStorage.setItem("orga-slfact", SLFACT ? "1" : "0"); } catch (e) {} render(false); }
   else if (b.dataset.slconf) submit(b.dataset.slconf, "Setlist confirmée.", null, b);
 });
+document.addEventListener("change", e => {
+  const x = e.target.closest && e.target.closest("[data-slsel]"); if (!x) return;
+  const k = x.dataset.slsel; if (x.value === "__autre") { SLEDIT = k; render(false); const i = document.querySelector(`[data-slnote="${k}"] input`); if (i) i.focus(); return; }
+  slSet(k, x.value); render(false); toast("Merci ! C'est noté.");
+});
+document.addEventListener("submit", e => {
+  const n = e.target.closest && e.target.closest("[data-slnote]"); if (!n) return; e.preventDefault(); e.stopImmediatePropagation();
+  const v = n.querySelector("input").value.trim(), k = n.dataset.slnote; SLEDIT = "";
+  if (v) { slSet(k, v); toast("Merci ! C'est noté."); } render(false);
+}, true);
 document.addEventListener("submit", e => {
   const f = e.target.closest && e.target.closest("[data-sladd]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
   const v = f.querySelector("input").value.trim(); if (!v) { toast("Écrivez le titre de la chanson."); return; }
@@ -1935,7 +1966,7 @@ function topicHTML(t) {
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
-  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && vis(itemOf(it)));
+  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && vis(itemOf(it)));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
