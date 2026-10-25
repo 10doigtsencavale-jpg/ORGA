@@ -50,6 +50,21 @@ def date_iso(h):
     except Exception:
         return h
 
+# Parcours de la vidéo d'annonce LSF (texte → vidéo → montage → publication) : réponses rattachées à l'item « parcours ».
+PARCOURS_IDS = ["com-texte", "com-texte-ok", "com-video-ok", "com-montage", "com-montage-fait", "com-quand", "com-heure", "com-collab"]
+
+def parcours_reste(it, rep):
+    """Étape en cours du parcours vidéo, si c'est à l'organisateur de la faire (sinon None)."""
+    fait = it.get("fait", {})
+    etapes = [("texte", "com-texte-ok", "Texte d'annonce à écrire"), ("video", "com-video-ok", None),
+              ("montage", "com-montage-fait", "Montage de la vidéo (sous-titres, charte)"), ("publi", None, "Jour et heure de publication de la vidéo")]
+    for k, ok, lib in etapes:
+        done = fait.get(k) or (ok and ok in rep) or (k == "publi" and "com-quand" in rep and "com-heure" in rep)
+        if not done:
+            if k == "texte" and "com-texte" in rep: return None
+            return lib
+    return None
+
 def appliquer(fichier, cle, lignes_json, code=""):
     """Applique les lignes du formulaire (valeurs du Google Sheet, en-tête compris) à l'événement.
     Affiche en JSON les nouveautés appliquées, pour les reporter dans la FDR, le Drive et l'Agenda."""
@@ -68,6 +83,7 @@ def appliquer(fichier, cle, lignes_json, code=""):
     def collect(x):
         if isinstance(x, dict):
             if isinstance(x.get("id"), str): ids.add(x["id"])
+            if x.get("type") == "parcours": ids.update(PARCOURS_IDS)
             for v in x.values(): collect(v)
         elif isinstance(x, list):
             for v in x: collect(v)
@@ -172,6 +188,10 @@ def manquants(fichier, cle):
             reste.append(imp["t"] if isinstance(imp, dict) else imp)
         for it in t.get("items", []):
             if it.get("dans"):  # rangé dans un autre bloc (ex. dépôt paroles/audio dans le tableau de setlist)
+                continue
+            if it.get("type") == "parcours":
+                lib = parcours_reste(it, rep)
+                if lib: reste.append(lib)
                 continue
             if "contact" in it:
                 cids.append(it["contact"])

@@ -48,6 +48,7 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      parking, pass, accès, runs (`park-…`, `pass-…`, `run-…`, `runs-…` : une case du tableau des runs = `<ligne>-<colonne>`, une ligne ajoutée = `runs-x…` avec son nom) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
      technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
      com, presse, public (`com-…`, `pub-…`, `cap-captation`) → « 📝 INFOS & REMARQUES ».
+     Parcours vidéo LSF : `com-texte` (texte de l'orga, à valider par l'équipe : toujours dans la notification), `com-montage-fait` (montage terminé), `com-quand` / `com-heure` / `com-collab` (publication) → « 📝 INFOS & REMARQUES » ; `com-texte-ok` / `com-video-ok` (cochés par l'équipe) : rien à reporter.
      Hébergement réservé par l'organisateur (`heb-nom`, `heb-adr`, `heb-dates`, `heb-twin`, `heb-single`, `heb-pdj`, `heb-conf`) → « 🛏️ HÉBERGEMENT » :
      un bloc « Nom » (nom suivi de « (réservé par l'orga) »), « Adresse (GPS) », « 🛏️ Nuit » (dates, chambres, petit-déjeuner, n° de confirmation).
      `heb-qui` (« orga » ou « 10dec », réglé par l'équipe) : rien à reporter.

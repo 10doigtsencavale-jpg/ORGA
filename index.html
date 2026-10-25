@@ -793,6 +793,30 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .sl-c.rm .sl-tt{text-decoration:line-through;color:#9a3d00}
 .sl-eq{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}.sl-eq>span{display:flex;flex-direction:column;gap:2px}.sl-eq>span>small{font-size:11px;color:#6b718f}.sl-rt{margin:14px 0 6px;font-weight:800;color:#2e3bb2}.sl-askc{list-style:none}
 @media (max-width:759px){.sl-desk{display:none}.sl-mob{display:block}}
+
+/* Parcours vidéo LSF */
+.pc-metro{position:relative;display:flex;justify-content:space-between;margin:14px 0 18px;padding:0 6px}
+.pc-line{position:absolute;left:40px;right:40px;top:24px;height:6px;background:#d7daef;border-radius:3px}.pc-line i{display:block;height:100%;background:#3aa76d;border-radius:3px}
+.pc-st{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:5px;width:80px}
+.pc-b{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:3px solid #d7daef}
+.pc-st.done .pc-b{background:#dcf1e4;border-color:#3aa76d}.pc-st.cur .pc-b{background:#f7a42b;border-color:#f7a42b;box-shadow:0 0 0 6px #fde3b8}
+.pc-c{font-size:13px;font-weight:800;text-align:center}
+.pc-v{position:relative;padding-left:44px}.pc-v:before{content:"";position:absolute;left:17px;top:14px;bottom:14px;width:4px;background:#d7daef;border-radius:2px}
+.pc-s{position:relative;border:1.5px solid #d7daef;border-radius:16px;padding:12px 14px;background:#fff}
+.pc-dot{position:absolute;left:-44px;top:10px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;background:#fff;border:3px solid #d7daef;color:#6b718f}
+.pc-s.done{background:#f3fbf6;border-color:#b8e2c8}.pc-s.done .pc-dot{background:#3aa76d;border-color:#3aa76d;color:#fff}
+.pc-s.cur{border:2px solid #f7a42b;background:#fffaf2}.pc-s.cur .pc-dot{background:#f7a42b;border-color:#f7a42b;color:#fff}
+.pc-s.next{opacity:.6}
+.pc-h{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}.pc-h b{flex:1 1 180px;font-size:16px}
+.pc-who{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px}.pc-who.v{background:#fff1e6;color:#7a2e00;border:1.5px solid #f26b21}.pc-who.d{background:#e6e8fb;color:#2e3bb2}
+.pc-who.on{background:#f26b21;color:#fff}
+.pc-ok{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;background:#dcf1e4;color:#14633a}
+.pc-note{margin:6px 0 0;font-size:13.5px;color:#555}.pc-nx{margin:4px 0 0;font-size:13px;color:#6b718f}
+.pc-body{margin-top:10px;display:grid;gap:8px;justify-items:start}.pc-body form{width:100%}
+.pc-wait{margin:0;padding:8px 12px;border-radius:10px;background:#eef0fa;color:#2e3bb2;font-size:14px;font-weight:600}
+.pc-f{width:100%;display:grid;grid-template-columns:200px 1fr;gap:6px 10px;align-items:center}.pc-f .fwrap{width:100%}
+.pc-go{margin:4px 0 8px 6px;font-size:12.5px;font-weight:700;color:#9aa0bd}.pc-go.on{color:#2e3bb2}
+@media (max-width:759px){.pc-f{grid-template-columns:1fr}.pc-st{width:64px}.pc-b{width:42px;height:42px;font-size:19px}.pc-line{top:19px;left:32px;right:32px}.pc-c{font-size:11.5px}}
 </style>
 </head>
 <body>
@@ -1028,6 +1052,7 @@ function pointsOf(t) {
 const allPoints = () => { const m = new Map(); EVENT.topics.filter(t => !topicHidden(t)).forEach(t => pointsOf(t).filter(p => !(p.type === "group" && grpOff(p.group))).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
+  if (p.type === "parcours") return pcStatus(p);
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return "ok";
   if (p.type === "hebergement") { if (hebQui(p) === "10dec") return "ok"; const v = k => hebVal(p, k);
@@ -1338,6 +1363,7 @@ function idsOfPoint(p) {
   if (p.type === "grille") grilleRows(p).forEach(r => ids.push(r.id));
   if (p.type === "group") (EVENT.groups[p.group] || { roles: [] }).roles.forEach(r => ids.push(r.c));
   if (p.type === "hebergement") ids.push("heb");
+  if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
 }
 function lastAns(ids) {
@@ -1640,6 +1666,57 @@ document.addEventListener("pointermove", e => { if (!SLDRAG) return; e.preventDe
 document.addEventListener("pointerup", () => { if (!SLDRAG) return; const li = SLDRAG.li; li.style.transform = ""; li.classList.remove("drag");
   const ids = [...li.parentNode.querySelectorAll(".sl-c")].map(x => x.dataset.slid), p = slItem(), cur = slSongs(p).filter(s => !s.ret).map(s => s.id);
   SLDRAG = null; if (ids.join() === cur.join()) return; slReorder(ids); });
+/* ===== Parcours de la vidéo d'annonce LSF : texte → vidéo → montage → publication =====
+   Réponses : « com-texte » (texte de l'orga), « com-texte-ok » (validé par 10DEC), « com-video-ok » (vidéo envoyée, 10DEC),
+   « com-montage » (prévu par nos équipes), « com-montage-fait » (montage terminé, orga), « com-quand » / « com-heure » / « com-collab ».
+   « fait » dans les données : étapes déjà faites avant l'appli (ex. { texte: "16/09" }). */
+const PC = [
+  { k: "texte", ic: "✍️", t: "Le texte d'annonce", c: "Texte", qui: [["v", "Vous écrivez"], ["d", "10DEC valide"]], go: "Texte validé : 10DEC tourne la vidéo" },
+  { k: "video", ic: "🤟", t: "La vidéo en LSF", c: "Vidéo", qui: [["d", "10DEC réalise et envoie"]], go: "Vidéo envoyée : à vous de la monter" },
+  { k: "montage", ic: "🎬", t: "Le montage", c: "Montage", qui: [["v", "Vous : sous-titres + charte"]], go: "Montage prêt : on publie" },
+  { k: "publi", ic: "📣", t: "La publication", c: "Publication", qui: [["v", "Vous publiez"]] }];
+const PC_OK = { texte: "com-texte-ok", video: "com-video-ok", montage: "com-montage-fait" };
+function pcDone(p, k) {
+  const f = (p.fait || {})[k];
+  if (k === "publi") { if (valOf("com-quand") && valOf("com-heure")) { const x = sent["team-com-heure"] || sent["com-heure"] || {}; return x.date ? dmOf(x.date) : "✓"; } return f || ""; }
+  const id = PC_OK[k], x = sent["team-" + id] || sent[id];
+  return x && x.texte ? dmOf(x.date) || "✓" : f || "";
+}
+const pcCur = p => PC.findIndex(s => !pcDone(p, s.k));
+function pcStatus(p) { const i = pcCur(p); if (i < 0) return "ok";
+  if (PC[i].k === "video" || (PC[i].k === "texte" && valOf("com-texte"))) return "sent"; return "todo"; }
+function pcField(id, label, ph) {
+  const v = valOf(id), mine = sent[id] || sent["team-" + id];
+  if (v && mine && !sent["draft-" + id]) return `<div class="pc-f"><b>${esc(label)}</b><span><span class="tv">${esc(v)}</span> <button type="button" class="linkbtn" data-edit="${id}">Modifier</button></span></div>`;
+  return `<form class="form pc-f" data-form="${id}"><label for="f-${id}"><b>${esc(label)}</b></label>${fw(`<input type="text" id="f-${id}" name="${id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + id] || "")}">`, sent["draft-" + id], "OK")}</form>`;
+}
+function pcBody(p, k) {
+  const eq = MODE === "equipe";
+  if (k === "texte") { const v = valOf("com-texte");
+    const form = `<form class="form" data-form="com-texte"><label class="small" for="f-com-texte">Écrivez le texte à traduire en LSF.</label>${fw(`<textarea id="f-com-texte" name="com-texte" placeholder="Votre texte d'annonce.">${esc(sent["draft-com-texte"] || "")}</textarea>`, sent["draft-com-texte"], "Envoyer →", true)}</form>`;
+    return (v && !sent["draft-com-texte"] ? `<p class="val">${esc(v)}</p><p class="pc-wait">⏳ En attente de validation par 10 Doigts en Cavale. <button type="button" class="linkbtn" data-edit="com-texte">Modifier</button></p>` : form)
+      + (eq ? `<button type="button" class="btn btn-ok" data-yes="com-texte-ok" data-label="Texte validé">✓ Valider le texte</button>` : ""); }
+  if (k === "video") return `<p class="pc-wait">⏳ 10 Doigts en Cavale prépare la vidéo en LSF, avec la voix off. Vous la recevrez par mail.</p>`
+    + (eq ? `<button type="button" class="btn btn-ok" data-yes="com-video-ok" data-label="Vidéo envoyée">✓ Vidéo envoyée</button>` : "");
+  if (k === "montage") { const pr = valOf("com-montage");
+    return `<p class="det">Ajoutez les sous-titres et votre charte graphique à la vidéo.</p>
+      ${pr ? `<p class="pc-wait">✓ ${esc(pr)}</p>` : `<button type="button" class="btn btn-ghost" data-yes="com-montage" data-label="Prévu par nos équipes">Prévu par nos équipes</button>`}
+      <button type="button" class="btn btn-ok" data-yes="com-montage-fait" data-label="Montage terminé">✓ Le montage est terminé</button>`; }
+  return pcField("com-quand", "Jour", "jj/mm") + pcField("com-heure", "Heure", "??h??") + pcField("com-collab", "Comptes à identifier", "ex. @10doigtsencavale");
+}
+function parcoursHTML(p) {
+  const cur = pcCur(p), nDone = PC.filter(s => pcDone(p, s.k)).length;
+  const metro = `<div class="pc-metro" aria-hidden="true"><i class="pc-line"><i style="width:${Math.min(100, nDone / (PC.length - 1) * 100)}%"></i></i>${PC.map((s, i) =>
+    `<span class="pc-st ${pcDone(p, s.k) ? "done" : i === cur ? "cur" : ""}"><span class="pc-b">${s.ic}</span><span class="pc-c">${s.c}</span></span>`).join("")}</div>`;
+  const cards = PC.map((s, i) => { const d = pcDone(p, s.k), st = d ? "done" : i === cur ? "cur" : "next";
+    const who = s.qui.map(([w, l]) => `<span class="pc-who ${w}">${esc(l)}</span>`).join("");
+    const note = s.k === "texte" && d && (p.note || valOf("com-texte")) ? `<p class="pc-note">${esc(p.note || valOf("com-texte"))}</p>` : "";
+    return `<div class="pc-s ${st}"><span class="pc-dot">${d ? "✓" : i + 1}</span><div class="pc-h"><b>${i + 1}. ${esc(s.t)}</b>${st === "done" ? `<span class="pc-ok">✓ ${esc(d)}</span>` : who}${st === "cur" && s.qui[0][0] === "v" && !(s.k === "texte" && valOf("com-texte")) ? `<span class="pc-who v on">À vous</span>` : ""}</div>
+      ${note}${st === "cur" ? `<div class="pc-body">${pcBody(p, s.k)}</div>` : ""}${st === "next" ? `<p class="pc-nx">À venir.</p>` : ""}</div>
+      ${s.go && i < PC.length - 1 ? `<p class="pc-go ${d ? "on" : ""}">↓ ${esc(s.go)}</p>` : ""}`; }).join("");
+  return `<div class="item pc" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    <p class="det">De votre texte à la vidéo publiée.</p>${metro}<div class="pc-v">${cards}</div></div>`;
+}
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1739,6 +1816,7 @@ function itemHTML(p) {
   if (p.type === "tableau") return tableauHTML(p);
   if (p.type === "grille") return grilleHTML(p);
   if (p.type === "setlist") return slHTML(p);
+  if (p.type === "parcours") return parcoursHTML(p);
   if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
@@ -1978,7 +2056,7 @@ function topicHTML(t) {
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
     if (p.equipe) { body += itemHTML(it); return; }
     const h = (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
-    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" ? " co" : ""), pillHTML(p));
+    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" ? " co" : ""), pillHTML(p));
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
@@ -2255,6 +2333,7 @@ function buildPdf() {
         text(`Réservé par : ${hebQui(p) === "10dec" ? "10 Doigts en Cavale" : "l'organisateur"}`, 10, "normal", null, 6);
         [["nom", "Nom"], ["adr", "Adresse"], ["dates", "Dates"], ["twin", "Chambres twin"], ["single", "Chambres single"], ["pdj", "Petit-déjeuner"], ["conf", "N° de confirmation"]].forEach(([k, l]) => { const x = hebVal(p, k); if (x) text(`${l} : ${x}`, 10, "normal", null, 6); }); y += .8; return; }
       if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; } grilleRows(p).forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "parcours") { text(p.titre, 10.5, "bold", BLEU, 2); PC.forEach((x, i) => text(`${i + 1}. ${x.t} : ${pcDone(p, x.k) ? "fait (" + pcDone(p, x.k) + ")" : "à faire"}`, 10, "normal", null, 6)); ["com-quand", "com-heure", "com-collab"].forEach(k => { const v = valOf(k); if (v) text(v, 10, "normal", null, 8); }); y += .8; return; }
       if (p.type === "setlist") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); let k = 0; slSongs(p).forEach(x => { const f = slFact(x); text(`${x.ret ? "X" : ++k}. ${x.t}${f.pill ? " (" + f.pill + ")" : ""}`, 10, x.ret ? "italic" : "normal", x.ret ? GRIS : null, 6); }); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }
