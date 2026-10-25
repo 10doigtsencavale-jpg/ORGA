@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>TO DO 10DEC</title>
+<link rel="manifest" href="manifest.json?v=1">
+<link rel="icon" type="image/png" href="favicon-32.png?v=1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TO DO">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7b3fe4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@600;800&display=swap">
+<script>
+  // Lien du tableau de bord (page Claude). Ouvert tout de suite quand on lance l'appli depuis l'écran d'accueil.
+  var TDB = "https://claude.ai/artifact/4G9TdQknFxk3gJMVVq8kz3";
+  var appli = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true || /[?&]app=1/.test(location.search);
+  if (appli) location.replace(TDB);
+</script>
+<style>
+  :root{--violet:#7b3fe4;--jaune:#ffc62a;--nuit:#1f1a4d;--fond:#f6f3ec;--txt:#1f1a4d;--doux:#5b5675;--carte:#fff}
+  @media (prefers-color-scheme:dark){:root{--fond:#16133a;--txt:#f3f0ff;--doux:#b9b3d9;--carte:#231e55}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--txt);font-family:"Nunito",system-ui,sans-serif;font-size:18px;line-height:1.45;
+       padding:max(24px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom))}
+  main{max-width:440px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
+  img.ic{width:132px;height:132px;border-radius:30px;box-shadow:0 8px 24px rgba(60,20,140,.25)}
+  h1{font-family:"Fredoka",sans-serif;font-size:30px;margin:0}
+  .go{display:block;width:100%;background:var(--violet);color:#fff;text-decoration:none;font-family:"Fredoka",sans-serif;font-weight:700;font-size:24px;padding:18px;border-radius:18px}
+  .carte{width:100%;background:var(--carte);border-radius:18px;padding:16px 18px;text-align:left;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .carte h2{font-family:"Fredoka",sans-serif;font-size:20px;margin:0 0 8px}
+  ol{margin:0;padding-left:22px} li{margin:4px 0}
+  b.j{background:var(--jaune);color:var(--nuit);padding:0 6px;border-radius:6px}
+  .note{color:var(--doux);font-size:15px}
+</style>
+</head>
+<body>
+<main>
+  <img class="ic" src="icon-512.png?v=1" alt="Icône TO DO 10 DEC">
+  <h1>TO DO 10 DEC</h1>
+  <a class="go" id="go" href="https://claude.ai/artifact/4G9TdQknFxk3gJMVVq8kz3">Ouvrir le tableau</a>
+
+  <div class="carte">
+    <h2>📱 iPhone</h2>
+    <ol>
+      <li>Ouvre cette page dans <b>Safari</b>.</li>
+      <li>Touche <b class="j">Partager</b> (carré avec flèche).</li>
+      <li>Touche <b class="j">Sur l'écran d'accueil</b>.</li>
+      <li>Touche <b>Ajouter</b>.</li>
+    </ol>
+  </div>
+  <div class="carte">
+    <h2>🤖 Android</h2>
+    <ol>
+      <li>Ouvre cette page dans <b>Chrome</b>.</li>
+      <li>Touche <b class="j">⋮</b> en haut à droite.</li>
+      <li>Touche <b class="j">Ajouter à l'écran d'accueil</b>.</li>
+    </ol>
+  </div>
+  <p class="note">Il faut être connectée à Claude.</p>
+</main>
+</body>
+</html>
