@@ -23,17 +23,17 @@
 </script>
 <meta name="apple-mobile-web-app-title" content="ORGA 10DEC">
 <meta name="application-name" content="ORGA 10DEC">
-<meta name="theme-color" content="#2f3cff">
+<meta name="theme-color" content="#2e3bb2">
 <title>Espace organisateur · 10 Doigts en Cavale</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Fredoka:wght@500;600&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
 <style>
 /* Piste A « Tuiles · Soleil » : bandeau bleu électrique + bloc jaune soleil avec l'artiste et la jauge,
    puis une grille de tuiles (un sujet = une tuile avec sa barre). Une tuile ouvre une vue dédiée.
    Univers volontairement clair et ensoleillé : un seul thème, couleurs fixées explicitement. */
 :root{
-  --electrique:#2f3cff; --soleil:#ffc629; --turquoise:#18c3b0; --encre:#10153d;
+  --electrique:#2e3bb2; --soleil:#f7a42b; --turquoise:#87cabe; --encre:#10153d;
   --t-tech:#e2f7f4; --t-logi:#fff4d6; --t-pub:#e8eaff;
   --bg:#ffffff; --muted:#4f5677; --line:#e3e5f3; --soft:#f3f4fb;
   --ok:#14894e; --ok-bg:#dcf3e6; --sent-bg:#d4f3ee; --sent-fg:#0b6b5f; --todo-fg:#2f3cff; --todo-bg:#e8eaff;
@@ -419,6 +419,64 @@ footer .wrap{max-width:900px}
 .tnav{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:2px dashed var(--line);padding-top:16px}
 .intro{margin:0;font-size:16px}
 @media (min-width:900px){body{font-size:17px}.chk-t>span{font-size:15px}}
+/* ===== Design validé (oct. 2026) : en-tête bleu à ronds, tuiles à cadre couleur, anneau + un trait par question ===== */
+body{background:#eef0fa}
+body.home{font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hero{position:relative;overflow:hidden;background:#2e3bb2;color:#fff;border-radius:28px;padding:28px 20px 24px}
+.hd{position:absolute;border-radius:50%;pointer-events:none}
+.hd1{width:200px;height:200px;right:-60px;top:-70px;background:#f7a42b}
+.hd2{width:90px;height:90px;right:70px;bottom:-40px;background:#87cabe}
+.hd3{width:22px;height:22px;right:128px;top:26px;background:#e64330}
+.hd4{width:12px;height:12px;right:22px;top:150px;background:#e64330}
+.hero-in{position:relative;z-index:1;display:grid;gap:6px;min-width:0}
+.hero-in p{margin:0}
+.hero-o{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.hero-o::before{content:"";width:8px;height:8px;border-radius:50%;background:#e64330;flex:none}
+.hero-n{margin:6px 0 0;font-family:"Bebas Neue",var(--display);font-weight:400;line-height:.9;letter-spacing:.01em;padding-right:96px;overflow-wrap:anywhere}
+.hero-tr{display:block;width:44px;height:5px;border-radius:3px;background:#e64330;margin:4px 0 6px}
+.hero-w{font-size:15px;font-weight:500}
+.hero-dt{font-size:15px;font-weight:700}
+.hero-s{font-size:14px;opacity:.9}
+.hero-p{margin-top:10px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.12);border-radius:18px;padding:12px 14px}
+.hero-p b{font-size:14px;font-weight:700}
+.hring{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#f7a42b 0 var(--p),rgba(255,255,255,.25) var(--p) 100%)}
+.hring span{width:42px;height:42px;border-radius:50%;background:#2e3bb2;display:grid;place-items:center;font-family:"Bebas Neue",var(--display);font-size:20px;line-height:1;padding-top:2px}
+.hero .aps{margin-top:2px}
+.hero-c{margin-top:12px;display:flex;gap:10px}
+.hero-call{flex:1;min-height:48px;border-radius:14px;background:#fff;color:#2e3bb2;font-weight:700;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px}
+.hero-mail{flex:none;width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
+.hero-call:hover{background:#eef0fa}.hero-mail:hover{background:rgba(255,255,255,.26)}
+.hero a:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.charge{margin:10px 0 0;font-size:22px;font-weight:700;color:#2e3bb2;line-height:1.2}
+.gp{display:grid;gap:10px}
+.gp-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gp-t{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:28px;letter-spacing:.02em;line-height:1}
+.gp-d{flex:none;border-radius:999px;font-size:13px;font-weight:700;padding:4px 10px;white-space:nowrap}
+.tls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:600px){.tls{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
+.tl{font:inherit;color:#000;text-align:left;cursor:pointer;background:#fff;border:2px solid var(--b);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:118px;min-width:0;transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.tl:hover{transform:translateY(-2px);box-shadow:0 10px 22px -16px rgba(16,21,61,.6)}
+.tl:focus-visible{outline:3px solid #2e3bb2;outline-offset:3px;border-radius:20px}
+.tl-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.tl-ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--ib);display:grid;place-items:center}
+.rg{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--f) 0 var(--p),#ecedf5 var(--p) 100%)}
+.rg span{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:"Bebas Neue",var(--display);font-size:18px;line-height:1;color:var(--t);padding-top:2px}
+.tl-l{font-size:15px;font-weight:700;line-height:1.25;color:#000}
+.tl-s{margin-top:auto;display:flex;gap:3px}
+.tl-s i{flex:1;height:8px;border-radius:4px;background:#ecedf5}
+.tl-s i.on{background:var(--f)}
+.tl.ok{border:2.5px solid #2e3bb2;--f:#2e3bb2}
+.tl.ok .rg{background:#2e3bb2}
+.tl.ok .rg span{font-size:14px;color:#2e3bb2}
+/* Téléphone : bandeau du haut et en-tête d'un seul bloc bleu, coins bas arrondis. */
+@media (max-width:759px){
+  body.home::before{background:#2e3bb2}
+  body.home .topbar{background:#2e3bb2;border-bottom:0}
+  body.home .topbar .logo-chip{background:transparent;padding:0}
+  body.home .topbar .eo{display:none}
+  body.home .hero{border-radius:0 0 28px 28px;margin:-18px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-top:20px}
+}
 </style>
 </head>
 <body>
@@ -465,10 +523,11 @@ const ICONS = {
 
 /* Accueil « Vous êtes en charge de… » : trois familles, chaque carte regroupe ses sujets. */
 const FAM = {
-  urg:  { label: "À traiter au plus vite", bg: "#ffe7d1", bar: "#ff8a2a", fg: "#a34a08", tab: "#ff8a2a", tabFg: "#10153d" },
-  tech: { label: "Technique", bg: "#dff6f2", bar: "#18c3b0", fg: "#0b7f72", tab: "#0f9c8c", tabFg: "#ffffff" },
-  logi: { label: "Accueil · VHR", bg: "#fff1c7", bar: "#e0a800", fg: "#8a5f00", tab: "#ffc629", tabFg: "#10153d" },
-  com:  { label: "Presse · après le concert", bg: "#e6e8ff", bar: "#2f3cff", fg: "#2f3cff", tab: "#2f3cff", tabFg: "#ffffff" }
+  /* fg = titre, tab/tabFg = pastille date, bd = cadre des tuiles, bg = fond pastille icône, bar = remplissage */
+  urg:  { label: "À traiter au plus vite", bg: "#fde3bb", bar: "#f7a42b", fg: "#b46f00", tab: "#f7a42b", tabFg: "#000000", bd: "#f7a42b" },
+  tech: { label: "Technique", bg: "#fde0dc", bar: "#e64330", fg: "#c4321f", tab: "#e64330", tabFg: "#000000", bd: "#e64330" },
+  logi: { label: "Accueil · VHR", bg: "#e3e5f6", bar: "#2e3bb2", fg: "#2e3bb2", tab: "#2e3bb2", tabFg: "#ffffff", bd: "#2e3bb2" },
+  com:  { label: "Presse · après le concert", bg: "#d6eeea", bar: "#4fa597", fg: "#2f8a7c", tab: "#87cabe", tabFg: "#000000", bd: "#4fa597" }
 };
 const ROLES = [
   { fam: "urg", e: "setlist", label: "Setlist / Dresscode", topics: ["setlist"] },
@@ -751,45 +810,48 @@ function prioHTML() {
     ${top.map(x => `<button type="button" class="prio-i" data-topic="${x.t.id}"><span class="pe" aria-hidden="true">${emo(x.e, 22)}</span><span class="pt"><b>${esc(x.titre)}</b><span>${esc(x.sous)}</span></span><span class="due ${x.due.cls}">${esc(x.due.txt)}</span><span class="pa" aria-hidden="true">→</span></button>`).join("")}</section>`;
 }
 /* Ligne de rappel sous chaque catégorie : « À compléter avant le … ». */
-function famDueHTML(rs) {
+function famDueHTML(rs, f) {
   const tps = rs.flatMap(r => r.tps), pts = uniq(tps.flatMap(ptsF));
-  if (pts.length && pts.every(isDone)) return `<span class="fam-d ok">✓ Tout est complet</span>`;
+  const pill = t => `<span class="gp-d" style="background:${f.tab};color:${f.tabFg}">${esc(t)}</span>`;
+  if (pts.length && pts.every(isDone)) return pill("Tout est complet");
   const dues = tps.filter(t => ptsF(t).some(p => !isDone(p))).map(dueOf).filter(Boolean).sort((a, b) => a.days - b.days);
   if (!dues.length) return "";
   const d = dues[0];
-  return d.days < 0 ? `<span class="fam-d late">Date dépassée : à compléter dès que possible</span>`
-    : `<span class="fam-d ${d.cls}">⏰ À compléter avant le ${esc(d.dm)}</span>`;
+  return pill(d.days < 0 ? "Date dépassée" : "Avant le " + d.dm);
 }
+const SVGL = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"></path></svg>`;
 function homeHTML() {
-  const pr = progress(allPoints()); const left = pr.n - pr.d;
-  const msg = pr.full ? "Tout est complet. L'équipe de 10 Doigts en Cavale vérifie les informations."
-    : left <= 3 ? `Presque terminé : plus que ${left} point${left > 1 ? "s" : ""}.` : "";
-  const r = EVENT.referente;
+  const pr = progress(allPoints()), pc = pr.n ? Math.round(pr.d / pr.n * 100) : 0;
+  const r = EVENT.referente, prenom = String(r.nom || "").trim().split(/\s+/)[0];
+  const nl = String(EVENT.artiste || "").length, nsz = nl > 18 ? "clamp(36px,10vw,52px)" : nl > 11 ? "clamp(44px,13vw,62px)" : "clamp(56px,19vw,76px)";
   const roles = ROLES.map(ro => Object.assign({}, ro, { tps: ro.topics.flatMap(id => EVENT.topics.filter(t => (t.base || t.id) === id)).filter(t => ptsF(t).length) })).filter(ro => ro.tps.length);
   const fams = Object.keys(FAM).map(k => ({ k, f: FAM[k], rs: roles.filter(ro => ro.fam === k) })).filter(x => x.rs.length);
+  const tile = (ro, f) => {
+    const pts = uniq(ro.tps.flatMap(ptsF)), p = progress(pts), pp = p.n ? Math.round(p.d / p.n * 100) : 0;
+    const segs = pts.map(x => `<i class="${isDone(x) ? "on" : ""}"></i>`).join("");
+    return `<button type="button" class="tl ${p.full ? "ok" : ""}" data-topic="${ro.tps[0].id}" style="--b:${f.bd};--f:${f.bar};--t:${f.fg};--ib:${f.bg}" aria-label="${esc(ro.label)} : ${p.full ? "fait" : `${p.d} sur ${p.n}`}">
+      <span class="tl-h"><span class="tl-ic" aria-hidden="true">${emo(ro.e, 30)}</span><span class="rg" style="--p:${p.full ? 100 : pp}%" aria-hidden="true"><span>${p.full ? "Fait" : `${p.d}/${p.n}`}</span></span></span>
+      <span class="tl-l">${esc(ro.label)}</span>
+      <span class="tl-s" aria-hidden="true">${segs}</span></button>`;
+  };
   return `${multiArt() ? `<div class="stick"><div class="afband"><div class="wrap">${filtreHTML()}</div></div></div>` : ""}<main><div class="wrap bhome">
-    <section class="bcard">
-      <div class="bc-main">
-        <div class="artist"><h1 class="disp">${esc(EVENT.artiste)}</h1><img class="cs-logo" src="${CHANSIGNE}" alt="Concert chansigné"></div>
-        <div class="where">${esc(EVENT.lieu)} · ${esc(EVENT.ville)} · ${esc(EVENT.date)} · ${esc(EVENT.heure)}</div>
+    <section class="hero" aria-labelledby="heroN">
+      <span class="hd hd1" aria-hidden="true"></span><span class="hd hd2" aria-hidden="true"></span><span class="hd hd3" aria-hidden="true"></span><span class="hd hd4" aria-hidden="true"></span>
+      <div class="hero-in">
+        <p class="hero-o">Espace organisateur</p>
+        <h1 class="hero-n" id="heroN" style="font-size:${nsz}">${esc(EVENT.artiste)}</h1>
+        <span class="hero-tr" aria-hidden="true"></span>
+        <p class="hero-w">${esc(EVENT.lieu)} · ${esc(EVENT.ville)}</p>
+        <p class="hero-dt">${esc(EVENT.date)}${EVENT.heure ? " · " + esc(EVENT.heure) : ""}</p>
         ${multiArt() ? `<div class="slots">${ARTS().map(a => `<span class="slot"><i>${esc(a.heure || "à venir")}</i>${esc(a.nom)}</span>`).join("")}</div>` : ""}
-        <div class="sub">${!multiArt() && EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</div>
-        <div class="bc-contact"><b>${esc(r.nom)}, ${esc(r.role)}</b>
-          <button class="bc-btn" type="button" data-copy="${esc(r.tel)}" data-msg="Numéro copié.">📞 ${esc(r.tel)}</button>
-          <button class="bc-btn" type="button" data-copy="${esc(r.mail)}" data-msg="Adresse copiée.">✉️ ${esc(r.mail)}</button></div>
+        <p class="hero-s">${!multiArt() && EVENT.premiere && EVENT.premiereChansignee ? `Première partie chansignée : ${esc(EVENT.premiere)} · ` : ""}Chansigneurs : ${esc(EVENT.chansigneurs)}</p>
+        <div class="hero-p"><span class="hring" style="--p:${pc}%" aria-hidden="true"><span>${pc}%</span></span><b>${pr.d} sur ${pr.n} réponses<span class="vh"> (${pc} %)</span></b></div>
+        ${artPctHTML()}
+        <div class="hero-c"><a class="hero-call" href="tel:${esc(String(r.tel || "").replace(/[^\d+]/g, ""))}">${SVGL(ICONS.tel)}Appeler ${esc(prenom)}</a><a class="hero-mail" href="mailto:${esc(r.mail)}" aria-label="Écrire un mail à ${esc(prenom)}">${SVGL("M3 5h18v14H3zM3 6l9 7 9-7")}</a></div>
       </div>
-      <div class="pct" role="img" aria-label="${pr.d} points complétés sur ${pr.n}"><b>${pr.n ? Math.round(pr.d / pr.n * 100) : 0}%</b><span>complété</span></div>
-      ${msg ? `<p class="msg">${esc(msg)}</p>` : ""}
-      ${artPctHTML()}
     </section>
-    <h2 class="disp" style="margin:6px 0 0;font-size:clamp(26px,5vw,34px)">Vous êtes en charge de…</h2>
-    ${fams.map(x => `<section class="fam"><span class="fam-l" style="color:${x.f.fg}">${esc(x.f.label)}</span>${famDueHTML(x.rs)}<div class="roles">${x.rs.map(ro => {
-      const p = progress(uniq(ro.tps.flatMap(ptsF)));
-      return `<button type="button" class="role ${p.full ? "full" : ""}" data-topic="${ro.tps[0].id}" style="background:${x.f.bg}">
-        <span class="role-h"><span class="role-e" aria-hidden="true">${emo(ro.e, 38)}</span><span class="role-n">${p.full ? "✓" : `${p.d}/${p.n}`}</span></span>
-        <span class="role-l">${esc(ro.label)}</span>
-        <span class="bar ${p.full ? "full" : ""}" role="img" aria-label="${p.d} sur ${p.n}"><i class="b-done" style="width:${p.n ? p.d / p.n * 100 : 0}%;${p.full ? "" : `background:${x.f.bar}`}"></i></span></button>`;
-    }).join("")}</div></section>`).join("")}
+    <h2 class="charge">Vous êtes en charge de…</h2>
+    ${fams.map(x => `<section class="gp"><div class="gp-h"><h3 class="gp-t" style="color:${x.f.fg}">${esc(x.f.label)}</h3>${famDueHTML(x.rs, x.f)}</div><div class="tls">${x.rs.map(ro => tile(ro, x.f)).join("")}</div></section>`).join("")}
     <button type="button" class="ball" data-topic="${tabOrder()[0]}">Tout voir, sujet par sujet →</button>
     ${feedHTML()}
     <section class="bout" aria-labelledby="fdrT"><h2 class="disp" id="fdrT">La feuille de route</h2>
