@@ -1075,7 +1075,7 @@ function cgAcc() {
 function cgBannerHTML() {
   const a = cgAcc();
   if (a) return `<div class="cgb ok"><span class="doc-ic" aria-hidden="true">PDF</span><div class="cgb-tx"><b>${esc(CG.titre)}</b><span>Acceptées par ${esc(a.nom)}, le ${esc(a.quand)}.</span></div><span class="cgb-pill">Accepté ✓</span><button type="button" class="btn btn-out" data-topic="cg">Voir</button></div>`;
-  return `<div class="cgb"><span class="doc-ic" aria-hidden="true">PDF</span><div class="cgb-tx"><b>${esc(CG.titre)}</b><span>À lire et accepter avant le concert.</span></div><span class="cgb-pill">À accepter</span><button type="button" class="btn btn-blue" data-topic="cg">Lire et accepter →</button></div>`;
+  return `<div class="cgb"><span class="doc-ic" aria-hidden="true">PDF</span><div class="cgb-tx"><b>${esc(CG.titre)}</b><span>À accepter dès la validation du devis.</span></div><span class="cgb-pill">À accepter</span><button type="button" class="btn btn-blue" data-topic="cg">Lire et accepter →</button></div>`;
 }
 function resHTML() {
   const a = cgAcc();
