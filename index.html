@@ -1700,7 +1700,7 @@ function pcBody(p, k) {
     + (eq ? `<button type="button" class="btn btn-ok" data-yes="com-video-ok" data-label="Vidéo envoyée">✓ Vidéo envoyée</button>` : "");
   if (k === "montage") { const pr = valOf("com-montage");
     return `<p class="det">Ajoutez les sous-titres et votre charte graphique à la vidéo.</p>
-      ${pr ? `<p class="pc-wait">✓ ${esc(pr)}</p>` : `<button type="button" class="btn btn-ghost" data-yes="com-montage" data-label="Prévu par nos équipes">Prévu par nos équipes</button>`}
+      ${pr ? `<p class="pc-wait">✓ ${esc(pr === "Prévu par nos équipes" ? "Prévu par les équipes du festival/salle" : pr)}</p>` : `<button type="button" class="btn btn-ghost" data-yes="com-montage" data-label="Prévu par les équipes du festival/salle">Prévu par les équipes du festival/salle</button>`}
       <button type="button" class="btn btn-ok" data-yes="com-montage-fait" data-label="Montage terminé">✓ Le montage est terminé</button>`; }
   return pcField("com-quand", "Jour", "jj/mm") + pcField("com-heure", "Heure", "??h??") + pcField("com-collab", "Comptes à identifier", "ex. @10doigtsencavale");
 }
