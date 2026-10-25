@@ -643,6 +643,12 @@ button.hero-p:hover{background:rgba(255,255,255,.18)}
   .ttab.grille td{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;border-top:1px solid #ecedf5;min-width:0}
   .ttab.grille td::before{content:attr(data-l);font-size:13px;font-weight:700;color:#2e3bb2}
   body.sujet main .ttab.grille .fwrap{display:block}
+  /* Fiches (label + champ) : le libellé au-dessus, le champ en pleine largeur, OK dans le champ. */
+  body.sujet main .ttab.fiche,body.sujet main .ttab.fiche tbody,body.sujet main .ttab.fiche tr,body.sujet main .ttab.fiche th,body.sujet main .ttab.fiche td{display:block;width:auto}
+  body.sujet main .ttab.fiche th{padding-bottom:2px;border:0}body.sujet main .ttab.fiche td{padding-top:4px}
+  body.sujet main .ttab.fiche .fwrap{display:block}
+  body.sujet main .ttab.fiche .fwrap input[type=text]{padding-right:56px}
+  body.sujet main .ttab.fiche .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 12px}
   body.sujet main .ttab.grille .fwrap input[type=text]{padding-right:52px}
   body.sujet main .ttab.grille .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 10px}
 }
@@ -677,6 +683,14 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .new{font-size:12px;font-weight:700;background:#f7a42b;color:#000;border-radius:999px;padding:3px 9px}
 .rv-f{display:flex;gap:8px;width:100%}.rv-f input{flex:1;min-width:0}
 .vu-page{display:flex;justify-content:center}.b-page{background:#fff;color:#14633a;border:1.5px solid #1e8a4c;width:100%;max-width:520px;min-height:48px}
+/* Corrections du test organisateur */
+.st-h .st-t{flex:1 1 160px;min-width:0;overflow-wrap:normal;word-break:normal;hyphens:none}
+body.sujet .ctab input:placeholder-shown{border:2px dashed #f7a42b;background:#fff7ea}
+@media (max-width:759px){
+  body.sujet main .ttab.hor .fwrap{display:block}
+  body.sujet main .ttab.hor .fwrap input[type=text]{padding-right:52px}
+  body.sujet main .ttab.hor .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 10px}
+}
 /* Dossiers logos / pictos */
 .tres{display:grid;gap:4px}.tres-h{margin:0;font-size:15px;font-weight:700;color:#2e3bb2}.tres .res-g{margin-top:4px}
 .res-f{background:#fff;border:1.5px solid #d7daef;border-radius:18px;padding:12px 14px}.res-f[open]{grid-column:1/-1}
@@ -912,6 +926,8 @@ function visible(x) {
 /* Sujet « pas besoin pour ce concert » (coché par l'équipe, ex. talkback) : il disparaît pour l'organisateur. */
 const topicOff = t => !!t && valOf(t.id + "-pasbesoin") === "oui";
 const topicHidden = t => topicOff(t) && MODE !== "equipe";
+/* Groupe « Qui gère… » d'un sujet masqué ou répondu « Non » : retiré aussi de la page Contacts. */
+const grpOff = gk => { const t = EVENT.topics.find(x => x.qui === gk); return !!t && (topicHidden(t) || gateNo(t)); };
 const ptsF = t => topicHidden(t) ? [] : t.artiste ? (visible(t) ? pointsOf(t) : []) : pointsOf(t).filter(visible);
 const artDot = id => { const a = ARTS().find(x => x.id === id); return a ? `<i class="dot" style="background:${a.couleur}"></i>` : ""; };
 const tabLabel = t => (SHORT[baseOf(t.id)] || t.label) + (t.artiste ? " · " + artName(t.artiste) : "");
@@ -946,7 +962,11 @@ function groupItem(gk) { const g = EVENT.groups[gk]; return { id: "grp-" + gk, t
 function itemOf(it) { return it.contact ? contactItem(it.contact, { detail: it.detail }) : it; }
 /* Les besoins techniques deviennent des cases à cocher, une par besoin (+ la case « Important »). */
 const asB = b => typeof b === "string" ? { t: b, d: "" } : (b || { t: "", d: "" });
+/* Question « porte » (ex. « Une retransmission est-elle prévue ? ») : si la réponse est Non, le reste du sujet disparaît. */
+const gateOf = t => (t.items || []).find(it => it.gate && it.type === "ouinon");
+function gateNo(t) { const g = gateOf(t); if (!g) return false; const v = valOf(g.id); return !!v && !(sent[g.id] || {}).oui && v === (g.non || "Non."); }
 function checksOf(t) {
+  if (gateNo(t)) return [];
   const out = (t.besoins || []).map((b, i) => { const x = asB(b); return { id: t.id + "-b" + i, titre: x.t, detail: x.d, type: "check", statut: "todo", sous: b.sous }; });
   if (t.important && !t.importantTop) { const x = asB(t.important), it = { id: t.id + "-imp", titre: x.t, detail: x.d, type: "check", statut: "todo", important: true };
     if (t.impPos != null) out.splice(t.impPos, 0, it); else out.push(it); }
@@ -954,13 +974,14 @@ function checksOf(t) {
 }
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
 function pointsOf(t) {
+  if (gateNo(t)) return [itemOf(gateOf(t))];
   const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
-  (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && topicHidden(EVENT.topics.find(x => x.qui === e.slice(2)))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
+  (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && grpOff(e.slice(2))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
   return pts;
 }
-const allPoints = () => { const m = new Map(); EVENT.topics.filter(t => !topicHidden(t)).forEach(t => pointsOf(t).filter(p => !(p.type === "group" && topicHidden(EVENT.topics.find(x => x.qui === p.group)))).forEach(p => m.set(p.id, p))); return [...m.values()]; };
+const allPoints = () => { const m = new Map(); EVENT.topics.filter(t => !topicHidden(t)).forEach(t => pointsOf(t).filter(p => !(p.type === "group" && grpOff(p.group))).forEach(p => m.set(p.id, p))); return [...m.values()]; };
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
@@ -1045,19 +1066,35 @@ const barS = (pr, label) => `<span class="bar ${pr.full ? "full" : ""}" role="im
 const fmt = d => { try { const x = new Date(d); return x.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) + " " + x.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } };
 function topicOf(point) {
   if (point.startsWith("question:")) return EVENT.topics.find(t => t.id === point.slice(9));
-  return EVENT.topics.find(t => pointsOf(t).some(p => p.id === point) || (t.confirm && t.confirm.id === point));
+  return EVENT.topics.find(t => pointsOf(t).some(p => p.id === point) || (t.confirm && t.confirm.id === point))
+    || EVENT.topics.find(t => pointsOf(t).some(p => idsOfPoint(p).some(i => point === i || point.startsWith(i + "-"))));
+}
+/* Libellé lisible d'une réponse pour « Les nouveautés » (ligne de tableau, case des runs, CG…). */
+function ptLabel(point, tp) {
+  if (point === "cg") return CG.titre;
+  if (!tp) return "Général";
+  for (const p of pointsOf(tp)) {
+    if (p.type === "tableau" || p.type === "fiche") { const r = (p.rows || []).find(r => r.id === point); if (r) return tp.label + " · " + (r.b || r.label || p.titre); }
+    if (p.type === "grille") { const c = grilleCells(p).find(c => c.id === point); if (c) return tp.label + " · " + (c.r.nom ? c.r.nom + ", " : "") + c.c.l;
+      const r = grilleRows(p).find(r => r.id === point); if (r) return tp.label + " · ligne ajoutée"; }
+    if (p.id === point && p.titre && p.type !== "check") return tp.label + " · " + p.titre;
+  }
+  return tp.label;
 }
 function feedHTML() {
   const srv = EVENT.journal || [];
   const loc = (sent.__journal || []).filter(l => !srv.some(x => x.point === l.point && x.texte === l.texte));
-  const all = [...srv, ...loc].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 8);
+  const bruit = pt => /^vu:|-pasbesoin$|^heb-qui$|^envoi$/.test(pt || "");
+  const seen = new Set(), all = [...srv, ...loc].sort((a, b) => (b.date || "").localeCompare(a.date || "")).filter(x => {
+    if (seen.has(x.point)) return false; seen.add(x.point); /* seulement la dernière réponse de chaque point */
+    const tp = topicOf(x.point || ""); return !String(x.texte || "").startsWith("✗") && !bruit(x.point) && !(tp && topicHidden(tp)); }).slice(0, 8);
   const items = all.map(x => {
     const tp = topicOf(x.point || ""), q = (x.point || "").startsWith("question:");
-    const who = String(x.source || "").startsWith("10DEC") ? "10 Doigts en Cavale" : EVENT.lieu;
+    const who = String(x.source || "").startsWith("10DEC") ? "10 Doigts en Cavale" : (x.auteur || (x.local ? AUTEUR : "") || EVENT.lieu);
     const isNew = !x.local && LASTSEEN && (x.date || "") > LASTSEEN;
     return `<li><button type="button" class="nv" ${tp ? `data-topic="${tp.id}"` : ""}>
-      <span class="nv-h"><span class="nv-who ${who === EVENT.lieu ? "w-orga" : "w-10dec"}">${esc(who)}</span>${q ? `<span class="nv-q">Question</span>` : ""}${isNew ? `<span class="nv-new">Nouveau</span>` : ""}<span class="nv-d">${x.local ? "à l'instant" : esc(fmt(x.date))}</span></span>
-      <span class="nv-t"><b>${esc(tp ? tp.label : "Général")}</b> · ${esc(String(x.texte || "").slice(0, 140))}</span></button></li>`;
+      <span class="nv-h"><span class="nv-who ${who === "10 Doigts en Cavale" ? "w-10dec" : "w-orga"}">${esc(who)}</span>${q ? `<span class="nv-q">Question</span>` : ""}${isNew ? `<span class="nv-new">Nouveau</span>` : ""}<span class="nv-d">${x.local ? "à l'instant" : esc(fmt(x.date))}</span></span>
+      <span class="nv-t"><b>${esc(ptLabel(x.point || "", tp))}</b> · ${esc(String(x.texte || "").slice(0, 140))}</span></button></li>`;
   }).join("");
   return `<section class="feed" aria-labelledby="feedT"><h2 class="disp" id="feedT">Les nouveautés</h2>
     ${items ? `<ul>${items}</ul>` : `<p class="det">Aucune nouveauté pour l'instant. Les réponses, questions et mises à jour apparaîtront ici.</p>`}</section>`;
@@ -1174,7 +1211,7 @@ const RES = [
 ];
 /* Documents rappelés dans les sujets concernés. */
 const TOPIC_RES = { emplacement: { docs: ["res/docs/placement-chansigne-sur-scene.pdf"] },
-  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0, 1] } };
+  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0] } }; /* les pictos sont dans l’étape « Pictogramme LSF » */
 function topicResHTML(t) {
   const r = TOPIC_RES[t.base || t.id]; if (!r) return "";
   const docs = (r.docs || []).map(u => RES.find(x => x.url === u)).filter(Boolean);
@@ -1304,8 +1341,8 @@ function fileButtons(p, label) {
   const url = p.depot || EVENT.depotFichiers, t = sent["team-" + p.id], got = t && t.statut === "ok" ? t.texte : "";
   return `<div class="actions">${url
     ? `<a class="btn btn-depot" href="${esc(url)}" target="_blank" rel="noopener">${SVGL(UPD)}${esc(label)}</a>`
-    : `<button class="btn btn-depot" type="button" disabled>${esc(label)}</button>`}</div>
-    <span class="hint">${url ? (got ? `✓ ${esc(got)}` : "Sans compte Dropbox. Le point passe à « Reçu » dès que le fichier arrive.") : "Le bouton de dépôt sera actif à la mise en ligne."}</span>`;
+    : ""}</div>
+    <span class="hint">${url ? (got ? `✓ ${esc(got)}` : "Sans compte Dropbox. Le point passe à « Reçu » dès que le fichier arrive.") : (p.type === "fichier" ? `Envoyez le fichier à <a href="mailto:${esc(EVENT.referente.mail)}">${esc(EVENT.referente.mail)}</a>.` : "")}</span>`;
 }
 /* Champ + bouton « Envoyer → » dans la case : gris tant que vide, bleu pâle quand rempli. */
 function fw(ctl, val, label, ta) {
@@ -1324,9 +1361,9 @@ function repasHTML(p) {
   const txt = (r, k, ph) => eq ? `<form class="form" data-form="${r.k}-${k}">${fw(`<input type="text" id="f-${r.k}-${k}" name="${r.k}-${k}" value="${esc(r[k])}" placeholder="${ph}">`, r[k], "OK")}</form>` : esc(r[k] || (k === "regime" ? "Aucun" : "—"));
   return `<div class="item ${eq ? "is-done" : "fourni"}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}
-    <div class="tab-w"><table class="ttab"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
-    ${repasRows(p).map(r => `<tr><td>${r.extra && eq ? `<form class="form" data-form="${r.k}">${fw(`<input type="text" id="f-${r.k}" name="${r.k}" value="${esc(r.nom)}" aria-label="Prénom et rôle">`, r.nom, "OK")}</form><button type="button" class="linkbtn rm" data-rmrow="${r.k}">Retirer</button>` : `<b>${esc(r.nom)}</b>`}</td><td>${r.extra ? txt(r, "date", "ex. Sam. 14/11") : esc(r.date)}</td><td><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
-      <td>${txt(r, "regime", "Aucun")}</td></tr>`).join("")}
+    <div class="tab-w"><table class="ttab grille repas"><thead><tr><th>Intervenant</th><th>Date</th><th>Repas à prévoir</th><th>Régime alimentaire / allergies</th></tr></thead><tbody>
+    ${repasRows(p).map(r => `<tr><td data-l="Intervenant">${r.extra && eq ? `<form class="form" data-form="${r.k}">${fw(`<input type="text" id="f-${r.k}" name="${r.k}" value="${esc(r.nom)}" aria-label="Prénom et rôle">`, r.nom, "OK")}</form><button type="button" class="linkbtn rm" data-rmrow="${r.k}">Retirer</button>` : `<b>${esc(r.nom)}</b>`}</td><td data-l="Date">${r.extra ? txt(r, "date", "ex. Sam. 14/11") : esc(r.date)}</td><td data-l="Repas"><div class="subs in">${box(r, "midi")}${box(r, "soir")}</div></td>
+      <td data-l="Régime / allergies">${txt(r, "regime", "Aucun")}</td></tr>`).join("")}
     </tbody></table></div>
     ${eq ? `<button type="button" class="addb" data-addrow2="${p.id}" data-nom="Nouvelle personne">+ Ajouter une personne (vidéaste, photographe…)</button>` : ""}
     ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
@@ -1584,8 +1621,27 @@ function questionHTML(t) {
     <form class="form" data-question="${t.id}"><label class="small" for="q-${t.id}">Votre question sera transmise directement aux chansigneurs.</label>
       ${fw(`<textarea id="q-${t.id}" name="q-${t.id}"></textarea>`, "", "Envoyer →", true)}</form></div>`;
 }
+/* Les documents des fiches pointaient vers le Drive (privé) : on les remplace par les fichiers du site. */
+function docLocal(d) {
+  const t = String(d.titre || "").toLowerCase();
+  if (/placement/.test(t)) return { url: "res/docs/placement-chansigne-sur-scene.pdf" };
+  if (/guide/.test(t)) return { url: "res/docs/guide-accueil-public-sourd.pdf" };
+  if (/pr[ée]sentation/.test(t)) return { url: "res/docs/presentation-10dec.pdf" };
+  if (/financ/.test(t)) return { url: "res/docs/trouver-des-financements.pdf" };
+  if (/condition/.test(t)) return { url: CG.url };
+  if (/logo/.test(t)) return { dossier: 0 };
+  if (/picto/.test(t)) return { dossier: 1 };
+  return /drive\.google/.test(d.url || "") ? null : { url: d.url };
+}
+function dossierHTML(d) {
+  return `<details class="res-f"><summary><span class="doc-ic dir" aria-hidden="true">📁</span><span class="res-t"><b>${esc(d.t)}</b><small>${d.files.length} images à télécharger</small></span><span class="res-go">Ouvrir</span></summary>
+      <div class="res-imgs">${d.files.map(f => `<a class="res-im" href="${f.url}" download><span class="res-th ${f.fonce ? "fonce" : ""}"><img src="${f.url}" alt="" loading="lazy"></span><span>${esc(f.l)} <b>⤓</b></span></a>`).join("")}</div></details>`;
+}
 function docsHTML(docs) {
-  return docs && docs.length ? `<span class="docs-l">Documents fournis par 10 Doigts en Cavale</span><div class="docs fourni-docs">${docs.map(d => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titre)} <small>${esc(d.type)} ↗</small></a>`).join("")}</div>` : "";
+  const list = (docs || []).map(d => Object.assign({ d }, docLocal(d) || {})).filter(x => x.url || x.dossier !== undefined);
+  if (!list.length) return "";
+  return `<span class="docs-l">Documents fournis par 10 Doigts en Cavale</span><div class="docs fourni-docs">${list.filter(x => x.url).map(x => `<a class="doc" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.d.titre)} <small>${esc(x.d.type)} ↗</small></a>`).join("")}</div>
+    ${list.filter(x => x.dossier !== undefined).map(x => dossierHTML(DOSSIERS[x.dossier])).join("")}`;
 }
 /* Contacts : deux tableaux Métier / Nom-Prénom / Mail / Tél. */
 function splitContact(v) {
@@ -1615,7 +1671,7 @@ function contactsTableHTML(ids, side) {
 function contactsListHTML(t, vis) {
   vis = vis || visible;
   const singles = t.contactsList.filter(e => !e.startsWith("g:"));
-  const roles = t.contactsList.filter(e => e.startsWith("g:") && !topicHidden(EVENT.topics.find(x => x.qui === e.slice(2)))).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
+  const roles = t.contactsList.filter(e => e.startsWith("g:") && !grpOff(e.slice(2))).flatMap(e => (EVENT.groups[e.slice(2)] || { roles: [] }).roles.map(r => r.c));
   const all = [...singles, ...roles].filter(c => vis(contactItem(c)));
   const bas = c => (EVENT.contacts[c] || {}).bas ? 1 : 0; /* ex. référent accueil : après les techniciens */
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
@@ -1704,7 +1760,10 @@ function topicHTML(t) {
   if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
   if (t.setlist) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
     <ol>${sl.titres.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("");
-  if (MODE === "orga") body += step("Qui répond ?", auteurHTML(), "st-auteur");
+  if (MODE === "orga" && ptsF(t).some(p => statusOf(p) === "todo")) body += step("Qui répond ?", auteurHTML(), "st-auteur");
+  const gate = gateOf(t), gNo = gateNo(t);
+  if (gate && vis(itemOf(gate))) body += step(esc(gate.titre), itemHTML(gate) + vuHTML(gate.id, idsOfPoint(itemOf(gate))), "st-item", pillHTML(itemOf(gate)));
+  if (gNo) body += `<p class="hebline">✓ <span>${esc(gate.siNon || "Rien d'autre à remplir sur cette page.")}</span></p>`;
   const reste = checks.some(p => statusOf(p) === "todo");
   if (checks.length) {
     const acts = [];
@@ -1713,7 +1772,7 @@ function topicHTML(t) {
     body += step("Ce qui doit être prévu", `<p class="hint">${MODE === "equipe" ? "Cochez ce qui est validé." : "Cochez chaque point quand il est prévu et confirmé."}</p><div class="chks">${checks.map(checkHTML).join("")}</div>
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
-  const its = (t.items || []).filter(it => vis(itemOf(it)));
+  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && vis(itemOf(it)));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
@@ -1723,8 +1782,8 @@ function topicHTML(t) {
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
-  if (t.docs && t.docs.length) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
-  if (t.qui && vis({})) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
+  if (t.docs && t.docs.length && !TOPIC_RES[t.base || t.id]) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
+  if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
   if (MODE === "orga") body += step("Une question ?", `<div class="bas"><button class="btn btn-ask" type="button" data-ask="${t.id}">J'ai une question</button>
     <p class="fwd2">Ce n'est pas vous ? <button type="button" class="linkbtn" data-fwd="${t.id}">Copiez le lien</button> et envoyez-le à la personne concernée.</p></div>` + questionHTML(t), "st-q");

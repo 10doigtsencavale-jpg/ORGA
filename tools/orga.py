@@ -162,6 +162,9 @@ def manquants(fichier, cle):
     sujets = []
     for t in d["topics"]:
         reste, cids = [], []
+        g = next((it for it in t.get("items", []) if it.get("gate") and it.get("type") == "ouinon"), None)
+        if g and str((rep.get(g["id"]) or {}).get("texte", "")) == g.get("non", "Non."):
+            continue  # « Non » à la question d'entrée (ex. pas de retransmission) : rien d'autre à demander
         for i, b in enumerate(t.get("besoins", [])):
             if not fait(f'{t["id"]}-b{i}'): reste.append(b["t"] if isinstance(b, dict) else b)
         imp = t.get("important")
