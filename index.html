@@ -692,6 +692,9 @@ body.sujet .ctab input:placeholder-shown{border:2px dashed #f7a42b;background:#f
   body.sujet main .ttab.hor .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 10px}
 }
 /* Dossiers logos / pictos */
+.same{font:inherit;font-size:14px;text-align:left;background:#eef0fa;color:#2e3bb2;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;cursor:pointer;margin:4px 0}.same b{color:#000}
+.sames{display:grid;gap:4px}.ttab .same-tr td{border-bottom:0;padding-bottom:0}
+@media (max-width:759px){.ttab.ctab .same-tr td::before{content:none}}
 .tres{display:grid;gap:4px}.tres-h{margin:0;font-size:15px;font-weight:700;color:#2e3bb2}.tres .res-g{margin-top:4px}
 .res-f{background:#fff;border:1.5px solid #d7daef;border-radius:18px;padding:12px 14px}.res-f[open]{grid-column:1/-1}
 .res-f>summary{display:flex;gap:12px;align-items:center;cursor:pointer;list-style:none}.res-f>summary::-webkit-details-marker{display:none}.res-f[open] .res-go{display:none}
@@ -1603,7 +1606,7 @@ function roleFieldHTML(r) {
   if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(r.q)}</span>${pillHTML(p)}</div><p class="val">${esc(contactValue(r.c))}</p>
       ${rep ? `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${r.c}">Modifier</button></div>` : ""}</div>`;
   const draft = sent["draft-" + r.c] || "", side = sent["side-" + r.c] || "";
-  return `<form class="cf form" data-form="${r.c}" data-role="1"><span class="lbl">${esc(r.q)}</span>
+  return `<form class="cf form" data-form="${r.c}" data-role="1"><span class="lbl">${esc(r.q)}</span>${sameSonHTML(r.c) ? `<div class="sames">${sameSonHTML(r.c)}</div>` : ""}
     <div class="pick" role="radiogroup" aria-label="${esc(r.q)}">${Object.entries(SIDES).map(([k, lab]) =>
       `<label class="pk"><input type="radio" name="side-${r.c}" value="${k}" ${side === k ? "checked" : ""}><span>${esc(lab)}</span></label>`).join("")}</div>
     ${fw(`<input type="text" id="f-${r.c}" name="${r.c}" placeholder="Nom / Téléphone / Mail" value="${esc(draft)}" aria-label="Nom, téléphone et mail">`, draft)}</form>`;
@@ -1651,6 +1654,16 @@ function splitContact(v) {
   const nom = v.replace(mail, "").replace(tel, "").split(/[·,;|\/]/).map(x => x.trim()).filter(Boolean).join(" ");
   return { nom, mail, tel: tel.trim() };
 }
+/* « Même personne que l'ingé son : <nom> » : reprend un contact ingé son déjà rempli, sans tout retaper. */
+const isSon = cid => /^ing[ée] son/i.test(((EVENT.contacts[cid] || {}).role) || "");
+const sansCote = v => String(v || "").replace(/^(Équipe du festival\/salle|Équipe de l'artiste)\s*·\s*/, "");
+function sameSonHTML(cid) {
+  if (!isSon(cid) || MODE === "equipe") return "";
+  const art = (EVENT.contacts[cid] || {}).equipe === "artiste"; /* l'ingé son de l'artiste n'est pas celui de la salle */
+  const srcs = Object.keys(EVENT.contacts).filter(c => c !== cid && isSon(c) && contactValue(c) && (!art || sideOf(c) === "artiste")).slice(0, 3);
+  return srcs.map(c => { const v = sansCote(contactValue(c)), nom = (splitContact(v).nom || v.split(" · ")[0] || "").trim();
+    return `<button type="button" class="same" data-same="${cid}" data-from="${c}">= Même personne que l'${esc(String(EVENT.contacts[c].role).replace(/^Ing[ée] son/i, "ingé son"))} : <b>${esc(nom)}</b></button>`; }).join("");
+}
 function contactRowHTML(cid, side) {
   const p = contactItem(cid), st = statusOf(p), v = contactValue(cid), mine = sent[cid];
   const lab = `<td data-l="Métier"><b>${esc(p.titre)}</b></td>`;
@@ -1661,7 +1674,8 @@ function contactRowHTML(cid, side) {
   }
   const d = k => esc(sent["draft-" + cid + "__" + k] || "");
   const inp = (k, ph, type) => `<input type="${type || "text"}" form="fc-${cid}" name="${cid}__${k}" id="f-${cid}${k === "nom" ? "" : "-" + k}" placeholder="${ph}" value="${d(k)}" aria-label="${esc(p.titre)} : ${ph}">`;
-  return `<tr class="vide">${lab}<td data-l="Nom-Prénom">${inp("nom", "Nom Prénom")}</td><td data-l="Mail">${inp("mail", "Mail", "email")}</td><td data-l="Tél">${inp("tel", "Téléphone", "tel")}</td>
+  const same = sameSonHTML(cid);
+  return `<tr class="vide">${same ? `<td data-l="Métier"><b>${esc(p.titre)}</b><div class="sames">${same}</div></td>` : lab}<td data-l="Nom-Prénom">${inp("nom", "Nom Prénom")}</td><td data-l="Mail">${inp("mail", "Mail", "email")}</td><td data-l="Tél">${inp("tel", "Téléphone", "tel")}</td>
     <td class="act"><form id="fc-${cid}" data-form="${cid}" data-ctable="${side}"></form><button class="send ok-row" type="submit" form="fc-${cid}">OK</button></td></tr>`;
 }
 function contactsTableHTML(ids, side) {
@@ -1875,6 +1889,9 @@ document.addEventListener("change", e => {
     sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); return; }
   if (e.target.matches && e.target.matches("[data-repas]")) { const id = e.target.dataset.repas, v = e.target.checked ? "oui" : "non";
     sent[id] = { texte: v, date: new Date().toISOString() }; save(); post(id, v, SOURCE()); toast("Enregistré."); return; }
+  if (e.target.matches && e.target.matches("[data-multi] input[name=opt]") && e.target.checked) { /* « Rien n'est nécessaire » exclut les autres choix, et inversement */
+    const f = e.target.closest("form"), rien = x => /^rien\b/i.test(x.value);
+    f.querySelectorAll("input[name=opt]").forEach(x => { if (x !== e.target && rien(x) !== rien(e.target)) x.checked = false; }); }
   if (e.target.matches && e.target.matches("[data-multi] input[name=opt]")) { const f = e.target.closest("form");
     sent["draft-sel-" + f.dataset.form] = [...f.querySelectorAll("input[name=opt]:checked")].map(x => x.value).join("|"); save(); return; }
   const sb = e.target.matches && e.target.matches("[data-sub]") ? e.target : null;
@@ -1985,6 +2002,8 @@ document.addEventListener("click", e => {
     bar.insertAdjacentHTML("beforeend", `<form class="rv-f" data-rvf="${b.dataset.rv}"><input type="text" maxlength="200" placeholder="Votre mot pour l'organisateur (ex. il manque le téléphone)" aria-label="Ce qui est à revoir"><button type="submit" class="b-rv">Envoyer</button></form>`);
     bar.querySelector(".rv-f input").focus(); }
   else if (b.dataset.vupage) { const t = topicById(b.dataset.vupage); blocsOf(t).forEach(x => { if (["avoir", "nouveau"].includes(vuState(x.key, x.ids).etat)) setVu(x.key, "ok"); }); render(false); toast("Toute la page : vu & noté."); }
+  else if (b.dataset.same) { const cid = b.dataset.same, from = b.dataset.from, side = sideOf(from) === "artiste" ? "artiste" : "festival";
+    submit(cid, SIDES[side] + " · " + sansCote(contactValue(from)), null, b); }
   else if (b.dataset.rmrow) { const id = b.dataset.rmrow, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
     if (team) sent["team-" + id] = { texte: "✗ Retiré", statut: "ok", date: now }; delete sent[id];
     save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Ligne retirée."); }
