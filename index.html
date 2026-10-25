@@ -655,6 +655,15 @@ body.sujet .addrow .send{background:#e6e8fb;color:#2e3bb2}
 .item.pbgris,.step:has(>.item.pbgris){background:#f3f4f8;border-color:#c9cde6;border-style:dashed}
 .item.pbgris .lbl,.item.pbgris .det{color:#6b7090}.p-pb{background:#e3e5ee;color:#555b7a}
 .tl.nb{border-style:dashed;border-color:#c9cde6!important;background:#f3f4f8}.tl.nb .tl-l{color:#6b7090}
+/* Vue équipe 10DEC : ce que l'organisateur doit remplir est grisé ; vos outils (corriger, pas besoin, ajouter) restent nets. */
+body.eqv .step{background:#f4f5f9;border:1.5px dashed #c9cde6}
+body.eqv .step :is(.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
+body.eqv .step .st-n{filter:grayscale(1);opacity:.6}
+body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:1}
+.admin-d{border-top:1px dashed #d7daef;padding-top:8px}
+.admin-d>summary{cursor:pointer;font-size:14px;font-weight:700;color:#2e3bb2;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:36px}
+.admin-d>summary::-webkit-details-marker{display:none}
+.admin-d[open]>summary{margin-bottom:6px}.admin-d .admin{border-top:0;padding-top:0}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -969,6 +978,7 @@ function renderTop() {
   const tb = $("#topbar"), pr = progress(allPoints());
   document.body.classList.toggle("home", !CURRENT);
   document.body.classList.toggle("sujet", !!CURRENT);
+  document.body.classList.toggle("eqv", ADMIN && MODE === "equipe");
   tb.innerHTML = CURRENT
     ? `<button type="button" class="tb-home" data-home>← Accueil</button><span class="ct-ev">${esc(EVENT.artiste)} · ${esc(EVENT.lieu)}</span>${ADMIN ? `<span class="ct-n">${pr.d} / ${pr.n}</span>` : ""}`
     : `${teamHome() ? `<a class="logo-chip" href="${esc(teamHome())}" title="Tous nos événements"><img src="${LOGO}" alt="10 Doigts en Cavale : tous nos événements"></a>` : `<span class="logo-chip"><img src="${LOGO}" alt="10 Doigts en Cavale"></span>`}<span class="eo">Espace organisateur</span>`;
@@ -1319,10 +1329,11 @@ function fieldHTML(p) {
 }
 function teamHTML(p) {
   const t = sent["team-" + p.id] || {}, st = statusOf(p);
-  return `<form class="admin" data-team="${p.id}"><label class="small" for="t-${p.id}">Compléter ou corriger (équipe 10DEC)</label>
+  /* Vue équipe : formulaire replié derrière « ✎ Compléter ou corriger », pour alléger la page. */
+  return `<details class="admin-d"><summary>✎ Compléter ou corriger <span class="vh">(équipe 10DEC)</span></summary><form class="admin" data-team="${p.id}"><label class="small" for="t-${p.id}">Votre texte (équipe 10DEC)</label>
     <textarea id="t-${p.id}" name="t-${p.id}">${esc(t.texte || "")}</textarea>
     <div class="actions"><select id="s-${p.id}" aria-label="Statut"><option value="ok" ${st !== "todo" ? "selected" : ""}>✓ Validé</option><option value="todo" ${st === "todo" ? "selected" : ""}>À compléter</option></select>
-    <button class="btn btn-ok" type="submit">Enregistrer</button></div></form>`;
+    <button class="btn btn-ok" type="submit">Enregistrer</button></div></form></details>`;
 }
 function pillHTML(p) {
   if (p.type === "grille" && isPB(p)) return `<span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span>`;
