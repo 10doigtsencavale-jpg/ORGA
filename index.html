@@ -656,9 +656,10 @@ body.sujet .addrow .send{background:#e6e8fb;color:#2e3bb2}
 .item.pbgris .lbl,.item.pbgris .det{color:#6b7090}.p-pb{background:#e3e5ee;color:#555b7a}
 .tl.nb{border-style:dashed;border-color:#c9cde6!important;background:#f3f4f8}.tl.nb .tl-l{color:#6b7090}
 /* Vue équipe 10DEC : ce que l'organisateur doit remplir est grisé ; vos outils (corriger, pas besoin, ajouter) restent nets. */
-body.eqv .step{background:#f4f5f9;border:1.5px dashed #c9cde6}
-body.eqv .step :is(.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
-body.eqv .step .st-n{filter:grayscale(1);opacity:.6}
+body.eqv .step:not(.co){background:#f4f5f9;border:1.5px dashed #c9cde6}
+body.eqv .step:not(.co) :is(.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
+body.eqv .step:not(.co) .st-n{filter:grayscale(1);opacity:.6}
+/* Blocs remplis à deux (runs, hébergement) : jamais grisés dans la vue équipe. */
 body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:1}
 .admin-d{border-top:1px dashed #d7daef;padding-top:8px}
 .admin-d>summary{cursor:pointer;font-size:14px;font-weight:700;color:#2e3bb2;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:36px}
@@ -1620,7 +1621,7 @@ function topicHTML(t) {
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
     if (p.equipe) { body += itemHTML(it); return; }
     const h = it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it);
-    body += step(esc(p.titre), h, "st-item", pillHTML(p));
+    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" ? " co" : ""), pillHTML(p));
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
   if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
