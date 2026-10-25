@@ -772,7 +772,7 @@ button.sl-st{cursor:pointer}
 .sl-ord{position:sticky;bottom:10px;z-index:5;background:#fff;border:2px solid #2e3bb2;border-radius:14px;padding:10px 12px;box-shadow:0 6px 18px rgba(16,21,61,.18);display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-weight:700;color:#2e3bb2}
 .sl-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin:10px 0 4px;align-items:center}.sl-leg span{display:flex;gap:6px;align-items:center}
 .sl-leg i{width:14px;height:14px;border-radius:4px;display:inline-block}.sl-leg i.t50{background:#fff4dd;border:1px solid #f7c66b}.sl-leg i.t75{background:#ffe6c7;border:1px solid #f7a42b}.sl-leg i.t100{background:#fdd9d2;border:1px solid #e64330}.sl-leg i.rmk{background:#fff;border:1px solid #9a3d00;background-image:linear-gradient(#9a3d00,#9a3d00);background-size:100% 1.5px;background-position:center;background-repeat:no-repeat}
-.sl-leg a{color:#2e3bb2;font-weight:700}
+.sl-leg a{color:#2e3bb2;font-weight:700}.sl-fh .linkbtn{font-size:12px;font-weight:600;margin-left:6px}
 .sl-add{margin-top:8px}.sl-add .fwrap{border:2px dashed #f7a42b;background:#fff7ea;border-radius:12px}
 .sl-conf{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:#dcf1e4;color:#14633a;font-weight:700;font-size:14px}
 .sl-mob{display:none}.sl-l{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -1493,7 +1493,7 @@ function grilleHTML(p) {
    « <id>-ret » = « retirée » | « remise » ; « <id>-par » / « <id>-aud » = « reçu » | « à envoyer » (équipe) ;
    « sl-ordre » = ids dans l'ordre ; réponse « sl » = setlist confirmée par l'organisateur.
    Fond coloré selon le délai avant le concert (conditions de facturation). */
-let SLORD = null, SLASK = "";
+let SLORD = null, SLASK = "", SLFACT = true; try { SLFACT = localStorage.getItem("orga-slfact") !== "0"; } catch (e) {}
 const slNow = () => new Date().toISOString();
 const slDays = iso => { if (!EVENT.iso || !iso) return null; const d = new Date(iso); d.setHours(0, 0, 0, 0); return Math.round((new Date(EVENT.iso + "T00:00:00") - d) / 864e5); };
 const slTier = j => j == null || j > 60 ? "" : j > 30 ? "t50" : j > 15 ? "t75" : "t100";
@@ -1544,21 +1544,21 @@ function slHTML(p) {
   const rows = songs.map(s => { const f = slFact(s);
     return `<tr class="${f.cls} ${s.ret ? "rm" : ""}"><td class="sl-n">${s.ret ? "✕" : n(s.id)}</td><td class="sl-t">${s.ajout ? `<b>${esc(s.t)}</b>` : esc(s.t)}</td>
       <td>${s.ajout ? ddm(s.ajout) : esc(p.base || "Devis")}</td><td>${ddm(s.ret)}</td><td class="k">${slState(s, "par")}</td><td class="k">${slState(s, "aud")}</td>
-      <td class="k">${f.pill ? `<span class="sl-p ${f.cls}">${esc(f.pill)}</span>` : `<span class="sl-p">Prévue</span>`}</td><td class="k sl-a">${acts(s)}</td></tr>
-      ${SLASK === s.id ? `<tr class="sl-askr"><td colspan="8">${ask(s)}</td></tr>` : ""}`; }).join("");
+      <td class="k sl-a">${acts(s)}</td>${SLFACT ? `<td class="k">${f.pill ? `<span class="sl-p ${f.cls}">${esc(f.pill)}</span>` : ""}</td>` : ""}</tr>
+      ${SLASK === s.id ? `<tr class="sl-askr"><td colspan="${SLFACT ? 8 : 7}">${ask(s)}</td></tr>` : ""}`; }).join("");
   const card = s => { const f = slFact(s);
     return `<li class="sl-c ${f.cls} ${s.ret ? "rm" : ""}" data-slid="${s.id}">${s.ret ? `<span class="sl-n">✕</span>` : `<span class="sl-h" aria-hidden="true" data-sldrag="${s.id}">⠿</span><span class="sl-n">${n(s.id)}</span>`}
-      <span class="sl-ct"><span class="sl-tt">${esc(s.t)}</span><small>${f.pill ? esc(f.pill) + (s.ret ? " · le " + ddm(s.ret) : s.ajout ? " · le " + ddm(s.ajout) : "") + "<br>" : ""}Paroles ${s.par ? "✓" : "à envoyer"} · Audio ${s.aud ? "✓" : "à envoyer"}</small>
+      <span class="sl-ct"><span class="sl-tt">${esc(s.t)}</span><small>${f.pill && SLFACT ? esc(f.pill) + (s.ret ? " · le " + ddm(s.ret) : s.ajout ? " · le " + ddm(s.ajout) : "") + "<br>" : ""}Paroles ${s.par ? "✓" : "à envoyer"} · Audio ${s.aud ? "✓" : "à envoyer"}</small>
       ${MODE === "equipe" ? `<span class="sl-eq">${slState(s, "par")}${slState(s, "aud")}</span>` : ""}</span>
       ${s.ret ? `<button type="button" class="sl-b sl-back" data-slback="${s.id}">Remettre</button>` : `<button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`}</li>
       ${SLASK === s.id ? `<li class="sl-askc">${ask(s)}</li>` : ""}`; };
   const conf = sent["team-" + p.id] || sent[p.id];
   return `<div class="item sl ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.sous || p.titre)}</span>${pillHTML(p)}</div>
     ${p.note ? `<p class="det">${esc(p.note)}</p>` : ""}${slBandeau()}
-    <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Facturation</th><th>Ordre</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Ordre</th>${SLFACT ? `<th class="sl-fh">Facturation <button type="button" class="linkbtn" data-slfact="0">Masquer</button></th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="sl-mob"><ol class="sl-l">${live.map(card).join("")}</ol>${out.length ? `<p class="sl-rt">Retirées</p><ol class="sl-l">${out.map(card).join("")}</ol>` : ""}</div>
     ${SLORD ? `<div class="sl-ord"><span>Ordre modifié.</span><button type="button" class="btn btn-ok" data-slsave="1">Enregistrer le nouvel ordre</button><button type="button" class="btn btn-ghost" data-slcancel="1">Annuler</button></div>` : ""}
-    ${slLeg()}
+    ${SLFACT ? slLeg() : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher la facturation</button></p>`}
     <form class="form sl-add" data-sladd="1"><div class="fwrap"><input type="text" id="f-sladd" name="sladd" placeholder="Ajouter une chanson : titre" aria-label="Titre de la chanson à ajouter"><button class="send" type="submit">+ Ajouter</button></div></form>
     <p class="hint">Paroles ou audio à envoyer ? Déposez-les à l'étape suivante.</p>
     ${conf ? `<p class="sl-conf">✓ Setlist confirmée le ${dmOf(conf.date)}${conf.auteur ? " par " + esc(conf.auteur) : ""}.</p>` : ""}
@@ -1582,6 +1582,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.slst) { slSet(b.dataset.slst, b.dataset.v); render(false); }
   else if (b.dataset.slsave) { const v = SLORD.join(","); SLORD = null; slSet("sl-ordre", v); render(false); toast("Nouvel ordre envoyé."); }
   else if (b.dataset.slcancel) { SLORD = null; render(false); }
+  else if (b.dataset.slfact) { SLFACT = b.dataset.slfact === "1"; try { localStorage.setItem("orga-slfact", SLFACT ? "1" : "0"); } catch (e) {} render(false); }
   else if (b.dataset.slconf) submit(b.dataset.slconf, "Setlist confirmée.", null, b);
 });
 document.addEventListener("submit", e => {
