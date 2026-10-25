@@ -513,7 +513,7 @@ body.sujet .ct-ev{flex:1;color:#2e3bb2}
   .tm-k{font-size:12px;line-height:1.2}
   .tm-sep{display:none}
   .tm-s{max-width:100%}
-  /* Planning : bouton OK sous le champ, pour lire « xxhxx – xxhxx » en entier. */
+  /* Planning : bouton OK sous le champ, pour lire « ??h?? - ??h?? » en entier. */
   body.sujet main .ttab .fwrap{display:grid;gap:6px}
   body.sujet main .ttab.hor td:first-child{width:60%}
   body.sujet main .ttab .fwrap input[type=text]{padding-left:8px;padding-right:8px;min-width:0}
@@ -1132,9 +1132,11 @@ function repasHTML(p) {
     </tbody></table></div>
     ${p.compo ? `<p class="det">${esc(p.compo)}</p>` : ""}</div>`;
 }
-/* Placeholders : jamais d'horaire fictif. « ex. 16h30 – 16h45 » → « xxhxx – xxhxx ». */
+/* Placeholders : jamais d'horaire fictif. « ex. 16h30 – 16h45 » → « ??h?? - ??h?? ». */
 const HRE = /\b\d{1,2}h\d{0,2}\b/g;
-const phHeure = ph => { ph = String(ph || ""); return /\b\d{1,2}h\d{0,2}\b/.test(ph) ? ph.replace(HRE, "xxhxx").replace(/^ex\.\s*/i, "") : ph; };
+/* Un seul format pour tous les horaires : « ??h?? - ??h?? » (le reste du texte, ex. « , loge », est gardé). */
+const PH_T = "\\d{1,2}h\\d{0,2}", PH_R = new RegExp(`${PH_T}(?:\\s*[–-]\\s*${PH_T})?(?:\\s+ou\\s+${PH_T}(?:\\s*[–-]\\s*${PH_T})?)*(?:\\s*\\?)?`, "g");
+const phHeure = ph => { ph = String(ph || ""); return /\b\d{1,2}h\d{0,2}\b/.test(ph) ? ph.replace(/^ex\.\s*/i, "").replace(PH_R, "??h?? - ??h??") : ph; };
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
