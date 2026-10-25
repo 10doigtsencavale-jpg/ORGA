@@ -179,6 +179,10 @@ def manquants(fichier, cle):
                 vis = [r for r in it["rows"] if not r.get("on") or str((rep.get(r["on"]) or {}).get("texte", "")) == r.get("si")]
                 vides = [r["label"] for r in vis if r.get("type") != "note" and not r.get("opt") and r["id"] not in rep]
                 if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
+            elif it.get("type") == "grille":  # tableau à colonnes (runs) : case « <ligne>-<colonne> »
+                vides = [f'{r.get("nom", r["id"])} : {c["l"]}' for r in it["rows"] for c in it["cols"]
+                         if not (r.get("cells") or {}).get(c["k"]) and f'{r["id"]}-{c["k"]}' not in rep]
+                if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif it.get("type") == "tableau":
                 def repas_a(k):
                     for t2 in d["topics"]:

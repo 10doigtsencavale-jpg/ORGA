@@ -628,6 +628,23 @@ button.hero-p:hover{background:rgba(255,255,255,.18)}
 .mqv-g{display:grid;gap:6px}.mqv-g h2{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:22px;line-height:1}
 .mqv-ch{display:flex;flex-wrap:wrap;gap:8px}.mqv-ch button{font:inherit;font-size:14px;font-weight:700;border:1.5px solid var(--b);border-radius:999px;padding:8px 13px;background:#fff;color:#000;cursor:pointer;min-height:40px}
 .mqv-ch button.ok{background:#dcf1e4;border-color:#dcf1e4;color:#14633a}
+/* Tableau « grille » (runs) : tableau sur ordi, une carte par ligne sur téléphone. */
+.ttab.grille th{background:#e3e5f6;color:#2e3bb2;font-size:13px;white-space:nowrap}
+.ttab.grille td{padding:8px 10px;border-top:1px solid #ecedf5;vertical-align:middle;min-width:90px}
+.ttab.grille .g-n{background:#f7f8fc;color:#2e3bb2;font-size:13px;white-space:nowrap}
+.ttab.grille .fwrap input[type=text]{padding-right:56px;min-height:42px;font-size:15px}
+.ttab.grille .fwrap .send{padding:0 10px}
+@media (max-width:759px){
+  .ttab.grille,.ttab.grille tbody,.ttab.grille tr,.ttab.grille td,.ttab.grille .g-n{display:block;width:auto}
+  .ttab.grille{border:0;background:transparent}.ttab.grille thead{display:none}
+  .ttab.grille tr{background:#fff;border:1.5px solid #d7daef;border-radius:14px;margin-bottom:10px;overflow:hidden}
+  .ttab.grille .g-n{padding:8px 12px;font-size:14px}
+  .ttab.grille td{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;border-top:1px solid #ecedf5;min-width:0}
+  .ttab.grille td::before{content:attr(data-l);font-size:13px;font-weight:700;color:#2e3bb2}
+  body.sujet main .ttab.grille .fwrap{display:block}
+  body.sujet main .ttab.grille .fwrap input[type=text]{padding-right:52px}
+  body.sujet main .ttab.grille .fwrap .send{position:absolute;width:auto;min-height:0;top:5px;bottom:5px;right:5px;padding:0 10px}
+}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -793,7 +810,7 @@ async function sendForm(point, texte, source) {
   body.append("entry." + FORM.rep, texte); body.append("entry." + FORM.src, source);
   fetch(FORM.url, { method: "POST", mode: "no-cors", body }).catch(() => toast("La réponse n'a pas pu partir. Vérifiez votre connexion et réessayez."));
 }
-const SOURCE = () => ADMIN && MODE === "equipe" ? "10DEC" : "orga";
+const SOURCE = () => ADMIN && MODE === "equipe" ? "10DEC:ok" : "orga"; /* « 10DEC:ok:<signature> » : reconnu par la synchro */
 let MODE = "orga", CURRENT = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
@@ -886,6 +903,7 @@ const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsO
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
+  if (p.type === "grille") { const cs = grilleCells(p).filter(c => !c.fixe); return cs.every(c => c.v) ? (cs.some(c => sent[c.id]) ? "sent" : "ok") : "todo"; }
   if (p.type === "tableau") { const rs = rowsOf(p).filter(r => !r.equipe); return rs.every(r => rowVal(r)) ? (rs.some(r => sent[r.id]) ? "sent" : "ok") : "todo"; }
   const t = sent["team-" + p.id]; if (t) return t.statut;
   if (p.statut === "todo" && sent[p.id]) return "sent";
@@ -1181,6 +1199,25 @@ const HRE = /\b\d{1,2}h\d{0,2}\b/g;
 /* Un seul format pour tous les horaires : « ??h?? - ??h?? » (le reste du texte, ex. « , loge », est gardé). */
 const PH_T = "\\d{1,2}h\\d{0,2}", PH_R = new RegExp(`${PH_T}(?:\\s*[–-]\\s*${PH_T})?(?:\\s+ou\\s+${PH_T}(?:\\s*[–-]\\s*${PH_T})?)*(?:\\s*\\?)?`, "g");
 const phHeure = ph => { ph = String(ph || ""); return /\b\d{1,2}h\d{0,2}\b/.test(ph) ? ph.replace(/^ex\.\s*/i, "").replace(PH_R, "??h?? - ??h??") : ph; };
+/* Tableau à plusieurs colonnes (ex. les runs), rempli par l'organisateur et par 10 Doigts en Cavale.
+   Case = « <ligne>-<colonne> ». Case pré-remplie dans le fichier = fixe pour l'organisateur ; l'équipe peut tout corriger. */
+const grilleCells = p => p.rows.flatMap(r => p.cols.map(c => { const id = r.id + "-" + c.k, fixe = !!(r.cells || {})[c.k];
+  return { id, r, c, fixe, v: valOf(id) || (r.cells || {})[c.k] || "" }; }));
+function grilleHTML(p) {
+  const st = statusOf(p), team = MODE === "equipe";
+  const cell = x => {
+    if (!team && x.v && (x.fixe || !sent[x.id])) return `<span class="tv">${esc(x.v)}</span>`;
+    if (!team && x.v) return `<span class="tv">${esc(x.v)}</span> <button type="button" class="linkbtn" data-edit="${x.id}">Modifier</button>`;
+    const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || "À compléter");
+    return `<form class="form" data-form="${x.id}">${fw(`<input type="text" id="f-${x.id}" name="${x.id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + x.id] || (team ? x.v : ""))}" aria-label="${esc(x.c.l)}${x.r.nom ? " · " + esc(x.r.nom) : ""}">`, sent["draft-" + x.id] || (team ? x.v : ""), "OK")}</form>`;
+  };
+  const cells = grilleCells(p);
+  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<p class="det">Les cases en pointillés jaunes sont à compléter.</p>
+    <div class="tab-w"><table class="ttab grille"><thead><tr>${p.rows.some(r => r.nom) ? "<th></th>" : ""}${p.cols.map(c => `<th>${esc(c.l)}</th>`).join("")}</tr></thead><tbody>
+    ${p.rows.map(r => `<tr>${p.rows.some(x => x.nom) ? `<th scope="row" class="g-n">${esc(r.nom || "")}</th>` : ""}${cells.filter(x => x.r === r).map(x => `<td data-l="${esc(x.c.l)}" class="${x.v ? "" : "vide"}">${cell(x)}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div></div>`;
+}
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1276,6 +1313,7 @@ function itemHTML(p) {
   if (p.equipe && MODE !== "equipe" && p.type !== "repas") return equipeHTML(p);
   if (p.type === "repas") return repasHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
+  if (p.type === "grille") return grilleHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
   const st = statusOf(p);
@@ -1708,6 +1746,7 @@ function buildPdf() {
         g.roles.forEach(r => { const v = contactValue(r.c); if (v) text(`${r.q} ${v}`, 10, "normal", null, 6); });
         y += .8; return;
       }
+      if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); p.rows.forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "repas") { text(p.titre, 10.5, "bold", BLEU, 2); repasRows(p).forEach(r => text(`${r.nom} · ${r.date} · ${[r.midi && "midi", r.soir && "soir"].filter(Boolean).join(" et ") || "aucun repas"} · régime : ${r.regime || "aucun"}`, 10, "normal", null, 6)); y += .8; return; }
