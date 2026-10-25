@@ -664,6 +664,14 @@ body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:
 .admin-d>summary{cursor:pointer;font-size:14px;font-weight:700;color:#2e3bb2;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:36px}
 .admin-d>summary::-webkit-details-marker{display:none}
 .admin-d[open]>summary{margin-bottom:6px}.admin-d .admin{border-top:0;padding-top:0}
+/* Hébergement */
+.tl-al{display:inline-block;font-size:12px;font-weight:700;background:#fff1e6;color:#7a2e00;border:1.5px solid #f26b21;border-radius:999px;padding:1px 8px;margin-top:4px}
+.alerte.chg{background:#fff1e6;color:#7a2e00;border:2px solid #f26b21;margin-bottom:8px}.alerte.chg p{margin:2px 0 0}.alerte.chg .al-ic{background:#f26b21;color:#fff}
+.who{display:flex;gap:10px;align-items:center;background:#e3e5f6;border-radius:12px;padding:10px 12px;font-size:14px;margin:0}.who b{color:#2e3bb2}
+.hebqui{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:700;color:#2e3bb2}.hebqui select{font:inherit;font-size:15px;border:1.5px solid #d7daef;border-radius:10px;padding:6px 8px;min-height:40px}
+.cnts{display:flex;flex-wrap:wrap;gap:14px}.cnt{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.cnt .cb{width:38px;height:38px;border-radius:10px;border:0;background:#e6e8fb;color:#2e3bb2;font-size:20px;font-weight:700;cursor:pointer}.cnt b{min-width:18px;text-align:center}
+.hebline{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:14px}
 /* Conditions générales et ressources */
 .cgb{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid #f7a42b;border-radius:20px;padding:14px 16px;flex-wrap:wrap}
 .cgb-tx{flex:1;min-width:180px;display:grid;gap:2px}.cgb-tx b{font-size:17px}.cgb-tx span{font-size:14px;color:#444}
@@ -761,6 +769,7 @@ const ROLES = [
   { fam: "tech", e: "console", label: "Régie générale et production", topics: ["contacts"] },
   { fam: "logi", e: "loge", label: "Loge et catering", topics: ["accueil"] },
   { fam: "logi", e: "van", label: "Parking et runs", topics: ["parking"] },
+  { fam: "logi", e: "lit", label: "Hébergement", topics: ["hebergement"] },
   { fam: "logi", e: "pass", label: "Pass / Tickets catering / Accréditation", topics: ["pass"] },
   { fam: "logi", e: "bouclier", label: "Sécurité et assurances", topics: ["securite"] },
   { fam: "com", e: "presse", label: "Presse et captation", topics: ["presse"] },
@@ -769,6 +778,7 @@ const ROLES = [
 /* Pictos dessinés, tous dans le même style « scène ». */
 const SV = c => `<svg viewBox="0 0 48 48" aria-hidden="true">${c}</svg>`;
 const PICTOS = {
+  lit: SV(`<rect x="4" y="22" width="40" height="12" rx="2" fill="#2f3cff"/><rect x="4" y="12" width="5" height="26" rx="1.5" fill="#10153d"/><rect x="39" y="22" width="5" height="16" rx="1.5" fill="#10153d"/><rect x="11" y="16" width="11" height="7" rx="3" fill="#fff" stroke="#10153d" stroke-width="2"/><path d="M24 22v-4a3 3 0 0 1 3-3h10a5 5 0 0 1 5 5v2" fill="#ffc629" stroke="#10153d" stroke-width="2"/>`),
   setlist: SV(`<rect x="9" y="4" width="28" height="38" rx="3" fill="#fff" stroke="#10153d" stroke-width="2.5"/><path d="M15 13h16M15 19h16M15 25h10" stroke="#10153d" stroke-width="2.5" stroke-linecap="round"/><path d="M33 26v13" stroke="#2f3cff" stroke-width="3"/><path d="M33 26l7 2v4l-7-2" fill="#2f3cff"/><circle cx="30" cy="39.5" r="4" fill="#2f3cff"/>`),
   mains: SV(`<path d="M13 40V22l-3-7c-.8-2 1.8-3.3 3-1.6l4 6V8.5c0-2.2 3.2-2.2 3.2 0V19V6c0-2.2 3.2-2.2 3.2 0v13V8c0-2.2 3.2-2.2 3.2 0v12.5V12c0-2.2 3.2-2.2 3.2 0v17c0 6-3 11-8 11z" fill="#ffc629" stroke="#10153d" stroke-width="2.3" stroke-linejoin="round"/><path d="M36 10c3 2 5 5 5 9M37 4c5 3 8 8 8 15" stroke="#ff8a2a" stroke-width="2.5" stroke-linecap="round" fill="none"/>`),
   inear: SV(`<rect x="6" y="14" width="18" height="26" rx="4" fill="#10153d"/><rect x="9.5" y="18" width="11" height="7" rx="1.5" fill="#18c3b0"/><circle cx="15" cy="32" r="3" fill="#ffc629"/><path d="M11 14V5" stroke="#10153d" stroke-width="3" stroke-linecap="round"/><path d="M24 22c8 0 8 12 14 12" stroke="#10153d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 30c0-3 6-5 7-1 1 3-2 7-5 7-2 0-2-3-2-6z" fill="#ff8a2a" stroke="#10153d" stroke-width="2"/>`),
@@ -799,7 +809,7 @@ function dueOf(t) {
 /* Un seul nom par sujet, partout (tuiles de l'accueil, menu, titre du sujet, « Ce qu'il manque », bouton « Suivant »). */
 const SHORT = { setlist: "Setlist / Dresscode", son: "Les retours son", talkback: "Micro talkback", lumiere: "La lumière", emplacement: "Le plateau",
   ecran: "Retransmission sur écrans", contacts: "Régie générale et production", accueil: "Loge et catering", parking: "Parking et runs",
-  pass: "Pass / Tickets catering / Accréditation", horaires: "L'équipe / Horaires", public: "Public sourd et com",
+  pass: "Pass / Tickets catering / Accréditation", hebergement: "Hébergement", horaires: "L'équipe / Horaires", public: "Public sourd et com",
   presse: "Presse et captation", photos: "Après le concert", securite: "Sécurité et assurances" };
 
 /* ===== État ===== */
@@ -922,7 +932,10 @@ const allPoints = () => { const m = new Map(); EVENT.topics.forEach(t => pointsO
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
-  if (p.type === "grille" && isPB(p)) return "ok";
+  if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return "ok";
+  if (p.type === "hebergement") { if (hebQui(p) === "10dec") return "ok"; const v = k => hebVal(p, k);
+    const ok = v("nom") && v("adr") && v("dates") && (+v("twin") || 0) + (+v("single") || 0) > 0 && v("pdj");
+    return ok ? (["nom", "adr", "dates", "twin", "single", "pdj", "conf"].some(k => sent["heb-" + k]) ? "sent" : "ok") : "todo"; }
   if (p.type === "grille") { const cs = grilleCells(p).filter(c => !c.fixe); return cs.every(c => c.v) ? (cs.some(c => sent[c.id]) ? "sent" : "ok") : "todo"; }
   if (p.type === "tableau") { const rs = rowsOf(p).filter(r => !r.equipe); return rs.every(r => rowVal(r)) ? (rs.some(r => sent[r.id]) ? "sent" : "ok") : "todo"; }
   const t = sent["team-" + p.id]; if (t) return t.statut;
@@ -1085,7 +1098,7 @@ function homeHTML() {
       <span class="tl-h"><span class="tl-ic" aria-hidden="true">${emo(ro.e, 30)}</span></span><span class="tl-l">${esc(ro.label)}</span><span class="det" style="font-size:13px">${PB_TXT}</span></button>`;
     return `<button type="button" class="tl ${p.full ? "ok" : ""}" data-topic="${ro.tps[0].id}" style="--b:${f.bd};--f:${f.bar};--t:${f.fg};--ib:${f.bg}" aria-label="${esc(ro.label)} : ${p.full ? "fait" : `${p.d} sur ${p.n}`}">
       <span class="tl-h"><span class="tl-ic" aria-hidden="true">${emo(ro.e, 30)}</span><span class="rg" style="--p:${p.full ? 100 : pp}%" aria-hidden="true"><span>${p.full ? "Fait" : `${p.d}/${p.n}`}</span></span></span>
-      <span class="tl-l">${esc(ro.label)}</span>
+      <span class="tl-l">${esc(ro.label)}${ro.tps.some(t => (t.items || []).some(it => alertesOf(it.id).length)) ? ` <span class="tl-al">⚠️ Changement</span>` : ""}</span>
       <span class="tl-s" aria-hidden="true">${segs}</span></button>`;
   };
   return `${multiArt() ? `<div class="stick"><div class="afband"><div class="wrap">${filtreHTML()}</div></div></div>` : ""}<main><div class="wrap bhome">
@@ -1238,6 +1251,41 @@ const PB_TXT = "Pas besoin, l'équipe est autonome.";
 const isPB = p => valOf(p.id + "-pasbesoin") === "oui";
 function pbSwitchHTML(p) { return MODE === "equipe" ? `<label class="pbsw"><input type="checkbox" data-pb="${p.id}" ${isPB(p) ? "checked" : ""}><span>${PB_TXT}</span></label>` : ""; }
 function pbBlockHTML(p) { return `<div class="item pbgris" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span></div><p class="det">${PB_TXT} Rien à faire.</p></div>`; }
+/* ===== Hébergement : « Qui réserve ? » réglé par l'équipe. Si 10 Doigts en Cavale réserve, les infos viennent de la FDR (synchro). ===== */
+const hebItem = () => allItems().find(x => x.type === "hebergement");
+const hebQui = p => valOf("heb-qui") || (p.auto && p.auto.qui) || p.qui || "orga";
+const hebVal = (p, k) => valOf("heb-" + k) || (hebQui(p) === "10dec" ? (p.auto || {})[k] : "") || ""; /* infos de la FDR seulement si 10DEC réserve */
+function hebHTML(p) {
+  if (isPB(p) && MODE !== "equipe") return pbBlockHTML(p);
+  const team = MODE === "equipe", qui = hebQui(p), v = k => hebVal(p, k);
+  const field = (k, ph) => { const id = "heb-" + k, val = v(k);
+    if (!team && val) return `<span class="tv">${esc(val)}</span>${sent[id] ? ` <button type="button" class="linkbtn" data-edit="${id}">Modifier</button>` : ""}`;
+    if (!team && qui === "10dec") return `<span class="det">À venir</span>`;
+    return `<form class="form" data-form="${id}">${fw(`<input type="text" id="f-${id}" name="${id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + id] || (team ? val : ""))}" aria-label="${esc(ph)}">`, sent["draft-" + id] || (team ? val : ""), "OK")}</form>`; };
+  const cnt = (k, l) => { const n = +v(k) || 0;
+    return (!team && qui === "10dec") ? `<span class="cnt-l">${l} : <b>${n}</b></span>` : `<span class="cnt"><span>${l}</span><button type="button" class="cb" data-cnt="heb-${k}" data-d="-1" aria-label="Une chambre ${l} de moins">−</button><b aria-live="polite">${n}</b><button type="button" class="cb" data-cnt="heb-${k}" data-d="1" aria-label="Une chambre ${l} de plus">+</button></span>`; };
+  const pdj = () => (!team && qui === "10dec") ? esc(v("pdj") || "—") : `<div class="yn">${["Oui", "Non"].map(o => `<button type="button" class="ynb ${v("pdj") === o ? "on" : ""}" data-rowset="heb-pdj" data-v="${o}">${o}</button>`).join("")}</div>`;
+  const rows = qui === "10dec" && !team
+    ? [["Nom", field("nom")], ["Adresse", field("adr")], ["Nuit", field("dates")]]
+    : [["Nom de l'hôtel ou du logement", field("nom", "Nom")], ["Adresse / Ville", field("adr", "Adresse, ville")], ["Arrivée – Départ", field("dates", "ex. 13/11 – 15/11")],
+       ["Chambres", `<div class="cnts">${cnt("twin", "Twin")}${cnt("single", "Single")}</div>`], ["Petit-déjeuner inclus", pdj()], ["N° de confirmation", field("conf", "Référence")]];
+  const st = statusOf(p);
+  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    ${team ? `<label class="hebqui">Qui réserve ? <select data-hebqui="1"><option value="orga" ${qui === "orga" ? "selected" : ""}>L'organisateur</option><option value="10dec" ${qui === "10dec" ? "selected" : ""}>10 Doigts en Cavale</option></select></label>${pbSwitchHTML(p)}`
+      : `<p class="who">🛏️ <span>Qui réserve ? <b>${qui === "10dec" ? "10 Doigts en Cavale." : "Vous, l'organisateur."}</b></span></p>`}
+    ${qui === "orga" || team ? `<p class="det">Hôtel avec petit-déjeuner inclus.</p>` : ""}
+    <div class="tab-w"><table class="ttab fiche"><tbody>${rows.map(([l, h]) => `<tr><th scope="row">${l}</th><td>${h}</td></tr>`).join("")}</tbody></table></div>
+    ${qui === "10dec" && !team ? `<p class="det">Rempli par 10 Doigts en Cavale. Rien à faire. L'adresse sert pour les runs.</p>` : (EVENT.depotFichiers || p.depot ? fileButtons(p, "Déposer la confirmation") : "")}</div>`;
+}
+/* Rappel de l'hébergement au-dessus du tableau des runs (les runs peuvent partir de l'hôtel ou y ramener). */
+function hebLineHTML() {
+  const h = hebItem(); if (!h || isPB(h)) return "";
+  const nom = hebVal(h, "nom"), adr = hebVal(h, "adr");
+  return `<p class="hebline">🛏️ <span><b>Hébergement des chansigneurs :</b> ${nom || adr ? esc([nom, adr].filter(Boolean).join(" · ")) : `à compléter`} <button type="button" class="linkbtn" data-topic="${EVENT.topics.find(t => (t.items || []).includes(h)).id}">Voir</button></span></p>`;
+}
+/* Alertes (ex. horaire du train changé), écrites par la synchro. */
+const alertesOf = bloc => (EVENT.alertes || []).filter(a => a.bloc === bloc && (Date.now() - new Date(a.date)) < 21 * 864e5);
+const alerteHTML = bloc => alertesOf(bloc).slice(-1).map(a => `<div class="alerte chg" role="alert"><span class="al-ic" aria-hidden="true">!</span><div><strong>⚠️ Changement d'horaire</strong><p>${esc(a.texte)}</p></div></div>`).join("");
 /* Tableau à plusieurs colonnes (ex. les runs), rempli par l'organisateur et par 10 Doigts en Cavale.
    Case = « <ligne>-<colonne> ». Case pré-remplie dans le fichier = fixe pour l'organisateur ; l'équipe peut tout corriger. */
 const allItems = () => EVENT.topics.flatMap(t => t.items || []);
@@ -1255,6 +1303,7 @@ function grilleHTML(p) {
   };
   const cells = grilleCells(p, rows);
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    ${alerteHTML(p.id)}${p.id === "runs" ? hebLineHTML() : ""}
     ${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<p class="det">Les cases en pointillés jaunes sont à compléter.</p>
     ${pbSwitchHTML(p)}
     <div class="tab-w"><table class="ttab grille"><thead><tr>${named ? "<th></th>" : ""}${p.cols.map(c => `<th>${esc(c.l)}</th>`).join("")}</tr></thead><tbody>
@@ -1336,7 +1385,8 @@ function teamHTML(p) {
     <button class="btn btn-ok" type="submit">Enregistrer</button></div></form></details>`;
 }
 function pillHTML(p) {
-  if (p.type === "grille" && isPB(p)) return `<span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span>`;
+  if (p.type === "hebergement" && !isPB(p) && hebQui(p) === "10dec") return `<span class="pill p-eq">Réservé par 10 Doigts en Cavale</span>`;
+  if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return `<span class="pill p-pb">${PB_TXT.replace(/\.$/, "")}</span>`;
   const st = statusOf(p);
   if (st === "todo") return `<span class="pill p-todo">À compléter</span>`;
   if (st === "sent") return `<span class="pill p-sent">✓ Envoyé</span>`;
@@ -1360,6 +1410,7 @@ function itemHTML(p) {
   if (p.type === "repas") return repasHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
   if (p.type === "grille") return grilleHTML(p);
+  if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
   const st = statusOf(p);
@@ -1648,6 +1699,8 @@ document.addEventListener("change", e => {
   if (e.target.matches && e.target.matches("[data-rowmulti]")) { const id = e.target.dataset.rowmulti;
     const v = [...document.querySelectorAll(`[data-rowmulti="${id}"]:checked`)].map(x => x.value).join(" · ");
     if (v) submit(id, v, null, e.target); else { delete sent[id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); } return; }
+  if (e.target.matches && e.target.matches("[data-hebqui]")) { const v = e.target.value;
+    sent["team-heb-qui"] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post("heb-qui", v, "10DEC:ok"); render(false); return; }
   if (e.target.matches && e.target.matches("[data-pb]")) { const id = e.target.dataset.pb + "-pasbesoin", v = e.target.checked ? "oui" : "non";
     sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); return; }
   if (e.target.matches && e.target.matches("[data-repas]")) { const id = e.target.dataset.repas, v = e.target.checked ? "oui" : "non";
@@ -1742,6 +1795,10 @@ document.addEventListener("click", e => {
   if (b.dataset.filtre) { FILTRE = b.dataset.filtre; render(false); return; }
   if (b.dataset.topic) go(b.dataset.topic);
   else if (b.hasAttribute("data-home")) go(null);
+  else if (b.dataset.cnt) { const id = b.dataset.cnt, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
+    const h = hebItem(), v = String(Math.max(0, (+hebVal(h, id.slice(4)) || 0) + (+b.dataset.d)));
+    if (team) sent["team-" + id] = { texte: v, statut: "ok", date: now }; else sent[id] = { texte: v, date: now };
+    save(); post(id, v, SOURCE()); render(false); }
   else if (b.dataset.rmrow) { const id = b.dataset.rmrow, team = ADMIN && MODE === "equipe", now = new Date().toISOString();
     if (team) sent["team-" + id] = { texte: "✗ Retiré", statut: "ok", date: now }; delete sent[id];
     save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Ligne retirée."); }
@@ -1803,6 +1860,9 @@ function buildPdf() {
         g.roles.forEach(r => { const v = contactValue(r.c); if (v) text(`${r.q} ${v}`, 10, "normal", null, 6); });
         y += .8; return;
       }
+      if (p.type === "hebergement") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; }
+        text(`Réservé par : ${hebQui(p) === "10dec" ? "10 Doigts en Cavale" : "l'organisateur"}`, 10, "normal", null, 6);
+        [["nom", "Nom"], ["adr", "Adresse"], ["dates", "Dates"], ["twin", "Chambres twin"], ["single", "Chambres single"], ["pdj", "Petit-déjeuner"], ["conf", "N° de confirmation"]].forEach(([k, l]) => { const x = hebVal(p, k); if (x) text(`${l} : ${x}`, 10, "normal", null, 6); }); y += .8; return; }
       if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; } grilleRows(p).forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }
       if (p.type === "fiche") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); ficheRows(p).forEach(r => text(`${r.label} : ${valOf(r.id) || "[à compléter]"}`, 10, "normal", null, 6)); y += .8; return; }

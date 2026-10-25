@@ -44,6 +44,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
      parking, pass, accès, runs (`park-…`, `pass-…`, `run-…`, `runs-…` : une case du tableau des runs = `<ligne>-<colonne>`, une ligne ajoutée = `runs-x…` avec son nom) → « 🚗 ACCÈS / ACCRÉDITATIONS » ; catering, loge (`acc-…`) → « 📝 INFOS & REMARQUES » ;
      technique (cases `son-b0`…`son-imp`, `lumiere-…`, `emplacement-…`, `ecran-…`, `talkback-…`, `securite-…` : « ✓ Prévu », « Non concerné » ou « ✗ Retiré ») → « 📝 INFOS & REMARQUES » (une ligne de synthèse par sujet, ex. « Son : 5/6 besoins confirmés par l'organisateur ») ;
      com, presse, public (`com-…`, `pub-…`, `cap-captation`) → « 📝 INFOS & REMARQUES ».
+     Hébergement réservé par l'organisateur (`heb-nom`, `heb-adr`, `heb-dates`, `heb-twin`, `heb-single`, `heb-pdj`, `heb-conf`) → « 🛏️ HÉBERGEMENT » :
+     un bloc « Nom » (nom suivi de « (réservé par l'orga) »), « Adresse (GPS) », « 🛏️ Nuit » (dates, chambres, petit-déjeuner, n° de confirmation).
+     `heb-qui` (« orga » ou « 10dec », réglé par l'équipe) : rien à reporter.
      `…-pasbesoin` (« Pas besoin, l'équipe est autonome », coché par l'équipe) et les lignes de repas ajoutées par l'équipe (`acc-repas-x…`) : rien à reporter.
      Les questions (`question:…`) ne vont PAS dans la FDR (elles sont pour Aurélie et Périnne).
      **Conditions générales** (point `cg`, texte « Accepté · Nom · Fonction · Structure · Conditions générales … version du … ») →
@@ -61,6 +64,11 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `'FDR'!A1:E200` → écris `values` dans `/tmp/orga/fdr.json` (hors du dépôt), puis `python3 -I tools/orga.py equipe <fichier> <clé> /tmp/orga/fdr.json`.
    Les noms viennent de la ligne « Équipe 10 Doigts », les téléphones de « 📞 CONTACTS SUR PLACE » (même prénom). Un numéro manquant s'affiche « À venir » :
    ne l'invente jamais. Ne recopie aucun numéro dans un message ou une notification.
+3 quinquies. **Trains, runs et hébergement** (même fichier `/tmp/orga/fdr.json` que 3 quater) :
+   `python3 -I tools/orga.py trajets <fichier> <clé> /tmp/orga/fdr.json`.
+   L'heure d'arrivée du train le jour du concert devient l'heure du run aller ; l'heure du train retour est mise à jour dans le planning.
+   L'hébergement de la nuit du concert (partie « 🛏️ HÉBERGEMENT ») est affiché à l'organisateur (nom, adresse, nuit) — jamais les codes.
+   Si la sortie contient des `alertes` (horaire ou hébergement changé) : la page affiche déjà une alerte orange ; mets-les dans la notification.
 4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.

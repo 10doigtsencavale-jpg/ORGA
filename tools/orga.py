@@ -11,6 +11,7 @@ La clé de chaque événement n'existe que dans le lien envoyé à l'organisateu
   python3 tools/orga.py dechiffrer <fichier> <clé>    -> affiche le JSON en clair (vérification)
   python3 tools/orga.py appliquer <fichier> <clé> <lignes.json> -> applique les réponses du formulaire, affiche les nouveautés
   python3 tools/orga.py equipe <fichier> <clé> <fdr.json>     -> tableau de l'équipe (noms + téléphones) depuis la fiche FDR
+  python3 tools/orga.py trajets <fichier> <clé> <fdr.json>    -> heure du run aller (train), hébergement ; alerte si ça change
 """
 import base64, json, os, sys
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -179,6 +180,14 @@ def manquants(fichier, cle):
                 vis = [r for r in it["rows"] if not r.get("on") or str((rep.get(r["on"]) or {}).get("texte", "")) == r.get("si")]
                 vides = [r["label"] for r in vis if r.get("type") != "note" and not r.get("opt") and r["id"] not in rep]
                 if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
+            elif it.get("type") == "hebergement":
+                q = (d.get("reponses", {}).get("heb-qui") or {}).get("texte") or (it.get("auto") or {}).get("qui") or it.get("qui", "orga")
+                if str((d.get("reponses", {}).get(it["id"] + "-pasbesoin") or {}).get("texte", "")) == "oui" or q == "10dec":
+                    continue
+                v = lambda k: (rep.get("heb-" + k) or {}).get("texte", "")
+                vides = [l for k, l in (("nom", "nom"), ("adr", "adresse"), ("dates", "dates"), ("pdj", "petit-déjeuner")) if not v(k)]
+                if not ((v("twin") or "0").isdigit() and int(v("twin") or 0) + int(v("single") or 0) > 0): vides.append("chambres")
+                if vides: reste.append(it["titre"] + " : " + ", ".join(vides))
             elif it.get("type") == "grille":  # tableau à colonnes (runs) : case « <ligne>-<colonne> »
                 if str((d.get("reponses", {}).get(it["id"] + "-pasbesoin") or {}).get("texte", "")) == "oui":
                     continue  # « Pas besoin, l'équipe est autonome » coché par l'équipe
@@ -327,6 +336,88 @@ def equipe(fichier, cle, values_json):
     else:
         print(json.dumps({"mis_a_jour": False, "equipe": [[e["nom"], bool(e["tel"])] for e in eq]}, ensure_ascii=False))
 
+def trajets(fichier, cle, values_json):
+    """Depuis la fiche FDR (partie « 🚆 TRAJETS & BILLETS » et « 🛏️ HÉBERGEMENT ») :
+    - heure d'arrivée du train le jour du concert -> heure du run aller (et rappel du train retour) ;
+    - hébergement de la nuit du concert -> nom et adresse affichés à l'organisateur (jamais les codes d'accès).
+    Si un horaire déjà affiché change, une alerte orange apparaît sur la page (« alertes »)."""
+    import re
+    from datetime import datetime, timezone
+    d = lire(fichier, cle); rows = json.load(open(values_json)); rows = rows.get("values", rows) if isinstance(rows, dict) else rows
+    rows = [[str(x).strip() for x in (list(r) + [""] * 5)[:5]] for r in rows]
+    MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+    ABR = ["jan", "fév", "mar", "avr", "mai", "juin", "juil", "août", "sep", "oct", "nov", "déc"]
+    m = re.search(r"(\d{1,2})(?:er)?\s+(" + "|".join(MOIS) + ")", d.get("date", "").lower())
+    if not m:
+        print(json.dumps({"erreur": "date de l'événement illisible"}, ensure_ascii=False)); return
+    jour, mois = int(m.group(1)), MOIS.index(m.group(2)) + 1
+    du_jour = re.compile(rf"\b{jour}\s+{ABR[mois - 1]}", re.I)
+    nuit_re = re.compile(rf"\b0?{jour}/0?{mois}\b")
+    H = re.compile(r"\d{1,2}h\d{0,2}")
+    hm = lambda h: (lambda a: int(a[0]) * 60 + int(a[1] or 0))(h.split("h"))
+    aller, retour, gare, zone = {}, {}, "", ""
+    heb, cur = [], None
+    for r in rows:
+        if re.match(r"^[^\w\s]+\s+[A-ZÉÈÊÀÂÔÛÇ/&·' ]{4,}", r[0]):  # titre de partie : « 🛏️ HÉBERGEMENT », « 🚆 TRAJETS & BILLETS »…
+            zone = r[0][:1]; cur = None; continue
+        if not any(r):
+            continue
+        if zone == "🚆" and r[0] != "Qui":
+            hs = H.findall(r[2])
+            if len(hs) >= 2 and du_jour.search(r[1]):
+                if r[1].lower().startswith("aller"):
+                    aller[r[0]] = hs[1]; gare = (r[3].split("·")[0].split("→")[-1]).strip() or gare
+                elif r[1].lower().startswith("retour") and r[0] not in retour:
+                    retour[r[0]] = hs[0]
+        if zone == "🛏":
+            if r[0] == "Nom":
+                cur = {"nom": r[2]}; heb.append(cur)
+            elif cur is not None and r[0].startswith("Adresse"):
+                cur["adr"] = r[2]
+            elif cur is not None and r[0].startswith("🛏"):
+                cur["nuit"] = r[2]
+    arr = " / ".join(sorted(set(aller.values()), key=hm))
+    dep = " / ".join(sorted(set(retour.values()), key=hm))
+    out = {"arrivee": arr, "depart": dep, "hebergement": False, "alertes": []}
+    now = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    change = False
+    def alerte(bloc, texte):
+        d.setdefault("alertes", []).append({"bloc": bloc, "texte": texte, "date": now}); d["alertes"] = d["alertes"][-10:]; out["alertes"].append(texte)
+    for t in d.get("topics", []):
+        for it in t.get("items", []):
+            if it.get("id") == "runs" and arr:
+                for r in it["rows"]:
+                    if r["id"] == "run-aller":
+                        old = r.setdefault("cells", {}).get("heure", "")
+                        if old != arr:
+                            r["cells"]["heure"] = arr; change = True
+                            if old: alerte("runs", f"Le train arrive maintenant à {arr} (avant {old}). Merci de vérifier le run aller.")
+            if it.get("id") == "park-runs" and (arr or dep):
+                v = it.get("valeur", ""); nv = re.sub(r"(Arrivée en gare de [^à]+à )\S+?(\.)", lambda x: x.group(1) + (arr or x.group(0)[len(x.group(1)):-1]) + ".", v)
+                nv = re.sub(r"(Départ de la gare à )\S+?(\.)", lambda x: x.group(1) + (dep or "") + ".", nv) if dep else nv
+                if nv != v: it["valeur"] = nv; change = True
+            if it.get("type") == "tableau":
+                for r in it["rows"]:
+                    if r["id"].endswith("train-arr") and arr and r.get("a") != arr: r["a"] = arr; change = True
+                    if r["id"].endswith("train-ret") and dep and r.get("a") != dep:
+                        if r.get("a"): alerte("runs", f"Le train retour part maintenant à {dep} (avant {r['a']}). Merci de vérifier le run retour.")
+                        r["a"] = dep; change = True
+            if it.get("type") == "hebergement":
+                b = next((x for x in heb if nuit_re.search(x.get("nuit", "")) and "réservé par l'orga" not in x.get("nom", "").lower()), None)
+                if b:
+                    out["hebergement"] = True
+                    a = {"nom": b.get("nom", ""), "adr": b.get("adr", ""), "dates": "Nuit du " + b.get("nuit", "").split(".")[0]}
+                    old = it.get("auto") or {}
+                    if any(old.get(k) != a[k] for k in a):
+                        if old.get("nom") and (old.get("nom") != a["nom"] or old.get("adr") != a["adr"]):
+                            alerte("runs", f"L'hébergement a changé : {a['nom']}. Merci de vérifier les runs.")
+                        it["auto"] = dict(old, **a); change = True
+    if change:
+        d["maj"] = datetime.now(timezone.utc).astimezone().strftime("%d/%m/%Y")
+        ecrire(fichier, cle, d)
+    out["mis_a_jour"] = change
+    print(json.dumps(out, ensure_ascii=False))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -337,4 +428,4 @@ if __name__ == "__main__":
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
      "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
      "accueil": lambda: accueil(*a[1:5]),
-     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4])}[a[0]]()
+     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4]), "trajets": lambda: trajets(*a[1:4])}[a[0]]()
