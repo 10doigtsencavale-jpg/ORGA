@@ -1299,11 +1299,11 @@ const RES = [
 ];
 /* Documents rappelés dans les sujets concernés. */
 const TOPIC_RES = { emplacement: { docs: ["res/docs/placement-chansigne-sur-scene.pdf"] },
-  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0] } }; /* les pictos sont dans l’étape « Pictogramme LSF » */
+  public: { docs: ["res/docs/guide-accueil-public-sourd.pdf"], dossiers: [0, 1] } }; /* guide, logos et pictos rassemblés en « Ressources utiles » */
 function topicResHTML(t) {
   const r = TOPIC_RES[t.base || t.id]; if (!r) return "";
   const docs = (r.docs || []).map(u => RES.find(x => x.url === u)).filter(Boolean);
-  return `<section class="tres" aria-label="Documents utiles"><h2 class="tres-h">📎 Documents utiles</h2><div class="res-g">
+  return `<section class="tres" aria-label="Ressources utiles"><h2 class="tres-h">📎 Ressources utiles</h2><div class="res-g">
     ${docs.map(x => `<a class="res-d" href="${x.url}" target="_blank" rel="noopener"><span class="doc-ic" aria-hidden="true">PDF</span><span class="res-t"><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span><span class="res-go">Ouvrir<span class="vh"> (nouvel onglet)</span></span></a>`).join("")}
     ${(r.dossiers || []).map(i => DOSSIERS[i]).map(d => `<details class="res-f"><summary><span class="doc-ic dir" aria-hidden="true">📁</span><span class="res-t"><b>${esc(d.t)}</b><small>${d.files.length} images à télécharger</small></span><span class="res-go">Ouvrir</span></summary>
       <div class="res-imgs">${d.files.map(f => `<a class="res-im" href="${f.url}" download><span class="res-th ${f.fonce ? "fonce" : ""}"><img src="${f.url}" alt="" loading="lazy"></span><span>${esc(f.l)} <b>⤓</b></span></a>`).join("")}</div></details>`).join("")}</div></section>`;
