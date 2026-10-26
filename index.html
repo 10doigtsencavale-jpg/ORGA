@@ -1604,7 +1604,7 @@ function hebHTML(p) {
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
     ${team ? `<label class="hebqui">Qui réserve ? <select data-hebqui="1"><option value="orga" ${qui === "orga" ? "selected" : ""}>L'organisateur</option><option value="10dec" ${qui === "10dec" ? "selected" : ""}>10 Doigts en Cavale</option></select></label>${pbSwitchHTML(p)}`
       : `<p class="who">🛏️ <span>Qui réserve ? <b>${qui === "10dec" ? "10 Doigts en Cavale." : "Vous, l'organisateur."}</b></span></p>`}
-    ${qui === "orga" || team ? `<p class="det">Hôtel avec petit-déjeuner inclus.</p>` : ""}
+    ${qui === "orga" || team ? `<p class="det">Hôtel proche de la gare, avec petit-déjeuner inclus.</p>` : ""}
     <div class="tab-w"><table class="ttab fiche"><tbody>${rows.map(([l, h]) => `<tr><th scope="row">${l}</th><td>${h}</td></tr>`).join("")}</tbody></table></div>
     ${qui === "10dec" && !team ? `<p class="det">Rempli par 10 Doigts en Cavale. Rien à faire. L'adresse sert pour les runs.</p>` : (EVENT.depotFichiers || p.depot ? fileButtons(p, "Déposer la confirmation") : "")}</div>`;
 }
