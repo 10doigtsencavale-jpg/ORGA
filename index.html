@@ -1301,6 +1301,16 @@ function teamList() {
 /* L'équipe 10 Doigts en Cavale (page d'accueil). Dates de naissance : colonne masquée par défaut, rarement demandée. */
 let EQNAISS = false;
 const naissOf = nom => { const n = EVENT.naissances || {}, k = String(nom || "").trim().split(/\s+/)[0].toLowerCase(); return n[k] || ""; };
+/* Personnes ajoutées par l'équipe 10DEC (« eq10-x… » = nom, « -tel ») : visibles par tous, modifiables dans la vue équipe. */
+function eqExtraHTML(showN) {
+  const rows = extraRows({ id: "eq10" }), team = MODE === "equipe";
+  return rows.map(r => { const tel = valOf(r.id + "-tel");
+    if (team && (!tel || sent["draft-" + r.id + "__edit"])) return `<tr class="vide"><td><input type="text" form="fx-${r.id}" name="nom" placeholder="Prénom NOM (rôle)" value="${esc(/^Personne \d+$/.test(r.nom) ? "" : r.nom)}" aria-label="Nom"></td><td><input type="tel" form="fx-${r.id}" name="tel" placeholder="Téléphone" value="${esc(tel)}" aria-label="Téléphone"> <form id="fx-${r.id}" data-accx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td>${showN ? "<td></td>" : ""}</tr>`;
+    return `<tr><td>${esc(r.nom)}${team ? ` <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button>` : ""}</td><td>${tel ? `<a href="tel:${esc(telHref(tel))}">${esc(tel)}</a>` : `<span class="det">À venir</span>`}</td>${showN ? "<td>—</td>" : ""}</tr>`; }).join("");
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-eqadd]"); if (!b) return;
+  const id = "eq10-x" + Math.random().toString(36).slice(2, 8), now = new Date().toISOString(), nom = "Personne " + (teamList().length + extraRows({ id: "eq10" }).length + 1);
+  sent["team-" + id] = { texte: nom, statut: "ok", date: now }; save(); post(id, nom, "10DEC:ok"); render(false); });
 function teamTableHTML() {
   const r = EVENT.referente || {}, isRef = x => x.nom && r.nom && nomAff(x.nom) === nomAff(r.nom), list = [...teamList()].sort((a, b) => isRef(b) - isRef(a));
   if (!list.length) return "";
@@ -1308,7 +1318,9 @@ function teamTableHTML() {
   return `<section class="eqb" aria-labelledby="eqbT"><div class="eqb-h"><h2 class="eqb-t" id="eqbT">👥 L'équipe 10 Doigts en Cavale</h2><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
     <table class="eqt"><thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th>${showN ? `<th scope="col">Date de naissance</th>` : ""}</tr></thead><tbody>
     ${list.map(x => `<tr><td>${esc(nomAff(x.nom))}${x.nom && r.nom && nomAff(x.nom) === nomAff(r.nom) ? ` <span class="eq-ref">Référente</span>` : ""}</td><td>${x.tel ? `<a href="tel:${esc(telHref(x.tel))}">${esc(x.tel)}</a>` : `<span class="det">À venir</span>`}</td>${showN ? `<td>${esc(naissOf(x.nom) || "—")}</td>` : ""}</tr>`).join("")}
+    ${eqExtraHTML(showN)}
     </tbody></table>
+    ${MODE === "equipe" ? `<button type="button" class="addb" data-eqadd="1">+ Ajouter une personne (renfort, photographe, vidéaste…)</button>` : ""}
     ${hasN ? `<button type="button" class="eq-nb" data-eqn="1">${showN ? "Masquer les dates de naissance" : "Afficher les dates de naissance (si on vous les demande)"}</button>` : ""}
     ${r.mail ? `<p class="eq-m">${SVGL(MAILD)}<span>Un seul mail pour toute l'équipe : <a href="mailto:${esc(r.mail)}">${esc(r.mail)}</a></span></p>` : ""}</section>`;
 }
@@ -2282,9 +2294,8 @@ function topicHTML(t) {
     if (p.equipe && p.type !== "repas") { body += itemHTML(it); return; }
     const tog = it.si && MODE === "equipe" ? `<label class="pbsw tpb"><input type="checkbox" data-sitog="${it.si}" ${itemOn(it) ? "checked" : ""}><span>${esc(it.siLabel || "Visible pour l'organisateur")}<small>${itemOn(it) ? "L'organisateur voit ce bloc." : "Bloc masqué pour l'organisateur."}</small></span></label>` : "";
     const avec = (t.items || []).find(x => x.avec === (it.contact || it.id));
-    const h = tog + (it.contact ? (avec ? accueilHTML(avec, it.contact) : contactFieldHTML(it.contact, false, "", "Contacts régie et production")) : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
+    const h = (t.alerte && t.alerte.apres === p.id ? alerteH : "") + tog + (it.contact ? (avec ? accueilHTML(avec, it.contact) : contactFieldHTML(it.contact, false, "", "Contacts régie et production")) : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
     body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" || p.type === "repas" ? " co" : ""), pillHTML(p));
-    if (t.alerte && t.alerte.apres === p.id) body += alerteH;
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
