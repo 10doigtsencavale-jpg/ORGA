@@ -65,3 +65,5 @@ Après `creer`, pour chaque date des Fils du Facteur :
 - Jen : Jen Petit, chansigneuse (téléphone dans la FDR).
 - Les Fils du Facteur : `"forfait": true` dans l'événement (forfait global : pas de conditions de facturation dans la setlist).
   Contact principal (c-referent) : Bertrand Mougeot, Limouzart (production des artistes, qui embauche 10DEC).
+- Les Fils du Facteur : « Arrivée et départ des chansigneurs » (park-runs) est un champ que Bertrand complète (type texte, statut todo, valeur = « Prévu à ce jour : … »),
+  pas un bloc rempli seulement par 10DEC.
