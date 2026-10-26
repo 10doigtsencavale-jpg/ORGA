@@ -89,5 +89,6 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
 ## Associations locales (« Prévenir le public sourd », item type `assos`)
 - `pub-asso-ok` = « oui » : liste vérifiée par 10DEC, visible pour l'organisateur (sinon masquée).
 - `pub-asso-<k>-env` = « Envoyé » : association prévenue (« ✗ Retiré » si décoché).
+- `pub-asso-<k>-rm` = « oui » : retirée de la liste par l'équipe (« non » = remise).
 - `pub-asso-x…` (+ `-mail`, `-site`, `-fb`) : association ajoutée ; `pub-asso-plus` : ligne en plus dans le message.
 - Espaces jumeaux (RDV Soniques) : ces réponses commencent par `pub-asso`, elles sont recopiées dans l'autre espace.

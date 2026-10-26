@@ -876,7 +876,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
 .as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;white-space:nowrap}.as-no{color:#bbb}
 .as-b{font:inherit;font-weight:700;font-size:13px;cursor:pointer;border-radius:10px;padding:6px 10px;border:1.5px solid #c9cde6;color:#2e3bb2;background:#fff;white-space:nowrap}.as-b.on{background:#e6e8fb;border:2px solid #2e3bb2}
-.as-t input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:8px 10px}.as-t td>*{justify-self:start}.as-t tr.as-on td{background:#f7f8fc}.as-deja{font-size:13px;font-weight:700;color:#2e3bb2}
+.as-t input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:8px 10px}.as-t td>*{justify-self:start}.as-t tr.as-out td{opacity:.45}.as-t tr.as-out td:first-child{opacity:1}.as-t tr.as-out b{text-decoration:line-through}.as-av{color:#7a4300!important;font-weight:700!important}.as-t tr.as-on td{background:#f7f8fc}.as-deja{font-size:13px;font-weight:700;color:#2e3bb2}
 @media (max-width:640px){.as-t thead{display:none}.as-t,.as-t tbody,.as-t tr,.as-t td{display:block;width:100%}.as-t tr{border:1.5px solid #d7daef;border-radius:14px;padding:8px 10px;margin-bottom:8px}.as-t td{border:0!important;padding:3px 0;text-align:left!important;display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center}
 .as-t td:first-child{display:block}.as-t td[data-l]:not(:first-child)::before{content:attr(data-l);font-size:12.5px;font-weight:700;color:#6b718f}.as-t td.act{display:block}.as-t .as-m{white-space:normal;word-break:break-all}.as-t input{width:100%}.as-s{grid-template-columns:1fr}.as-n{display:none}}
 .rp-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rp-c{border:2px solid #d7daef;border-radius:16px;padding:12px}.rp-c h4{margin:0 0 4px;font:400 22px "Bebas Neue",sans-serif}
@@ -1480,7 +1480,7 @@ function idsOfPoint(p) {
   if (p.type === "hebergement") ids.push("heb");
   if (p.type === "repas") inlineOf(p).forEach(x => ids.push(...idsOfPoint(x)));
   if (p.type === "tableau") (p.rows || []).forEach(r => ids.push(r.id));
-  if (p.type === "assos") ids.push("pub-asso-plus"), asRows(p).forEach(r => ids.push(r.id + "-env", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
+  if (p.type === "assos") ids.push("pub-asso-plus"), asRows(p).forEach(r => ids.push(r.id + "-env", r.id + "-rm", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
   if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), p.ou || "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
@@ -1900,12 +1900,13 @@ const jumNote = (t, txt) => { if (!jumPartage(t)) return "";
   if (!txt && own.length) txt = `${com.map(it => `« ${esc(it.titre)} »`).join(", ")} : commun aux 2 concerts, se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b><br>${own.map(it => `« ${esc(it.titre)} »`).join(", ")} : propre à ce concert.`;
   return `<p class="jum">🔗 <span>${txt || `Page commune aux 2 concerts. Ce que vous remplissez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`}</span></p>`; };
 function asRows(p) {
-  const l = (p.liste || []).map(a => Object.assign({ id: p.id + "-" + a.k }, a));
+  /* « <ligne>-rm » = « oui » : retirée par l'équipe (l'équipe la voit encore, grisée, avec « Remettre »). */
+  const l = (p.liste || []).map(a => Object.assign({ id: p.id + "-" + a.k }, a)).map(a => Object.assign(a, { rm: valOf(a.id + "-rm") === "oui" })).filter(a => !a.rm || MODE === "equipe");
   const x = extraRows(p).map(r => ({ id: r.id, nom: r.nom, extra: true, mail: valOf(r.id + "-mail"), site: valOf(r.id + "-site"), fb: valOf(r.id + "-fb") }));
   return [...l, ...x];
 }
 const asSent = r => !!r.deja || valOf(r.id + "-env") === "Envoyé";
-function asStatus(p) { const rr = asRows(p); if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
+function asStatus(p) { const rr = asRows(p).filter(r => !r.rm); if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
 const asHeure = () => { const h = String(EVENT.heure || ""); return !h || /venir/i.test(h) ? "" : h; };
 function asMsg(p) {
   const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), h = o.heure || asHeure();
@@ -1925,11 +1926,12 @@ function asAddRow(r) {
     <td class="act"><form id="fx-${r.id}" data-asx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
 }
 function assosHTML(p) {
-  const rr = asRows(p), d = rr.filter(asSent).length, m = asMsg(p), mails = rr.map(r => r.mail).filter(Boolean);
+  const all = asRows(p), rr = all.filter(r => !r.rm), d = rr.filter(asSent).length, m = asMsg(p), mails = rr.map(r => r.mail).filter(Boolean), eq = MODE === "equipe";
   const subj = "🎉 Concert chansigné en LSF";
   const row = r => { if (r.extra && (!(r.mail || r.site || r.fb) || sent["draft-" + r.id + "__edit"])) return asAddRow(r);
     const on = asSent(r);
-    return `<tr class="${on ? "as-on" : ""}"><td data-l="Association"><b>${esc(r.nom)}</b>${r.ty || r.ville ? `<small>${esc([r.ty, r.ville].filter(Boolean).join(" · "))}</small>` : ""}${r.extra ? ` <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button>` : ""}</td>
+    const tri = eq && !r.extra ? ` <button type="button" class="linkbtn ${r.rm ? "" : "rm"}" data-asrm="${r.id}-rm" data-v="${r.rm ? "non" : "oui"}">${r.rm ? "Remettre" : "Retirer"}</button>` : "";
+    return `<tr class="${on ? "as-on" : ""} ${r.rm ? "as-out" : ""}"><td data-l="Association"><b>${esc(r.nom)}</b>${r.ty || r.ville ? `<small>${esc([r.ty, r.ville].filter(Boolean).join(" · "))}</small>` : ""}${eq && r.av ? `<small class="as-av">⚠️ ${esc(r.av)}</small>` : ""}${tri}${r.extra ? ` <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button>` : ""}</td>
       <td data-l="Mail">${r.mail ? `<a class="as-m" href="mailto:${esc(r.mail)}">✉️ ${esc(r.mail)}</a>` : `<span class="as-no">—</span>`}</td><td data-l="Site">${asLink(r.site, "🔗 Site")}</td><td data-l="Facebook">${asLink(r.fb, "📘 Facebook")}</td>
       <td data-l="Prévenue">${r.deja ? `<span class="as-deja">✓ ${esc(r.deja)}</span>` : `<button type="button" class="as-b ${on ? "on" : ""}" aria-pressed="${on}" data-asenv="${r.id}-env">${on ? "✓ Envoyé" : "Marquer envoyé"}</button>`}</td></tr>`; };
   const tp = EVENT.topics.find(t => (t.items || []).includes(p)) || {};
@@ -1944,9 +1946,11 @@ function assosHTML(p) {
       <a class="btn btn-ghost" href="mailto:?bcc=${encodeURIComponent(mails.join(","))}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(m.txt)}">✉️ Ouvrir ma messagerie</a>` : ""}</div></div></div>
     <div class="as-s"><span class="as-n" aria-hidden="true">2</span><div><b>Envoyez-le, puis cochez</b>
       <p class="det">Pas de mail ? Envoyez le message sur leur page Facebook.</p>
-      <div class="tab-w"><table class="ttab as-t"><thead><tr><th>Association</th><th>Mail</th><th>Site</th><th>Facebook</th><th>Prévenue</th></tr></thead><tbody>${rr.map(row).join("")}</tbody></table></div>
+      <div class="tab-w"><table class="ttab as-t"><thead><tr><th>Association</th><th>Mail</th><th>Site</th><th>Facebook</th><th>Prévenue</th></tr></thead><tbody>${all.map(row).join("")}</tbody></table></div>
       <button type="button" class="addb" data-addrow2="${p.id}" data-nom="Association ${rr.length + 1}">+ Ajouter une association</button></div></div></div>`;
 }
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asrm]"); if (!b) return; const id = b.dataset.asrm, v = b.dataset.v;
+  sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Association retirée de la liste." : "Association remise dans la liste."); });
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asenv]"); if (!b) return; const id = b.dataset.asenv;
   if (valOf(id) === "Envoyé") unsetAns(id); else submit(id, "Envoyé", null, b); });
 document.addEventListener("submit", e => { const f = e.target.closest && e.target.closest("[data-asx]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
