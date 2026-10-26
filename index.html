@@ -663,7 +663,7 @@ body.sujet .addrow .send{background:#e6e8fb;color:#2e3bb2}
 .tl.nb{border-style:dashed;border-color:#c9cde6!important;background:#f3f4f8}.tl.nb .tl-l{color:#6b7090}
 /* Vue équipe 10DEC : ce que l'organisateur doit remplir est grisé ; vos outils (corriger, pas besoin, ajouter) restent nets. */
 body.eqv .step:not(.co){background:#f4f5f9;border:1.5px dashed #c9cde6}
-body.eqv .step:not(.co) :is(.pa-g,.pa-x,.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
+body.eqv .step:not(.co) :is(.lg-t,.rp-g,.rp-x,.pa-g,.pa-x,.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
 body.eqv .step:not(.co) .st-n{filter:grayscale(1);opacity:.6}
 /* Blocs remplis à deux (runs, hébergement) : jamais grisés dans la vue équipe. */
 body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:1}
@@ -861,6 +861,17 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 @media (max-width:759px){.pa-2{grid-template-columns:1fr}.pa-1 .pa-ch{width:100%}}
 /* Équipe sur l'accueil */
 .eq-nb{font:inherit;font-size:13px;font-weight:700;color:#2e3bb2;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0;margin-top:6px}
+
+/* Loge (tuiles) et repas (cartes) */
+.lg-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.lg-h .det{flex:1;margin:0}
+.lg-t{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lg-c{font:inherit;cursor:pointer;border:2px solid #d7daef;border-radius:14px;padding:10px 8px;text-align:center;background:#fff;color:#10153d;display:flex;flex-direction:column;align-items:center;gap:4px}
+.lg-c.on{border-color:#2e3bb2;background:#e6e8fb}.lg-c.on b{color:#2e3bb2}.lg-e{font-size:28px}.lg-c b{font-size:13.5px}.lg-c small{font-size:12px;color:#555;line-height:1.35}
+.rp-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rp-c{border:2px solid #d7daef;border-radius:16px;padding:12px}.rp-c h4{margin:0 0 4px;font:400 22px "Bebas Neue",sans-serif}
+.rp-w{margin:0 0 8px;font-size:13.5px;color:#555}.rp-x{margin-top:10px}.rp-c .pc-f{grid-template-columns:135px 1fr}.rp-x .item.pa{border:0;padding:0;background:none;box-shadow:none}.rp-x .pa-1 .pa-c small{display:none}
+.rp-i{margin-top:10px;background:#f3f4f8;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#555}.rp-i summary{cursor:pointer}.rp-i p{margin:8px 0 0}
+@media (max-width:759px){.lg-t{grid-template-columns:repeat(2,1fr)}.rp-g{grid-template-columns:1fr}.rp-c .pc-f{grid-template-columns:1fr}}
+body.eqv .rp :is(.rp-g,.rp-x){filter:grayscale(1);opacity:.55}
 </style>
 </head>
 <body>
@@ -1084,7 +1095,7 @@ const groupDone = gk => EVENT.groups[gk].roles.every(r => contactDone(r.c));
 function contactValue(cid) { const t = sent["team-" + cid], r = sent[cid], c = EVENT.contacts[cid] || {}; return (t && t.texte) || (r && r.texte) || c.valeur || ""; }
 function sideOf(cid) { const v = contactValue(cid); if (v.startsWith(SIDES.artiste)) return "artiste"; if (v.startsWith(SIDES.festival) || v.startsWith("Équipe du festival")) return "festival"; return (EVENT.contacts[cid] || {}).equipe || ""; }
 function groupItem(gk) { const g = EVENT.groups[gk]; return { id: "grp-" + gk, titre: g.titre, type: "group", group: gk, statut: "todo" }; }
-function itemOf(it) { return it.contact ? contactItem(it.contact, { detail: it.detail }) : it; }
+function itemOf(it) { return it.contact ? contactItem(it.contact, Object.assign({ detail: it.detail }, it.titre ? { titre: it.titre } : {})) : it; }
 /* Les besoins techniques deviennent des cases à cocher, une par besoin (+ la case « Important »). */
 const asB = b => typeof b === "string" ? { t: b, d: "" } : (b || { t: "", d: "" });
 /* Question « porte » (ex. « Une retransmission est-elle prévue ? ») : si la réponse est Non, le reste du sujet disparaît. */
@@ -1100,7 +1111,7 @@ function checksOf(t) {
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
 function pointsOf(t) {
   if (gateNo(t)) return [itemOf(gateOf(t))];
-  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe && !it.dans && itemOn(it)).map(itemOf)];
+  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe && !it.dans && !it.avec && itemOn(it)).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
   (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && grpOff(e.slice(2))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
@@ -1111,6 +1122,8 @@ function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "parcours") return pcStatus(p);
   if (p.type === "passes") return passStatus(p);
+  if (p.type === "tuiles") return tuilesStatus(p);
+  if (p.type === "repas" && inlineOf(p).length) { const ss = inlineOf(p).map(statusOf); return ss.includes("todo") ? "todo" : ss.includes("sent") ? "sent" : "ok"; }
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return "ok";
   if (p.type === "hebergement") { if (hebQui(p) === "10dec") return "ok"; const v = k => hebVal(p, k);
@@ -1427,6 +1440,8 @@ function idsOfPoint(p) {
   if (p.type === "grille") grilleRows(p).forEach(r => ids.push(r.id));
   if (p.type === "group") (EVENT.groups[p.group] || { roles: [] }).roles.forEach(r => ids.push(r.c));
   if (p.type === "hebergement") ids.push("heb");
+  if (p.type === "repas") inlineOf(p).forEach(x => ids.push(...idsOfPoint(x)));
+  if (p.type === "tableau") (p.rows || []).forEach(r => ids.push(r.id));
   if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), p.ou || "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
@@ -1848,6 +1863,57 @@ document.addEventListener("click", e => {
   if (id && v && valOf(id) === v) { e.stopImmediatePropagation(); e.preventDefault(); unsetAns(id); }
 }, true);
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-eqn]"); if (!b) return; EQNAISS = !EQNAISS; render(false); });
+/* ===== Loge, repas et catering ===== */
+/* Qui accueille : contact principal (tableau Nom / Mail / Tél) + personnes ajoutées (« <item>-x… » = nom, « -mail », « -tel »). */
+function accueilHTML(p, cid) {
+  const rows = extraRows(p), team = MODE === "equipe";
+  const ex = r => { const g = k => valOf(r.id + "-" + k), done = g("mail") || g("tel");
+    if (done && !sent["draft-" + r.id + "__edit"]) return `<tr><td data-l="Métier"><b>Accueil</b></td><td data-l="Nom-Prénom">${esc(r.nom)}</td><td data-l="Mail">${esc(g("mail"))}</td><td data-l="Tél">${esc(g("tel"))}</td>
+      <td class="act"><button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
+    const inp = (k, ph, type, v) => `<input type="${type || "text"}" form="fx-${r.id}" name="${k}" placeholder="${ph}" value="${esc(v)}" aria-label="${ph}">`;
+    return `<tr class="vide"><td data-l="Métier"><b>Accueil</b></td><td data-l="Nom-Prénom">${inp("nom", "Nom Prénom", "text", /^Personne \d+$/.test(r.nom) ? "" : r.nom)}</td><td data-l="Mail">${inp("mail", "Mail", "email", g("mail"))}</td><td data-l="Tél">${inp("tel", "Téléphone", "tel", g("tel"))}</td>
+      <td class="act"><form id="fx-${r.id}" data-accx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`; };
+  return `<div class="item" id="it-${p.id}"><p class="det">La personne à contacter en arrivant.</p><div class="tab-w"><table class="ttab ctab"><thead><tr><th>Métier</th><th>Nom-Prénom</th><th>Mail</th><th>Tél</th><th></th></tr></thead><tbody>
+    ${contactRowHTML(cid, "festival")}${rows.map(ex).join("")}</tbody></table></div>
+    <button type="button" class="addb" data-addrow2="${p.id}" data-nom="Personne ${rows.length + 2}">+ Ajouter une personne</button></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-accedit]"); if (!b) return; sent["draft-" + b.dataset.accedit + "__edit"] = 1; save(); render(false); });
+document.addEventListener("submit", e => { const f = e.target.closest && e.target.closest("[data-accx]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
+  const id = f.dataset.accx, el = n => (document.querySelector(`[form="fx-${id}"][name="${n}"]`) || {}).value || "", nom = el("nom").trim(), mail = el("mail").trim(), tel = el("tel").trim();
+  if (!nom) { toast("Merci d'indiquer le nom."); return; } if (!mail && !tel) { toast("Merci d'indiquer un mail ou un téléphone."); return; }
+  const now = new Date().toISOString(), team = ADMIN && MODE === "equipe";
+  [[id, nom], [id + "-mail", mail], [id + "-tel", tel]].forEach(([k, v]) => { if (!v) return; if (team) sent["team-" + k] = { texte: v, statut: "ok", date: now }; else sent[k] = { texte: v, date: now }; post(k, v, SOURCE()); });
+  delete sent["draft-" + id + "__edit"]; save(); render(false); toast("Merci ! Personne ajoutée.");
+}, true);
+/* La loge : tuiles à toucher (réponse = options cochées, séparées par « · »). */
+const tuilesOn = p => valOf(p.id).split(" · ").filter(Boolean);
+function tuilesStatus(p) { const on = tuilesOn(p); if (on.length < (p.options || []).length) return "todo"; return sent[p.id] ? "sent" : "ok"; }
+function tuilesHTML(p) {
+  const on = tuilesOn(p), all = on.length === p.options.length;
+  return `<div class="item lg" id="it-${p.id}"><div class="lg-h"><p class="det">${esc(p.detail || "Touchez ce qui est prévu.")}</p><button type="button" class="btn btn-ghost ${all ? "sel" : ""}" data-tuall="${p.id}" aria-pressed="${all}">${all ? "✓ " : ""}Tout est prévu</button></div>
+    <div class="lg-t">${p.options.map((o, i) => { const s = on.includes(o.texte);
+      return `<button type="button" class="lg-c ${s ? "on" : ""}" aria-pressed="${s}" data-tu="${p.id}" data-i="${i}"><span class="lg-e" aria-hidden="true">${o.ic}</span><b>${s ? "✓ " : ""}${esc(o.t)}</b><small>${esc(o.d)}</small></button>`; }).join("")}</div></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-tu],[data-tuall]"); if (!b) return;
+  const p = allItems().find(x => x.id === (b.dataset.tu || b.dataset.tuall)); let on = tuilesOn(p);
+  if (b.dataset.tuall) on = on.length === p.options.length ? [] : p.options.map(o => o.texte);
+  else { const t = p.options[+b.dataset.i].texte; on = on.includes(t) ? on.filter(x => x !== t) : [...on, t]; }
+  on = p.options.map(o => o.texte).filter(t => on.includes(t));
+  if (!on.length) { unsetAns(p.id); return; } submit(p.id, on.join(" · "), null, b); });
+/* Les repas : l'équipe coche midi / soir et les régimes ; l'organisateur voit Midi et Soir avec une tranche horaire, le lieu et les tickets. */
+const inlineOf = p => allItems().filter(x => x.inline === p.id);
+function repasOrgaHTML(p) {
+  const rr = repasRows(p), cat = inlineOf(p).find(x => x.type === "tableau"), tk = inlineOf(p).find(x => x.type === "passes");
+  const field = (id, label, ph) => { if (!cat || !cat.rows.some(r => r.id === id)) return ""; return pcField(id, label, ph); };
+  const card = (k, ic, l) => { const who = rr.filter(r => r[k]); if (!who.length) return "";
+    const dates = [...new Set(who.map(r => r.date).filter(Boolean))].join(", ");
+    return `<div class="rp-c"><h4>${ic} ${l}</h4><p class="rp-w">${esc(who.map(r => r.nom).join(", "))}${dates ? " · " + esc(dates) : ""}</p>${field(k === "midi" ? "cat-midi" : "cat-soir", "Tranche horaire", "??h?? - ??h??")}</div>`; };
+  const reg = rr.filter(r => r.regime && !/^(aucun|ras|non|-)$/i.test(r.regime.trim())).map(r => r.nom + " : " + r.regime);
+  return `<div class="item rp" id="it-${p.id}"><div class="rp-g">${card("midi", "☀️", "Midi")}${card("soir", "🌙", "Soir")}</div>
+    <div class="rp-x">${field("cat-lieu", "📍 Lieu du catering", "ex. salle du bas")}</div>
+    ${tk ? `<div class="rp-x">${passesHTML(tk)}</div>` : ""}
+    <details class="rp-i"><summary>Régimes : ${esc(reg.length ? reg.join(" · ") : "aucun")}${p.compo ? " · Le repas idéal (voir)" : ""}</summary>${p.compo ? `<p>${esc(p.compo).replace(/\n/g, "<br>")}</p>` : ""}</details></div>`;
+}
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1943,12 +2009,13 @@ function equipeHTML(p) {
 }
 function itemHTML(p) {
   if (p.equipe && MODE !== "equipe" && p.type !== "repas") return equipeHTML(p);
-  if (p.type === "repas") return repasHTML(p);
+  if (p.type === "repas") return MODE === "equipe" ? repasHTML(p) + repasOrgaHTML(p) : repasOrgaHTML(p);
   if (p.type === "tableau") return tableauHTML(p);
   if (p.type === "grille") return grilleHTML(p);
   if (p.type === "setlist") return slHTML(p);
   if (p.type === "parcours") return parcoursHTML(p);
   if (p.type === "passes") return passesHTML(p);
+  if (p.type === "tuiles") return tuilesHTML(p);
   if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
@@ -2192,14 +2259,15 @@ function topicHTML(t) {
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
   let frDone = false;
-  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && (itemOn(it) || MODE === "equipe") && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
+  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && !it.inline && !it.avec && (itemOn(it) || MODE === "equipe") && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
-    if (p.equipe) { body += itemHTML(it); return; }
+    if (p.equipe && p.type !== "repas") { body += itemHTML(it); return; }
     const tog = it.si && MODE === "equipe" ? `<label class="pbsw tpb"><input type="checkbox" data-sitog="${it.si}" ${itemOn(it) ? "checked" : ""}><span>${esc(it.siLabel || "Visible pour l'organisateur")}<small>${itemOn(it) ? "L'organisateur voit ce bloc." : "Bloc masqué pour l'organisateur."}</small></span></label>` : "";
-    const h = tog + (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
-    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" ? " co" : ""), pillHTML(p));
+    const avec = (t.items || []).find(x => x.avec === (it.contact || it.id));
+    const h = tog + (it.contact ? (avec ? accueilHTML(avec, it.contact) : contactFieldHTML(it.contact, false, "", "Contacts régie et production")) : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
+    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" || p.type === "repas" ? " co" : ""), pillHTML(p));
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;

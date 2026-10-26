@@ -193,6 +193,13 @@ def manquants(fichier, cle):
                 continue
             if it.get("si") and ((d.get("reponses", {}).get(it["si"]) or {}).get("texte") or ("oui" if it.get("siDef") else "non")) != "oui":
                 continue  # bloc masqué par l'équipe (ex. accès voiture : on ne vient pas en voiture)
+            if it.get("type") == "tuiles":
+                on = str((rep.get(it["id"]) or {}).get("texte", "")).split(" · ")
+                manque = [o.get("t", o["texte"]) for o in it.get("options", []) if o["texte"] not in on]
+                if manque: reste.append(it.get("titre", "").lstrip("🚪 ").strip() + " : " + ", ".join(manque))
+                continue
+            if it.get("avec"):
+                continue
             if it.get("type") == "passes":
                 vals = {c["k"]: (rep.get("pass-" + c["k"]) or {}).get("texte", "") for c in it.get("choses", [])}
                 manque = [c["t"] for c in it.get("choses", []) if not vals[c["k"]]]
