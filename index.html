@@ -1905,7 +1905,7 @@ function jumDuo(t) { if (!jumPartage(t)) return "";
   const moi = EVENT.artiste, autre = jumNoms(), noms = [moi, autre].sort(), col = n => n === noms[0] ? "#e85d75" : "#7a5af5";
   const pr = (EVENT.jumeaux.propres || []), own = (t.items || []).filter(it => it.titre && pr.includes(it.id));
   return `<div class="jd" role="note" aria-label="Page commune aux 2 concerts"><div class="jd-b"><div class="jd-p on"><b><i class="dot" style="background:${col(moi)}"></i>${esc(moi)}</b><small>Vous êtes ici</small></div>
-    <div class="jd-a" aria-hidden="true"><i>⇄</i>copié</div><div class="jd-p"><b><i class="dot" style="background:${col(autre)}"></i>${esc(autre)}</b><small>Rempli tout seul</small></div></div>
+    <div class="jd-a" aria-hidden="true"><i>⇄</i>copié</div><div class="jd-p"><b><i class="dot" style="background:${col(autre)}"></i>${esc(autre)}</b><small>Sera reporté automatiquement</small></div></div>
     <p class="jd-1">✍️ Remplissez <b>1 seule fois</b>.${own.length ? `<br><small>Sauf ${own.map(it => `« ${esc(it.titre)} »`).join(", ")} : propre à ce concert.</small>` : ""}</p></div>`;
 }
 /* « propres » : blocs d'un sujet commun qui restent propres à chaque concert (ex. captation). */
