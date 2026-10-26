@@ -55,8 +55,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
       Un mail déjà traité est ignoré tout seul. Pour un point commun d'événements jumeaux, lance aussi la commande sur l'autre espace.
    d bis. **Hébergement (Airbnb, Booking, hôtel)** — décidé par Aurélie le 26/10/2026 : OUVRE toujours ces mails (confirmation, modification, message de l'hôte)
       quand ils concernent un événement à venir (ville + dates). Reporte dans la FDR « 🛏️ HÉBERGEMENT » : nom du logement, adresse, dates, heure d'arrivée et de départ,
-      nombre de couchages, n° de réservation, consignes d'arrivée SANS les codes. Si l'organisateur a réservé (`heb-qui` = « orga ») : aussi les points `heb-…` via la commande `mail`.
-      Codes d'accès / digicode / boîte à clés : jamais dans l'espace organisateur, une notification, un résumé ou le dépôt (règle en attente de la décision d'Aurélie pour la FDR).
+      nombre de couchages, n° de réservation (ligne « 🔢 Code »), consignes d'arrivée, hôte (nom, tél.) dans « 📞 CONTACTS SUR PLACE ».
+      Codes d'accès / digicode / boîte à clés : SEULEMENT dans la FDR (fiche privée de l'équipe, ligne « 🔑 Arrivée »),
+      jamais dans l'espace organisateur, une notification, un résumé ou le dépôt.
+      Si l'organisateur a réservé (`heb-qui` = « orga ») : aussi les points `heb-…` via la commande `mail` (sans les codes).
    e. Les « ajoutes » sont des nouveautés comme les autres : reporte-les dans la FDR (étape 4), source « Mail », statut « à vérifier ».
       Ne réponds à aucun mail, ne crée aucun brouillon, ne touche à aucun libellé Gmail.
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
