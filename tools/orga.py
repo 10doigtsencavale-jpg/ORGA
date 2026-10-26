@@ -84,7 +84,7 @@ def appliquer(fichier, cle, lignes_json, code=""):
         if isinstance(x, dict):
             if isinstance(x.get("id"), str): ids.add(x["id"])
             if x.get("type") == "parcours": ids.update(PARCOURS_IDS)
-            if x.get("type") == "passes": ids.update(["pass-" + c["k"] for c in x.get("choses", [])] + ["pass-ou"])
+            if x.get("type") == "passes": ids.update(["pass-" + c["k"] for c in x.get("choses", [])] + [x.get("ou", "pass-ou")])
             if x.get("si"): ids.add(x["si"])
             for v in x.values(): collect(v)
         elif isinstance(x, list):
@@ -196,8 +196,8 @@ def manquants(fichier, cle):
             if it.get("type") == "passes":
                 vals = {c["k"]: (rep.get("pass-" + c["k"]) or {}).get("texte", "") for c in it.get("choses", [])}
                 manque = [c["t"] for c in it.get("choses", []) if not vals[c["k"]]]
-                if manque: reste.append("Pass et accréditations : " + ", ".join(manque))
-                elif "place" in vals.values() and "pass-ou" not in rep: reste.append("Pass sur place : où et auprès de qui")
+                if manque: reste.append(it.get("titre", "Pass") + " : " + ", ".join(manque))
+                elif "place" in vals.values() and it.get("ou", "pass-ou") not in rep: reste.append(it.get("titre", "Pass") + " sur place : où et auprès de qui")
                 continue
             if it.get("type") == "parcours":
                 lib = parcours_reste(it, rep)
