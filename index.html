@@ -663,7 +663,7 @@ body.sujet .addrow .send{background:#e6e8fb;color:#2e3bb2}
 .tl.nb{border-style:dashed;border-color:#c9cde6!important;background:#f3f4f8}.tl.nb .tl-l{color:#6b7090}
 /* Vue équipe 10DEC : ce que l'organisateur doit remplir est grisé ; vos outils (corriger, pas besoin, ajouter) restent nets. */
 body.eqv .step:not(.co){background:#f4f5f9;border:1.5px dashed #c9cde6}
-body.eqv .step:not(.co) :is(.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
+body.eqv .step:not(.co) :is(.pa-g,.pa-x,.chk,.val,.ttab,.ctab,.subs,.yn,.btn-depot,.cf .fwrap,.form .fwrap,.det,.hint,.intro,.choice,.setlist){filter:grayscale(1);opacity:.55}
 body.eqv .step:not(.co) .st-n{filter:grayscale(1);opacity:.6}
 /* Blocs remplis à deux (runs, hébergement) : jamais grisés dans la vue équipe. */
 body.eqv :is(.admin-d,.pbsw,.addrow) :is(.fwrap,.det,.hint){filter:none;opacity:1}
@@ -844,6 +844,17 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 @media (max-width:759px){.fr-wrap{position:fixed;inset:0;z-index:60;margin:0;background:rgba(16,21,61,.45);display:flex;align-items:flex-end}
   .fr-sheet{width:100%;max-height:88vh;overflow:auto;border:0;border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
   .fr-tl{padding-left:70px}.fr-tl:before{left:56px}.fr-hh{left:-70px;width:48px;font-size:13px}}
+
+/* Pass et accréditations (cartes) */
+.pa-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pa-c{border:2px solid #d7daef;border-radius:16px;padding:12px;text-align:center;background:#fff;display:flex;flex-direction:column;align-items:center}
+.pa-c.on{border-color:#f7a42b;background:#fffaf2}.pa-c.off{opacity:.6}
+.pa-e{font-size:34px}.pa-c b{font-size:15px;margin:4px 0 2px}.pa-c small{font-size:12px;color:#666;margin-bottom:8px}
+.pa-ch{display:flex;flex-direction:column;gap:5px;width:100%}
+.pa-b{font:inherit;border-radius:10px;padding:8px;font-weight:700;font-size:13.5px;border:1.5px solid #c9cde6;color:#2e3bb2;background:#fff;cursor:pointer}
+.pa-b.on{background:#e6e8fb;border:2px solid #2e3bb2}
+.pa-x{margin-top:12px}
+@media (max-width:759px){.pa-g{grid-template-columns:1fr}.pa-c{flex-direction:row;flex-wrap:wrap;text-align:left;gap:4px 10px}.pa-e{font-size:28px}.pa-c b{margin:0;flex:1}.pa-c small{width:100%;margin:0}.pa-ch{flex-direction:row}.pa-b{flex:1;padding:8px 4px;font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -908,7 +919,7 @@ const ROLES = [
   { fam: "logi", e: "loge", label: "Loge et catering", topics: ["accueil"] },
   { fam: "logi", e: "van", label: "Parking", topics: ["parking"] },
   { fam: "logi", e: "lit", label: "Hébergement", topics: ["hebergement"] },
-  { fam: "logi", e: "pass", label: "Pass / Tickets catering / Accréditation", topics: ["pass"] },
+  { fam: "logi", e: "pass", label: "Pass / Accréditations / Accès voiture", topics: ["pass"] },
   { fam: "logi", e: "bouclier", label: "Sécurité et assurances", topics: ["securite"] },
   { fam: "com", e: "presse", label: "Presse et captation", topics: ["presse"] },
   { fam: "com", e: "photo", label: "Après le concert", topics: ["photos"] }
@@ -947,7 +958,7 @@ function dueOf(t) {
 /* Un seul nom par sujet, partout (tuiles de l'accueil, menu, titre du sujet, « Ce qu'il manque », bouton « Suivant »). */
 const SHORT = { setlist: "Setlist / Dresscode", son: "Les retours son", talkback: "Micro talkback", lumiere: "La lumière", emplacement: "Le plateau",
   ecran: "Retransmission sur écrans", contacts: "Contacts - Technique & Logistique", accueil: "Loge et catering", parking: "Parking",
-  pass: "Pass / Tickets catering / Accréditation", hebergement: "Hébergement", horaires: "Équipe / Horaire / Run", public: "Com et public sourd",
+  pass: "Pass / Accréditations / Accès voiture", hebergement: "Hébergement", horaires: "Équipe / Horaire / Run", public: "Com et public sourd",
   presse: "Presse et captation", photos: "Après le concert", securite: "Sécurité et assurances" };
 
 /* ===== État ===== */
@@ -1082,7 +1093,7 @@ function checksOf(t) {
 /* Les « points » d'un sujet : ses cases, ses items, son « Qui gère… ? » (un seul point : festival OU artiste). */
 function pointsOf(t) {
   if (gateNo(t)) return [itemOf(gateOf(t))];
-  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe && !it.dans).map(itemOf)];
+  const pts = [...checksOf(t), ...(t.items || []).filter(it => !it.equipe && !it.dans && itemOn(it)).map(itemOf)];
   if (t.confirm && !t.besoins) pts.push(confirmItem(t));
   if (t.qui) pts.push(groupItem(t.qui));
   (t.contactsList || []).forEach(e => { if (e.startsWith("g:") && grpOff(e.slice(2))) return; pts.push(e.startsWith("g:") ? groupItem(e.slice(2)) : contactItem(e)); });
@@ -1092,6 +1103,7 @@ const allPoints = () => { const m = new Map(); EVENT.topics.filter(t => !topicHi
 function statusOf(p) {
   if (p.type === "group") return groupDone(p.group) ? "ok" : "todo";
   if (p.type === "parcours") return pcStatus(p);
+  if (p.type === "passes") return passStatus(p);
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return "ok";
   if (p.type === "hebergement") { if (hebQui(p) === "10dec") return "ok"; const v = k => hebVal(p, k);
@@ -1402,6 +1414,7 @@ function idsOfPoint(p) {
   if (p.type === "grille") grilleRows(p).forEach(r => ids.push(r.id));
   if (p.type === "group") (EVENT.groups[p.group] || { roles: [] }).roles.forEach(r => ids.push(r.c));
   if (p.type === "hebergement") ids.push("heb");
+  if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
 }
@@ -1786,6 +1799,27 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
   if (b.dataset.frf) FRF = b.dataset.frf; else FRISE = b.dataset.frise === "1" ? !FRISE : false;
   render(false); if (FRISE && b.dataset.frise === "1" && innerWidth >= 760) document.querySelector(".fr-wrap")?.scrollIntoView({ behavior: "smooth", block: "start" }); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && FRISE) { FRISE = false; render(false); } });
+/* ===== Pass et accréditations : 3 cartes (catering, bracelet, accréditation) × Pas besoin / Sur place / À imprimer =====
+   Réponses « pass-cat » / « pass-brac » / « pass-accr » = « non » | « place » | « imprimer » ; « pass-ou » = où et auprès de qui (si sur place). */
+const PASS_OPT = [["non", "Pas besoin"], ["place", "Sur place"], ["imprimer", "À imprimer"]];
+const passVals = p => (p.choses || []).map(c => valOf("pass-" + c.k));
+function passStatus(p) { const v = passVals(p); if (v.some(x => !x)) return "todo";
+  if (v.includes("place") && !valOf("pass-ou")) return "todo";
+  return (p.choses || []).some(c => sent["pass-" + c.k]) || sent["pass-ou"] ? "sent" : "ok"; }
+function passesHTML(p) {
+  const v = passVals(p), st = statusOf(p);
+  const cards = (p.choses || []).map((c, i) => `<div class="pa-c ${v[i] && v[i] !== "non" ? "on" : v[i] === "non" ? "off" : ""}"><span class="pa-e" aria-hidden="true">${c.ic}</span><b>${esc(c.t)}</b><small>${esc(c.s || "")}</small>
+    <div class="pa-ch" role="group" aria-label="${esc(c.t)}">${PASS_OPT.map(([k, l]) => `<button type="button" class="pa-b ${v[i] === k ? "on" : ""}" aria-pressed="${v[i] === k}" data-pass="pass-${c.k}" data-v="${k}">${v[i] === k ? "✓ " : ""}${l}</button>`).join("")}</div></div>`).join("");
+  return `<div class="item pa ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}">${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<div class="pa-g">${cards}</div>
+    ${v.includes("place") ? `<div class="pa-x">${pcField("pass-ou", "📍 Sur place : où et auprès de qui ?", "Lieu et personne à contacter")}</div>` : ""}
+    ${v.includes("imprimer") ? `<div class="pa-x">${fileButtons(p, "À imprimer : déposez le fichier ici")}</div>` : ""}</div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-pass]"); if (!b) return; submit(b.dataset.pass, b.dataset.v, null, b); });
+/* Bloc affiché seulement si l'équipe le dit (ex. « Accès voiture » : on vient en voiture). Réponse « <si> » = oui / non, défaut « siDef ». */
+const itemOn = it => !it.si || (valOf(it.si) || (it.siDef ? "oui" : "non")) === "oui";
+document.addEventListener("change", e => { if (!(e.target.matches && e.target.matches("[data-sitog]"))) return;
+  const id = e.target.dataset.sitog, v = e.target.checked ? "oui" : "non";
+  sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Visible pour l'organisateur." : "Masqué pour l'organisateur."); });
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1886,6 +1920,7 @@ function itemHTML(p) {
   if (p.type === "grille") return grilleHTML(p);
   if (p.type === "setlist") return slHTML(p);
   if (p.type === "parcours") return parcoursHTML(p);
+  if (p.type === "passes") return passesHTML(p);
   if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
@@ -2121,12 +2156,13 @@ function topicHTML(t) {
       ${t.note ? `<p class="det">${esc(t.note)}</p>` : ""}${acts.length ? `<div class="actions">${acts.join("")}</div>` : ""}${vuHTML(t.id + "-prevu", checks.flatMap(idsOfPoint))}`);
   }
   let frDone = false;
-  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
+  const its = gNo ? [] : (t.items || []).filter(it => it !== gate && !it.dans && (itemOn(it) || MODE === "equipe") && vis(itemOf(it)) && (!PH || (it.phase || t.phases[0].k) === PH));
   its.forEach(it => {
     const p = itemOf(it);
     /* Bloc rempli par 10 Doigts en Cavale : pas une étape, affiché grisé. */
     if (p.equipe) { body += itemHTML(it); return; }
-    const h = (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
+    const tog = it.si && MODE === "equipe" ? `<label class="pbsw tpb"><input type="checkbox" data-sitog="${it.si}" ${itemOn(it) ? "checked" : ""}><span>${esc(it.siLabel || "Visible pour l'organisateur")}<small>${itemOn(it) ? "L'organisateur voit ce bloc." : "Bloc masqué pour l'organisateur."}</small></span></label>` : "";
+    const h = tog + (it.contact ? contactFieldHTML(it.contact, false, "", "Contacts régie et production") : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
     body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" ? " co" : ""), pillHTML(p));
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
@@ -2407,6 +2443,7 @@ function buildPdf() {
         text(`Réservé par : ${hebQui(p) === "10dec" ? "10 Doigts en Cavale" : "l'organisateur"}`, 10, "normal", null, 6);
         [["nom", "Nom"], ["adr", "Adresse"], ["dates", "Dates"], ["twin", "Chambres twin"], ["single", "Chambres single"], ["pdj", "Petit-déjeuner"], ["conf", "N° de confirmation"]].forEach(([k, l]) => { const x = hebVal(p, k); if (x) text(`${l} : ${x}`, 10, "normal", null, 6); }); y += .8; return; }
       if (p.type === "grille") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); if (isPB(p)) { text(PB_TXT, 10, "normal", null, 6); y += .8; return; } grilleRows(p).forEach(r => text(`${r.nom ? r.nom + " : " : ""}${p.cols.map(c => `${c.l} ${valOf(r.id + "-" + c.k) || (r.cells || {})[c.k] || "[à compléter]"}`).join(" · ")}`, 10, "normal", null, 6)); y += .8; return; }
+      if (p.type === "passes") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); (p.choses || []).forEach(c => { const x = valOf("pass-" + c.k); text(`${c.t} : ${x === "place" ? "sur place" : x === "imprimer" ? "à imprimer (envoyé)" : x === "non" ? "pas besoin" : "[à compléter]"}`, 10, "normal", null, 6); }); if (valOf("pass-ou")) text("Où : " + valOf("pass-ou"), 10, "normal", null, 6); y += .8; return; }
       if (p.type === "parcours") { text(p.titre, 10.5, "bold", BLEU, 2); PC.forEach((x, i) => text(`${i + 1}. ${x.t} : ${pcDone(p, x.k) ? "fait (" + pcDone(p, x.k) + ")" : "à faire"}`, 10, "normal", null, 6)); ["com-quand", "com-heure", "com-collab"].forEach(k => { const v = valOf(k); if (v) text(v, 10, "normal", null, 8); }); y += .8; return; }
       if (p.type === "setlist") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); let k = 0; slSongs(p).forEach(x => { const f = slFact(x); text(`${x.ret ? "X" : ++k}. ${x.t}${f.pill ? " (" + f.pill + ")" : ""}`, 10, x.ret ? "italic" : "normal", x.ret ? GRIS : null, 6); }); y += .8; return; }
       if (p.type === "tableau") { text(`${p.titre}${etat}`, 10.5, "bold", BLEU, 2); rowsOf(p).forEach(r => text(`${rowVal(r) || "[à compléter]"} · ${r.b}`, 10, "normal", null, 6)); y += .8; return; }

@@ -84,6 +84,8 @@ def appliquer(fichier, cle, lignes_json, code=""):
         if isinstance(x, dict):
             if isinstance(x.get("id"), str): ids.add(x["id"])
             if x.get("type") == "parcours": ids.update(PARCOURS_IDS)
+            if x.get("type") == "passes": ids.update(["pass-" + c["k"] for c in x.get("choses", [])] + ["pass-ou"])
+            if x.get("si"): ids.add(x["si"])
             for v in x.values(): collect(v)
         elif isinstance(x, list):
             for v in x: collect(v)
@@ -188,6 +190,14 @@ def manquants(fichier, cle):
             reste.append(imp["t"] if isinstance(imp, dict) else imp)
         for it in t.get("items", []):
             if it.get("dans"):  # rangé dans un autre bloc (ex. dépôt paroles/audio dans le tableau de setlist)
+                continue
+            if it.get("si") and ((d.get("reponses", {}).get(it["si"]) or {}).get("texte") or ("oui" if it.get("siDef") else "non")) != "oui":
+                continue  # bloc masqué par l'équipe (ex. accès voiture : on ne vient pas en voiture)
+            if it.get("type") == "passes":
+                vals = {c["k"]: (rep.get("pass-" + c["k"]) or {}).get("texte", "") for c in it.get("choses", [])}
+                manque = [c["t"] for c in it.get("choses", []) if not vals[c["k"]]]
+                if manque: reste.append("Pass et accréditations : " + ", ".join(manque))
+                elif "place" in vals.values() and "pass-ou" not in rep: reste.append("Pass sur place : où et auprès de qui")
                 continue
             if it.get("type") == "parcours":
                 lib = parcours_reste(it, rep)
