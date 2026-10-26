@@ -878,6 +878,12 @@ body.eqv .rp :is(.rp-g,.rp-x){filter:grayscale(1);opacity:.55}
 .lg-c.on .lg-k{border-color:#2e3bb2;background:#fff}
 .lg-c b{width:150px;flex:none;font-size:15px}.lg-l{display:flex;flex-wrap:wrap;gap:5px;flex:1}.lg-l span{font-size:12.5px;font-weight:600;border-radius:999px;padding:3px 9px;background:#f3f4f8;color:#333}.lg-c.on .lg-l span{background:#fff;color:#2e3bb2}
 @media (max-width:759px){.lg-c{flex-wrap:wrap}.lg-c b{width:auto;flex:1}.lg-l{flex-basis:100%}}
+.ctabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin:2px 0 12px}
+.ctb{font:inherit;text-align:left;display:flex;gap:10px;align-items:center;border:2px solid #d7daef;border-radius:14px;padding:10px 12px;background:#fff;cursor:pointer;color:#10153d}
+.ctb.on{border-color:#f26b21;background:#fff7f0;box-shadow:0 0 0 3px #ffe6d4}.ctb.full:not(.on){background:#f7f8fc}
+.ctb-e{font-size:24px}.ctb b{display:block;font-size:14.5px}.ctb small{font-size:12px;font-weight:700;color:#6b718f}
+.st-dec .eqb{margin:0}.st-dec .eqb-h{display:none}
+@media (max-width:759px){.ctabs{grid-template-columns:1fr;gap:6px}.ctb{padding:8px 12px}}
 </style>
 </head>
 <body>
@@ -938,7 +944,7 @@ const ROLES = [
   { fam: "tech", e: "spot", label: "La lumière", topics: ["lumiere"] },
   { fam: "tech", e: "scene", label: "Le plateau", topics: ["emplacement"] },
   { fam: "tech", e: "camera", label: "Retransmission sur écrans", topics: ["ecran"] },
-  { fam: "tech", e: "console", label: "Contacts - Technique & Logistique", topics: ["contacts"] },
+  { fam: "tech", e: "console", label: "Tous les contacts", topics: ["contacts"] },
   { fam: "logi", e: "loge", label: "Loge & Catering", topics: ["accueil"] },
   { fam: "logi", e: "van", label: "Parking", topics: ["parking"] },
   { fam: "logi", e: "lit", label: "Hébergement", topics: ["hebergement"] },
@@ -980,7 +986,7 @@ function dueOf(t) {
 }
 /* Un seul nom par sujet, partout (tuiles de l'accueil, menu, titre du sujet, « Ce qu'il manque », bouton « Suivant »). */
 const SHORT = { setlist: "Setlist / Dresscode", son: "Les retours son", talkback: "Micro talkback", lumiere: "La lumière", emplacement: "Le plateau",
-  ecran: "Retransmission sur écrans", contacts: "Contacts - Technique & Logistique", accueil: "Loge & Catering", parking: "Parking",
+  ecran: "Retransmission sur écrans", contacts: "Tous les contacts", accueil: "Loge & Catering", parking: "Parking",
   pass: "Accueil et logistique", hebergement: "Hébergement", horaires: "Horaires", public: "Com et public sourd",
   presse: "Presse et captation", photos: "Après le concert", securite: "Sécurité et assurances" };
 
@@ -1045,7 +1051,7 @@ function contactItem(cid, extra) {
 }
 /* Plusieurs artistes le même soir : sélecteur « Tout · Festival · artiste A · artiste B ».
    Un point sans « artiste » est commun au festival ; « artiste » peut être un id ou une liste d'ids. */
-let FILTRE = "tout";
+let FILTRE = "tout", CTAB = {};
 /* Sujet en « voyage » (ex. Com et public sourd) : 3 phases (cartes en haut), on n'affiche que la phase choisie. */
 const PHASE = {};
 const phPts = (t, k) => ptsF(t).filter(p => (p.phase || t.phases[0].k) === k);
@@ -1920,6 +1926,7 @@ function repasOrgaHTML(p) {
     ${tk ? `<div class="rp-x">${passesHTML(tk)}</div>` : ""}
     <details class="rp-i"><summary>Régimes : ${esc(reg.length ? reg.join(" · ") : "aucun")}${p.compo ? " · Le repas idéal (voir)" : ""}</summary>${p.compo ? `<p>${esc(p.compo).replace(/\n/g, "<br>")}</p>` : ""}</details></div>`;
 }
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-ctab]"); if (!b) return; CTAB[b.dataset.ctab] = +b.dataset.i; render(false); });
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -2168,10 +2175,11 @@ function contactsListHTML(t, vis) {
   const art = all.filter(c => sideOf(c) === "artiste"), fest = all.filter(c => sideOf(c) !== "artiste").sort((a, b) => bas(a) - bas(b));
   /* Une étape numérotée par tableau. */
   const steps = [];
-  if (fest.length || !multiArt()) steps.push({ t: "Équipe du festival/salle", h: contactsTableHTML(fest, "festival") });
-  if (!multiArt()) steps.push({ t: "Équipe de l'artiste", h: contactsTableHTML(art, "artiste") });
+  if (fest.length || !multiArt()) steps.push({ t: "Équipe festival / salle", ic: "🎪", ids: fest, h: contactsTableHTML(fest, "festival") });
+  if (!multiArt()) steps.push({ t: "Équipe artiste", ic: "🎤", ids: art, h: contactsTableHTML(art, "artiste") });
   else ARTS().filter(a => t.artiste ? t.artiste === a.id : (FILTRE === "tout" || FILTRE === a.id)).filter(a => art.some(c => tagsOf(EVENT.contacts[c]).includes(a.id)))
-    .forEach(a => { const ids = art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)); steps.push({ t: `<i class="dot" style="background:${a.couleur}"></i> Équipe de ${esc(a.court)}`, raw: true, h: contactsTableHTML(ids, "artiste") }); });
+    .forEach(a => { const ids = art.filter(c => tagsOf(EVENT.contacts[c]).includes(a.id)); steps.push({ t: `Équipe de ${a.court}`, ic: "🎤", ids, h: contactsTableHTML(ids, "artiste") }); });
+  if (teamList().length) steps.push({ t: "Équipe 10 Doigts en Cavale", ic: "🤟", ids: [], dec: true, h: teamTableHTML() });
   return { intro: `<p class="intro">${esc(t.intro)}</p><p class="hint">Les cases en pointillés jaunes sont à compléter.</p>`, steps };
 }
 function subsHTML(sub) {
@@ -2277,7 +2285,13 @@ function topicHTML(t) {
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
-  if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro; cl.steps.forEach(x => { body += step(x.raw ? x.t : esc(x.t), x.h); }); }
+  if (t.contactsList) { const cl = contactsListHTML(t, vis); pre += cl.intro;
+    /* 3 onglets : festival / artiste / 10 Doigts en Cavale ; un seul tableau affiché. */
+    const ks = cl.steps.map((x, i) => i), cntOf = x => { const d = x.ids.filter(contactDone).length; return { d, n: x.ids.length }; };
+    let cur = CTAB[t.id]; if (cur == null || !cl.steps[cur]) { cur = cl.steps.findIndex(x => !x.dec && cntOf(x).d < cntOf(x).n); if (cur < 0) cur = 0; }
+    const tabs = `<div class="ctabs" role="tablist">${cl.steps.map((x, i) => { const c = cntOf(x), full = !x.dec && c.n && c.d === c.n;
+      return `<button type="button" role="tab" aria-selected="${i === cur}" class="ctb ${i === cur ? "on" : ""} ${full ? "full" : ""}" data-ctab="${t.id}" data-i="${i}"><span class="ctb-e" aria-hidden="true">${x.ic}</span><span><b>${esc(x.t)}</b><small>${x.dec ? "✓ Remplie par nous" : `${c.d}/${c.n} remplis`}</small></span></button>`; }).join("")}</div>`;
+    const x = cl.steps[cur]; if (x) body += step("Les équipes", tabs + x.h, x.dec ? "st-dec" : ""); }
   if (t.docs && t.docs.length && !TOPIC_RES[t.base || t.id]) body += `<div class="docbox">${docsHTML(t.docs)}</div>`;
   if (t.qui && vis({}) && !gNo) body += step(esc(EVENT.groups[t.qui].titre), groupHTML(t.qui, "") + vuHTML("grp-" + t.qui, idsOfPoint(groupItem(t.qui))), "st-qui");
   if (MODE === "equipe" && aVoir(t)) body += `<div class="vu-page"><button type="button" class="b-page" data-vupage="${t.id}">✓ Toute cette page : vu &amp; noté</button></div>`;
