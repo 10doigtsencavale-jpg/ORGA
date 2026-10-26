@@ -882,7 +882,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
 .as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;white-space:nowrap}.as-no{color:#bbb}
 .as-b{font:inherit;font-weight:700;font-size:13px;cursor:pointer;border-radius:10px;padding:6px 10px;border:1.5px solid #c9cde6;color:#2e3bb2;background:#fff;white-space:nowrap}.as-b.on{background:#e6e8fb;border:2px solid #2e3bb2}
-.as-t input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:8px 10px}.as-t td>*{justify-self:start}.as-t tr.as-out td{opacity:.45}.as-t tr.as-out td:first-child{opacity:1}.as-t tr.as-out b{text-decoration:line-through}.as-av{color:#7a4300!important;font-weight:700!important}.as-t tr.as-on td{background:#f7f8fc}.as-deja{font-size:13px;font-weight:700;color:#2e3bb2}
+.as-t input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:8px 10px}.as-t td>*{justify-self:start}.as-more{font:inherit;font-weight:700;font-size:14px;color:#2e3bb2;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:9px 14px;cursor:pointer;width:100%;margin:8px 0}.as-p small{font-weight:400;color:#555}.as-t tr.as-out td{opacity:.45}.as-t tr.as-out td:first-child{opacity:1}.as-t tr.as-out b{text-decoration:line-through}.as-av{color:#7a4300!important;font-weight:700!important}.as-t tr.as-on td{background:#f7f8fc}.as-deja{font-size:13px;font-weight:700;color:#2e3bb2}
 @media (max-width:640px){.as-t thead{display:none}.as-t,.as-t tbody,.as-t tr,.as-t td{display:block;width:100%}.as-t tr{border:1.5px solid #d7daef;border-radius:14px;padding:8px 10px;margin-bottom:8px}.as-t td{border:0!important;padding:3px 0;text-align:left!important;display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center}
 .as-t td:first-child{display:block}.as-t td[data-l]:not(:first-child)::before{content:attr(data-l);font-size:12.5px;font-weight:700;color:#6b718f}.as-t td.act{display:block}.as-t .as-m{white-space:normal;word-break:break-all}.as-t input{width:100%}.as-s{grid-template-columns:1fr}.as-n{display:none}}
 .rp-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rp-c{border:2px solid #d7daef;border-radius:16px;padding:12px}.rp-c h4{margin:0 0 4px;font:400 22px "Bebas Neue",sans-serif}
@@ -1920,7 +1920,12 @@ function asRows(p) {
   return [...l, ...x];
 }
 const asSent = r => !!r.deja || valOf(r.id + "-env") === "Envoyé";
-function asStatus(p) { const rr = asRows(p).filter(r => !r.rm); if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
+/* Les 15 premières (ordre = pertinence) sont l'essentiel ; les autres sont en « Voir + » (bonus, ne bloquent pas le point). */
+const AS_N = 15; let ASMORE = false;
+function asSplit(p) { let n = 0; const all = asRows(p).map(r => Object.assign(r, { more: !r.extra && !r.rm && ++n > AS_N }));
+  all.forEach((r, i) => { if (r.rm && !r.extra) r.more = all.slice(0, i).filter(x => !x.rm && !x.extra).length >= AS_N; });
+  return { all, core: all.filter(r => !r.rm && !r.more), bonus: all.filter(r => !r.rm && r.more) }; }
+function asStatus(p) { const rr = asSplit(p).core; if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
 const asHeure = () => { const h = String(EVENT.heure || ""); return !h || /venir/i.test(h) ? "" : h; };
 function asMsg(p) {
   const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), eq = MODE === "equipe";
@@ -1943,7 +1948,7 @@ function asAddRow(r) {
     <td class="act"><form id="fx-${r.id}" data-asx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
 }
 function assosHTML(p) {
-  const all = asRows(p), rr = all.filter(r => !r.rm), d = rr.filter(asSent).length, m = asMsg(p), mails = rr.map(r => r.mail).filter(Boolean), eq = MODE === "equipe";
+  const sp = asSplit(p), all = sp.all, rr = sp.core, d = rr.filter(asSent).length, db = sp.bonus.filter(asSent).length, m = asMsg(p), mails = rr.concat(ASMORE ? sp.bonus : []).map(r => r.mail).filter(Boolean), eq = MODE === "equipe";
   const subj = "🎉 Concert chansigné en LSF";
   const row = r => { if (r.extra && (!(r.mail || r.site || r.fb) || sent["draft-" + r.id + "__edit"])) return asAddRow(r);
     const on = asSent(r);
@@ -1953,7 +1958,7 @@ function assosHTML(p) {
       <td data-l="Prévenue">${r.deja ? `<span class="as-deja">✓ ${esc(r.deja)}</span>` : `<button type="button" class="as-b ${on ? "on" : ""}" aria-pressed="${on}" data-asenv="${r.id}-env">${on ? "✓ Envoyé" : "Marquer envoyé"}</button>`}</td></tr>`; };
   const tp = EVENT.topics.find(t => (t.items || []).includes(p)) || {};
   return `<div class="item as" id="it-${p.id}">${jumNote(tp, `Un seul envoi pour les 2 concerts. Ce que vous cochez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`)}
-    <p class="as-p"><b>${d} association${d > 1 ? "s" : ""} prévenue${d > 1 ? "s" : ""} sur ${rr.length}</b></p><div class="as-bar" aria-hidden="true"><i style="width:${rr.length ? Math.round(d / rr.length * 100) : 0}%"></i></div>
+    <p class="as-p"><b>${d} association${d > 1 ? "s" : ""} prévenue${d > 1 ? "s" : ""} sur ${rr.length}</b>${db ? ` <small>(+ ${db} en plus)</small>` : ""}</p><div class="as-bar" aria-hidden="true"><i style="width:${rr.length ? Math.round(d / rr.length * 100) : 0}%"></i></div>
     <div class="as-s"><span class="as-n" aria-hidden="true">1</span><div><b>Copiez le message</b>
       <div class="as-msg">${esc(m.txt)}</div>
       ${m.heures}      ${MODE === "equipe" ? `<div class="as-plus">${pcField("pub-asso-plus", "➕ Info importante en plus (une ligne)", "ex. 🤝 Rencontre avec les chansigneurs avant le concert !")}</div>` : ""}
@@ -1963,9 +1968,11 @@ function assosHTML(p) {
       <a class="btn btn-ghost" href="mailto:?bcc=${encodeURIComponent(mails.join(","))}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(m.txt)}">✉️ Ouvrir ma messagerie</a>` : ""}</div></div></div>
     <div class="as-s"><span class="as-n" aria-hidden="true">2</span><div><b>Envoyez-le, puis cochez</b>
       <p class="det">Pas de mail ? Envoyez le message sur leur page Facebook.</p>
-      <div class="tab-w"><table class="ttab as-t"><thead><tr><th>Association</th><th>Mail</th><th>Site</th><th>Facebook</th><th>Prévenue</th></tr></thead><tbody>${all.map(row).join("")}</tbody></table></div>
+      <div class="tab-w"><table class="ttab as-t"><thead><tr><th>Association</th><th>Mail</th><th>Site</th><th>Facebook</th><th>Prévenue</th></tr></thead><tbody>${all.filter(r => !r.more || ASMORE).map(row).join("")}</tbody></table></div>
+      ${sp.bonus.length ? `<button type="button" class="as-more" data-asmore aria-expanded="${ASMORE}">${ASMORE ? "▴ Réduire la liste" : `▾ Voir + : ${sp.bonus.length} autres associations, plus loin`}</button>` : ""}
       <button type="button" class="addb" data-addrow2="${p.id}" data-nom="Association ${rr.length + 1}">+ Ajouter une association</button></div></div></div>`;
 }
+document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-asmore]")) { ASMORE = !ASMORE; render(false); } });
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asrm]"); if (!b) return; const id = b.dataset.asrm, v = b.dataset.v;
   sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Association retirée de la liste." : "Association remise dans la liste."); });
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asenv]"); if (!b) return; const id = b.dataset.asenv;

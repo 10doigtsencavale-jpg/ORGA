@@ -209,7 +209,8 @@ def manquants(fichier, cle):
                 elif "place" in vals.values() and it.get("ou", "pass-ou") not in rep: reste.append(it.get("titre", "Pass") + " sur place : où et auprès de qui")
                 continue
             if it.get("type") == "assos":
-                lignes = [it["id"] + "-" + a["k"] for a in it.get("liste", []) if not a.get("deja") and (rep.get(it["id"] + "-" + a["k"] + "-rm") or {}).get("texte") != "oui"]
+                garde = [a for a in it.get("liste", []) if (rep.get(it["id"] + "-" + a["k"] + "-rm") or {}).get("texte") != "oui"][:15]  # les 15 premières ; les autres sont en « Voir + »
+                lignes = [it["id"] + "-" + a["k"] for a in garde if not a.get("deja")]
                 lignes += sorted({k for k in rep if re.match("^" + re.escape(it["id"]) + r"-x[a-z0-9]{4,10}$", k) and not str((rep.get(k) or {}).get("texte", "")).startswith("✗")})
                 faits = sum(1 for l in lignes if (rep.get(l + "-env") or {}).get("texte") == "Envoyé")
                 if faits < len(lignes): reste.append(f"Prévenir les associations sourdes ({faits}/{len(lignes)})")
