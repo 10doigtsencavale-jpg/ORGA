@@ -1940,6 +1940,15 @@ function repasOrgaHTML(p) {
     <details class="rp-i"><summary>Régimes : ${esc(reg.length ? reg.join(" · ") : "aucun")}${p.compo ? " · Le repas idéal (voir)" : ""}</summary>${p.compo ? `<p>${esc(p.compo).replace(/\n/g, "<br>")}</p>` : ""}</details></div>`;
 }
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-ctab]"); if (!b) return; CTAB[b.dataset.ctab] = +b.dataset.i; render(false); });
+
+/* Mise à jour : si une version plus récente de la page est en ligne (cache du navigateur), on recharge une fois. */
+(async () => { try {
+  if (window.EMBED || !location.hostname.endsWith("github.io")) return;
+  const k = "orga-maj", last = +(sessionStorage.getItem(k) || 0); if (Date.now() - last < 60000) return;
+  const cur = [...document.scripts].reduce((a, x) => x.textContent.length > a.length ? x.textContent : a, "");
+  const txt = await fetch(location.pathname + "?maj=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "");
+  if (txt && cur && !txt.includes(cur.slice(0, 4000)) || (txt && !txt.includes(cur.slice(-4000)))) { sessionStorage.setItem(k, Date.now()); location.reload(); }
+} catch (e) {} })();
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
