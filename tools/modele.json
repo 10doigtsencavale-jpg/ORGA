@@ -681,7 +681,8 @@
        "a": "",
        "b": "Fin du concert de {ARTISTE}"
       }
-     ]
+     ],
+     "jours": true
     },
     {
      "id": "acc-fdr",

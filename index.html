@@ -877,7 +877,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .as-s{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;margin-bottom:14px}.as-s>div{min-width:0}.as-s>div>b{display:block;font-size:16px;margin:3px 0 6px}
 .as-n{width:28px;height:28px;border-radius:50%;background:#f7a42b;color:#10153d;display:flex;align-items:center;justify-content:center;font-weight:800}
 .as-msg{border:1.5px dashed #c9cde6;border-radius:12px;padding:10px 12px;background:#fafbff;white-space:pre-line;font-size:15px;line-height:1.45}
-.jum{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 12px}.jum b{color:#2e3bb2}.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
+.jum{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 12px}.jum b{color:#2e3bb2}.ttab.hor td.hj{white-space:nowrap;color:#2e3bb2;font-weight:700;text-transform:capitalize}.ttab.hor input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:7px 9px}.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
 .as-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.as-acts .btn{text-decoration:none}
 .as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
 .as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;white-space:nowrap}.as-no{color:#bbb}
@@ -1485,7 +1485,7 @@ function idsOfPoint(p) {
   if (p.type === "group") (EVENT.groups[p.group] || { roles: [] }).roles.forEach(r => ids.push(r.c));
   if (p.type === "hebergement") ids.push("heb");
   if (p.type === "repas") inlineOf(p).forEach(x => ids.push(...idsOfPoint(x)));
-  if (p.type === "tableau") (p.rows || []).forEach(r => ids.push(r.id));
+  if (p.type === "tableau") { (p.rows || []).forEach(r => ids.push(r.id)); if (p.jours) extraRows(p).forEach(r => ids.push(r.id, r.id + "-h", r.id + "-j")); }
   if (p.type === "assos") ids.push("pub-asso-plus", ...((p.msg && p.msg.prog) || [0]).map((x, i) => "pub-asso-h" + i)), asRows(p).forEach(r => ids.push(r.id + "-env", r.id + "-rm", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
   if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), p.ou || "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
@@ -1978,6 +1978,13 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
   sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Association retirée de la liste." : "Association remise dans la liste."); });
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asenv]"); if (!b) return; const id = b.dataset.asenv;
   if (valOf(id) === "Envoyé") unsetAns(id); else submit(id, "Envoyé", null, b); });
+document.addEventListener("submit", e => { const f = e.target.closest && e.target.closest("[data-horx]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
+  const id = f.dataset.horx, el = n => ((document.querySelector(`[form="fx-${id}"][name="${n}"]`) || {}).value || "").trim(), nom = el("nom"), h = el("h"), j = el("j");
+  if (!nom) { toast("Merci d'indiquer l'étape."); return; } if (!h) { toast("Merci d'indiquer l'horaire."); return; }
+  const now = new Date().toISOString(), team = ADMIN && MODE === "equipe";
+  [[id, nom], [id + "-h", h], [id + "-j", j]].forEach(([k, v]) => { if (!v) return; if (team) sent["team-" + k] = { texte: v, statut: "ok", date: now }; else sent[k] = { texte: v, date: now }; post(k, v, SOURCE()); });
+  delete sent["draft-" + id + "__edit"]; save(); render(false); toast("Merci ! Ligne ajoutée.");
+}, true);
 document.addEventListener("submit", e => { const f = e.target.closest && e.target.closest("[data-asx]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
   const id = f.dataset.asx, el = n => ((document.querySelector(`[form="fx-${id}"][name="${n}"]`) || {}).value || "").trim(), nom = el("nom");
   if (!nom) { toast("Merci d'indiquer le nom."); return; } if (!el("mail") && !el("site") && !el("fb")) { toast("Merci d'indiquer un mail, un site ou une page Facebook."); return; }
@@ -2064,17 +2071,33 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
 function tableauHTML(p) {
-  const st = statusOf(p);
-  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
-    <p class="det">Les cases en pointillés jaunes sont à compléter.</p>
-    <div class="tab-w"><table class="ttab hor"><thead><tr><th>${esc(p.colA)}</th><th>${esc(p.colB)}</th></tr></thead><tbody>
-    ${rowsOf(p).map(r => { const v = rowVal(r), mine = sent[r.id];
-      if (r.equipe && MODE !== "equipe") return `<tr class="fourni"><td>${v ? `<span class="tv">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
-      return `<tr class="${v ? "" : "vide"}"><td>${v
+  const st = statusOf(p), J = !!p.jours;
+  /* Planning (« jours ») : une colonne Jour, et des lignes ajoutées par l'orga ou 10DEC (« <item>-x… » = étape, « -h » horaire, « -j » jour AAAA-MM-JJ). */
+  const jd = iso => { if (!iso) return ""; const d = new Date(iso + "T12:00:00"); return isNaN(d) ? iso : d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "numeric" }); };
+  const hm = h => { const m = String(h || "").match(/(\d{1,2})\s*h\s*(\d{0,2})/i); return m ? +m[1] * 60 + (+m[2] || 0) : 9999; };
+  /* Lignes prévues : gardent leur ordre (une ligne sans horaire prend la place de la précédente) ; lignes ajoutées : rangées par horaire. */
+  let last = 0; const base = rowsOf(p).map((r, i) => { const h = rowVal(r), k = hm(h); if (k < 9999) last = k; return { r, i, j: r.j || EVENT.iso || "", h, k: k < 9999 ? k : last + i / 100 }; });
+  const xs = J ? extraRows(p).map((r, i) => ({ x: r, i: 1000 + i, j: valOf(r.id + "-j"), h: valOf(r.id + "-h"), k: hm(valOf(r.id + "-h")) })) : [];
+  const all = [...base, ...xs].sort((a, b) => J ? (a.j || "~").localeCompare(b.j || "~") || a.k - b.k || a.i - b.i : 0);
+  const jc = o => J ? `<td data-l="Jour" class="hj">${esc(jd(o.j))}</td>` : "";
+  const xrow = o => { const r = o.x, done = o.h && !sent["draft-" + r.id + "__edit"];
+    if (done) return `<tr>${jc(o)}<td><span class="tv">${esc(o.h)}</span></td><td>${esc(r.nom)} <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
+    return `<tr class="vide"><td data-l="Jour"><input type="date" form="fx-${r.id}" name="j" value="${esc(o.j || EVENT.iso || "")}" aria-label="Jour"></td>
+      <td><input type="text" form="fx-${r.id}" name="h" placeholder="??h?? - ??h??" value="${esc(o.h)}" aria-label="Horaire"></td>
+      <td><input type="text" form="fx-${r.id}" name="nom" placeholder="ex. Atelier avec une classe" value="${esc(/^Ligne \d+$/.test(r.nom) ? "" : r.nom)}" aria-label="Étape">
+      <form id="fx-${r.id}" data-horx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`; };
+  const row = o => { if (o.x) return xrow(o); const r = o.r, v = rowVal(r), mine = sent[r.id];
+      if (r.equipe && MODE !== "equipe") return `<tr class="fourni">${jc(o)}<td>${v ? `<span class="tv">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
+      return `<tr class="${v ? "" : "vide"}">${jc(o)}<td>${v
         ? `<span class="tv">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
         : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(phHeure(r.ph) || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
-        <td>${esc(r.b)}</td></tr>`; }).join("")}
-    </tbody></table></div></div>`;
+        <td>${esc(r.b)}</td></tr>`; };
+  return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
+    <p class="det">Les cases en pointillés jaunes sont à compléter.</p>
+    <div class="tab-w"><table class="ttab hor"><thead><tr>${J ? "<th>Jour</th>" : ""}<th>${esc(p.colA)}</th><th>${esc(p.colB)}</th></tr></thead><tbody>
+    ${all.map(row).join("")}
+    </tbody></table></div>
+    ${J ? `<button type="button" class="addb" data-addrow2="${p.id}" data-nom="Ligne ${xs.length + 1}">+ Ajouter une ligne (autre jour possible : atelier la veille…)</button>` : ""}</div>`;
 }
 /* Fiche : un petit tableau de questions courtes (oui/non, cases, choix, champ). Une ligne « gate » à Non clôt le sujet. */
 const ficheRows = p => { const g = p.rows.find(r => r.gate); if (g && valOf(g.id) === "Non") return [g];
@@ -2446,6 +2469,7 @@ function topicHTML(t) {
     ${t.rappel ? `<p class="rappel">${SVGL(CLOCKD)}<span>${esc(t.rappel)}</span></p>` : ""}
     ${MODE === "equipe" && t.masquable ? `<label class="pbsw tpb"><input type="checkbox" data-tpb="${t.id}" ${topicOff(t) ? "checked" : ""}><span>Pas besoin pour ce concert<small>La page disparaît pour l'organisateur.</small></span></label>` : ""}
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
+    ${MODE === "equipe" && t.memo ? `<p class="hebline">📝 <span><b>Mémo équipe :</b> ${esc(t.memo)}</span></p>` : ""}
     <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
     ${t.phases ? phasesHTML(t) : ""}${pre}${!PH ? topicResHTML(t) : ""}${body}</div></main>`;
 }

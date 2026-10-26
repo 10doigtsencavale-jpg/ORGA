@@ -55,3 +55,11 @@ Le modèle est `tools/modele.json` (aucune donnée d'événement dedans). Le fic
   doc « 2-SETLIST THEATRE + PAROLES Facteurs » (15 titres, dossier Drive 1SsDoTPeeTZorOySslFkKQ6PfUpsJuMCR) ; l'organisateur précise ensuite les retraits.
   Tous les titres : paroles et audio reçus.
 - Format dans les infos : `"setlist": [{"t": "Titre", "p": "r", "a": "r"}, …]` (« r » = ✓ Reçu) ou une simple liste de titres s'ils sont à recevoir.
+
+## Les Fils du Facteur : technique (décidé par Aurélie le 26/10/2026)
+Résidence faite : toute la technique est prévue et refaite à chaque date, et les chansigneurs interviennent SANS ears (seule exception).
+Après `creer`, pour chaque date des Fils du Facteur :
+- sujets « son », « lumiere », « emplacement », « ecran », « talkback » : `masquable: true`, `memo` (mémo visible seulement par l'équipe),
+  et réponse équipe `<sujet>-pasbesoin` = « oui » (source 10DEC) → pages masquées pour l'organisateur ; dans Technique, seuls les contacts restent.
+- « setlist-show » (enregistrement récent du show) : `si: "setlist-show-on"`, `siDef: false` → masqué (l'équipe peut le réafficher).
+- Jen : Jen Petit, chansigneuse (téléphone dans la FDR).

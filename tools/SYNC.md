@@ -130,3 +130,6 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
 - `pub-asso-<k>-rm` = « oui » : retirée de la liste par l'équipe (« non » = remise).
 - `pub-asso-x…` (+ `-mail`, `-site`, `-fb`) : association ajoutée ; `pub-asso-plus` : ligne en plus dans le message.
 - Espaces jumeaux (RDV Soniques) : ces réponses commencent par `pub-asso`, elles sont recopiées dans l'autre espace.
+
+## Planning du jour J : lignes ajoutées
+- `hor-tab-x…` = étape ajoutée (orga ou équipe), `-h` = horaire, `-j` = jour (AAAA-MM-JJ, ex. atelier la veille) → « ⏰ PLANNING DU JOUR J » de la FDR (Heure = « Jeu 18 · 14h00 » si autre jour).

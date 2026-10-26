@@ -562,6 +562,7 @@ def creer(infos_json, code):
     noms = [c["nom"].split()[0] for c in ch]
     chs = " et ".join([", ".join(noms[:-1]), noms[-1]] if len(noms) > 1 else noms)
     txt = json.dumps(M, ensure_ascii=False).replace("{ARTISTE}", I["artiste"]).replace("{CHANSIGNEURS}", chs or "l'équipe")
+    txt = txt.replace("de Les ", "des ").replace("de Le ", "du ")
     d = json.loads(txt)
     ref = I.get("referente") or (ch[0] if ch else {"nom": "", "tel": ""})
     d.update({"id": I.get("id") or f'{I["iso"]}-{I["artiste"]}'.lower().replace(" ", "-"), "artiste": I["artiste"], "lieu": I["lieu"], "ville": I.get("ville", ""),
