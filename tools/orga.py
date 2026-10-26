@@ -571,7 +571,7 @@ def creer(infos_json, code):
               "referente": {"nom": ref["nom"], "role": "chansigneuse, votre contact", "tel": ref.get("tel", ""), "mail": "10doigtsencavale@gmail.com"},
               "chansigneurs": chs, "equipe": [{"nom": c["nom"], "tel": c.get("tel", "")} for c in ch], "arrivees": I.get("arrivees", []),
               "depotFichiers": "", "envoi": "", "reponses": {}, "questions": {}, "journal": [], "vus": [],
-              "adminHash": hashlib.sha256(code.encode()).hexdigest()})
+              "adminHash": hashlib.sha256(code.encode()).hexdigest(), "forfait": bool(I.get("forfait"))})
     for cid, v in (I.get("contacts") or {}).items():
         if cid in d["contacts"] and v: d["contacts"][cid].update({"statut": "ok", "valeur": v})
     for t in d["topics"]:

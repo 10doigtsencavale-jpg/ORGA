@@ -1652,7 +1652,7 @@ function grilleHTML(p) {
    « <id>-ret » = « retirée » | « remise » ; « <id>-par » / « <id>-aud » = « reçu » | « à envoyer » (équipe) ;
    « sl-ordre » = ids dans l'ordre ; réponse « sl » = setlist confirmée par l'organisateur.
    Fond coloré selon le délai avant le concert (conditions de facturation). */
-let SLORD = null, SLASK = "", SLEDIT = "", SLFACT = true; try { SLFACT = localStorage.getItem("orga-slfact") !== "0"; } catch (e) {}
+let SLORD = null, SLASK = "", SLEDIT = "", SLFACT_ = true; try { SLFACT_ = localStorage.getItem("orga-slfact") !== "0"; } catch (e) {}
 const slNow = () => new Date().toISOString();
 const slToday = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const slDays = iso => { if (!EVENT.iso || !iso) return null; const d = new Date(iso); d.setHours(0, 0, 0, 0); return Math.round((new Date(EVENT.iso + "T00:00:00") - d) / 864e5); };
@@ -1674,6 +1674,7 @@ function slSongs(p) {
   return all.sort((a, b) => pos(a.id) - pos(b.id));
 }
 function slFact(s) {
+  if (EVENT.forfait) return { cls: "", pill: "" }; /* forfait global (ex. Les Fils du Facteur) : pas de conditions de facturation par titre */
   if (s.ret) { const j = slDays(s.ret), tr = slTier(j);
     if (EVENT.mutualise) return { cls: "t100", pill: "Retirée · due (mutualisation)" };
     return { cls: tr, pill: tr ? `Retirée · ${SL_PCT[tr]}` : "Retirée · travail fait + frais" }; }
@@ -1705,9 +1706,10 @@ function slState(s, k) {
     ${custom ? `<option value="${esc(x.org)}" selected>${esc(x.org)}</option>` : ""}<option value="__autre">${custom ? "Modifier le mot…" : "Autre (écrire)…"}</option></select>`;
 }
 function slHTML(p) {
+  const SLFACT = SLFACT_ && !EVENT.forfait;
   const st = statusOf(p), songs = slSongs(p), live = songs.filter(s => !s.ret), out = songs.filter(s => s.ret);
   const ddm = iso => iso ? dmOf(iso) : "", n = id => live.findIndex(s => s.id === id) + 1;
-  const ask = s => { const tr = slTier(slDays(slNow())), cout = EVENT.mutualise ? "Elle reste due (mutualisation)." : tr ? `Elle sera facturée ${SL_PCT[tr]}.` : "Seuls le travail fait et les frais seront facturés.";
+  const ask = s => { const tr = slTier(slDays(slNow())), cout = EVENT.forfait ? "" : EVENT.mutualise ? "Elle reste due (mutualisation)." : tr ? `Elle sera facturée ${SL_PCT[tr]}.` : "Seuls le travail fait et les frais seront facturés.";
     return `<div class="sl-ask" role="alert"><b>Retirer « ${esc(s.t)} » ?</b> ${cout}${MODE === "equipe" ? `<label class="sl-qd">Demandé le <input type="date" id="sl-retd" value="${slToday()}"></label>` : ""}<span><button type="button" class="btn btn-ok" data-slret="${s.id}">Oui, retirer</button><button type="button" class="btn btn-ghost" data-slno="1">Annuler</button></span></div>`; };
   const acts = s => s.ret ? `<button type="button" class="sl-b sl-back" data-slback="${s.id}">Remettre</button>`
     : `<button type="button" class="sl-b" data-slmv="${s.id}" data-d="-1" aria-label="Monter ${esc(s.t)}" ${n(s.id) === 1 ? "disabled" : ""}>↑</button><button type="button" class="sl-b" data-slmv="${s.id}" data-d="1" aria-label="Descendre ${esc(s.t)}" ${n(s.id) === live.length ? "disabled" : ""}>↓</button><button type="button" class="sl-b sl-x" data-slask="${s.id}" aria-label="Retirer ${esc(s.t)}">✕</button>`;
@@ -1728,7 +1730,7 @@ function slHTML(p) {
     <div class="tab-w sl-desk"><table class="ttab grille sl-tab"><thead><tr><th>N°</th><th>Titre</th><th>Ajoutée le</th><th>Retirée le</th><th>Paroles</th><th>Audio</th><th>Ordre</th>${SLFACT ? `<th class="sl-fh">Conditions de facturation <button type="button" class="linkbtn" data-slfact="0">Masquer</button></th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="sl-mob"><ol class="sl-l">${live.map(card).join("")}</ol>${out.length ? `<p class="sl-rt">Retirées</p><ol class="sl-l">${out.map(card).join("")}</ol>` : ""}</div>
     ${SLORD ? `<div class="sl-ord"><span>Ordre modifié.</span><button type="button" class="btn btn-ok" data-slsave="1">Enregistrer le nouvel ordre</button><button type="button" class="btn btn-ghost" data-slcancel="1">Annuler</button></div>` : ""}
-    ${SLFACT ? slLeg() : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher les conditions de facturation</button></p>`}
+    ${SLFACT ? slLeg() : EVENT.forfait ? "" : `<p class="sl-leg"><button type="button" class="linkbtn" data-slfact="1">Afficher les conditions de facturation</button></p>`}
     <form class="form sl-add" data-sladd="1"><div class="fwrap"><input type="text" id="f-sladd" name="sladd" placeholder="Ajouter une chanson : titre" aria-label="Titre de la chanson à ajouter"><button class="send" type="submit">+ Ajouter</button></div>${MODE === "equipe" ? `<label class="sl-qd">Demandé le <input type="date" name="quand" value="${slToday()}"></label><span class="hint">Mettez la date du mail de l'organisateur : c'est elle qui compte pour la facturation.</span>` : ""}</form>
     ${slDepot(p)}
     ${conf ? `<p class="sl-conf">✓ Setlist confirmée le ${dmOf(conf.date)}${conf.auteur ? " par " + esc(conf.auteur) : ""}.</p>` : ""}
@@ -1758,7 +1760,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.slback) { slSet(b.dataset.slback + "-ret", "remise"); render(false); toast("Chanson remise dans la setlist."); }
   else if (b.dataset.slsave) { const v = SLORD.join(","); SLORD = null; slSet("sl-ordre", v); render(false); toast("Nouvel ordre envoyé."); }
   else if (b.dataset.slcancel) { SLORD = null; render(false); }
-  else if (b.dataset.slfact) { SLFACT = b.dataset.slfact === "1"; try { localStorage.setItem("orga-slfact", SLFACT ? "1" : "0"); } catch (e) {} render(false); }
+  else if (b.dataset.slfact) { SLFACT_ = b.dataset.slfact === "1"; try { localStorage.setItem("orga-slfact", SLFACT_ ? "1" : "0"); } catch (e) {} render(false); }
   else if (b.dataset.slconf) submit(b.dataset.slconf, "Setlist confirmée.", null, b);
 });
 document.addEventListener("change", e => {

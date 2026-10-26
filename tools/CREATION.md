@@ -63,3 +63,5 @@ Après `creer`, pour chaque date des Fils du Facteur :
   et réponse équipe `<sujet>-pasbesoin` = « oui » (source 10DEC) → pages masquées pour l'organisateur ; dans Technique, seuls les contacts restent.
 - « setlist-show » (enregistrement récent du show) : `si: "setlist-show-on"`, `siDef: false` → masqué (l'équipe peut le réafficher).
 - Jen : Jen Petit, chansigneuse (téléphone dans la FDR).
+- Les Fils du Facteur : `"forfait": true` dans l'événement (forfait global : pas de conditions de facturation dans la setlist).
+  Contact principal (c-referent) : Bertrand Mougeot, Limouzart (production des artistes, qui embauche 10DEC).
