@@ -32,7 +32,7 @@
 <style>
 /* Accueil réservé à l'équipe 10 Doigts en Cavale : tous les espaces organisateur au même endroit.
    Même charte que l'espace organisateur : Bebas Neue + DM Sans, bleu, moutarde, orange, turquoise.
-   Liste rangée par étape (À envoyer, À vérifier, En attente de l'orga, Prêt). */
+   Une seule liste de concerts, rangée par date. */
 :root{
   --bg:#eef0fa; --card:#ffffff; --ink:#000; --mute:#555a70; --line:#ecedf5;
   --blue:#2e3bb2; --mus:#f7a42b; --ora:#f26b21; --turq:#87cabe; --turq2:#4fa597;
@@ -91,7 +91,7 @@ main .in{padding-top:20px;padding-bottom:40px;display:grid;gap:18px}
 .sh h2{font-size:26px;flex:1}
 .sh .bb{font-size:26px}
 .empty{margin:0 16px;font-size:14px;color:var(--mute)}
-.st-send{--sb:#fde4d3;--sf:#9a3d00}.st-check{--sb:#e3e5f6;--sf:#2e3bb2}.st-wait{--sb:#fff4e0;--sf:#7a4300}.st-ready{--sb:#d6eeea;--sf:#1f6b5f}.st-past{--sb:#e4e6ef;--sf:#40455c}
+.st-all{--sb:#e3e5f6;--sf:#2e3bb2}.st-send{--sb:#fde4d3;--sf:#9a3d00}.st-check{--sb:#e3e5f6;--sf:#2e3bb2}.st-wait{--sb:#fff4e0;--sf:#7a4300}.st-ready{--sb:#d6eeea;--sf:#1f6b5f}.st-past{--sb:#e4e6ef;--sf:#40455c}
 
 /* Une ligne par événement */
 .row{background:#fff;border-radius:18px;padding:14px 16px;display:grid;gap:12px 16px;align-items:center;min-width:0}
@@ -323,15 +323,11 @@ function render() {
     const nv = newOf(e); if (nv.length) items.push(`<b>${esc(n)}</b> : ${nv.length} nouvelle${nv.length > 1 ? "s" : ""} réponse${nv.length > 1 ? "s" : ""}${nv[nv.length - 1].auteur ? " (" + esc(nv[nv.length - 1].auteur) + ")" : ""}`);
     if (s.late.length && dOf(e) >= t0) items.push(`<b>${esc(n)}</b> : date dépassée (${esc(s.late.join(", "))})`); });
   let html = items.length ? `<section class="today" aria-live="polite"><h2 class="bb">À voir aujourd'hui</h2><ul>${items.map(x => `<li>${x}</li>`).join("")}</ul></section>` : "";
-  const by = {}; STAGES.forEach(g => by[g.k] = []);
-  up.forEach(e => by[stageOf(e)].push(e));
-  const chip = (k, txt, c) => `<button type="button" class="chip ${FILTER === k ? "on" : ""}" data-filter="${k}" aria-pressed="${FILTER === k}"${c ? ` style="--c:${c}"` : ""}>${txt}</button>`;
-  html += `<div class="chips" role="group" aria-label="Étapes">${chip("all", `Tous · ${up.length}`)}${STAGES.map(g => chip(g.k, `${esc(g.nom)} · ${by[g.k].length}`, g.c)).join("")}<span class="sp"></span>
-    ${past.length ? `<button type="button" class="chip ${SHOWPAST ? "on" : ""}" data-past aria-expanded="${SHOWPAST}">Terminés · ${past.length}</button>` : ""}</div>`;
-  html += STAGES.filter(g => FILTER === "all" || FILTER === g.k).map(g => `<section class="stage st-${g.k}" aria-label="${esc(g.nom)}">
-    <div class="sh"><h2 class="bb">${esc(g.nom)}</h2><span class="bb">${by[g.k].length}</span></div>
-    ${by[g.k].length ? by[g.k].map(e => rowHTML(e, false)).join("") : `<p class="empty">${g.vide}</p>`}</section>`).join("");
-  if (!up.length) html += `<p class="empty">Aucun événement à venir.</p>`;
+  /* Une seule liste, par date (les étapes « À vérifier / En attente / Prêt » ont été retirées le 26/10/2026 : elles embrouillaient). */
+  up.sort((a, b) => (a.iso || "9999").localeCompare(b.iso || "9999"));
+  html += `<section class="stage st-all" aria-label="Concerts à venir"><div class="sh"><h2 class="bb">Concerts à venir</h2><span class="bb">${up.length}</span>
+    ${past.length ? `<button type="button" class="chip ${SHOWPAST ? "on" : ""}" data-past aria-expanded="${SHOWPAST}" style="margin-left:auto">Terminés · ${past.length}</button>` : ""}</div>
+    ${up.length ? up.map(e => rowHTML(e, false)).join("") : `<p class="empty">Aucun événement à venir.</p>`}</section>`;
   if (SHOWPAST && past.length) html += `<section class="stage st-past past" id="past" aria-label="Terminés"><div class="sh"><h2 class="bb">Terminés</h2><span class="bb">${past.length}</span></div>${past.map(e => rowHTML(e, true)).join("")}</section>`;
   html += `<div class="foot"><span>Réservé à l'équipe de 10 Doigts en Cavale. Ne transmettez jamais ce lien.</span><button type="button" id="forget">Oublier le code sur cet appareil</button></div>`;
   $("#view").innerHTML = html;
