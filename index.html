@@ -871,7 +871,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .as-s{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;margin-bottom:14px}.as-s>div{min-width:0}.as-s>div>b{display:block;font-size:16px;margin:3px 0 6px}
 .as-n{width:28px;height:28px;border-radius:50%;background:#f7a42b;color:#10153d;display:flex;align-items:center;justify-content:center;font-weight:800}
 .as-msg{border:1.5px dashed #c9cde6;border-radius:12px;padding:10px 12px;background:#fafbff;white-space:pre-line;font-size:15px;line-height:1.45}
-.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
+.jum{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 12px}.jum b{color:#2e3bb2}.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
 .as-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.as-acts .btn{text-decoration:none}
 .as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
 .as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;white-space:nowrap}.as-no{color:#bbb}
@@ -1891,6 +1891,10 @@ document.addEventListener("change", e => { if (!(e.target.matches && e.target.ma
 /* ===== Prévenir le public sourd : associations locales (trouvées et vérifiées par 10DEC) =====
    Données : item { type: "assos", liste: [{ k, nom, ty, ville, mail, site, fb, deja }] }. Ajouts : « pub-asso-x… » (+ -mail, -site, -fb).
    Envoyé : réponse « <ligne>-env » = « Envoyé ». Le message se remplit avec l'événement, le lien vidéo (com-lien) et le contact de réservation (pub-contact). */
+/* Deux concerts au même endroit (espaces jumeaux) : sur une page commune, on prévient que tout se reporte sur l'autre page. */
+const jumNoms = () => ((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom).filter(Boolean).join(" et ");
+const jumPartage = t => !!(EVENT.jumeaux && (EVENT.jumeaux.sujets || []).includes(t.base || t.id) && jumNoms());
+const jumNote = (t, txt) => jumPartage(t) ? `<p class="jum">🔗 <span>${txt || `Page commune aux 2 concerts. Ce que vous remplissez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`}</span></p>` : "";
 function asRows(p) {
   const l = (p.liste || []).map(a => Object.assign({ id: p.id + "-" + a.k }, a));
   const x = extraRows(p).map(r => ({ id: r.id, nom: r.nom, extra: true, mail: valOf(r.id + "-mail"), site: valOf(r.id + "-site"), fb: valOf(r.id + "-fb") }));
@@ -1924,7 +1928,8 @@ function assosHTML(p) {
     return `<tr class="${on ? "as-on" : ""}"><td data-l="Association"><b>${esc(r.nom)}</b>${r.ty || r.ville ? `<small>${esc([r.ty, r.ville].filter(Boolean).join(" · "))}</small>` : ""}${r.extra ? ` <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button>` : ""}</td>
       <td data-l="Mail">${r.mail ? `<a class="as-m" href="mailto:${esc(r.mail)}">✉️ ${esc(r.mail)}</a>` : `<span class="as-no">—</span>`}</td><td data-l="Site">${asLink(r.site, "🔗 Site")}</td><td data-l="Facebook">${asLink(r.fb, "📘 Facebook")}</td>
       <td data-l="Prévenue">${r.deja ? `<span class="as-deja">✓ ${esc(r.deja)}</span>` : `<button type="button" class="as-b ${on ? "on" : ""}" aria-pressed="${on}" data-asenv="${r.id}-env">${on ? "✓ Envoyé" : "Marquer envoyé"}</button>`}</td></tr>`; };
-  return `<div class="item as" id="it-${p.id}">
+  const tp = EVENT.topics.find(t => (t.items || []).includes(p)) || {};
+  return `<div class="item as" id="it-${p.id}">${jumNote(tp, `Un seul envoi pour les 2 concerts. Ce que vous cochez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`)}
     <p class="as-p"><b>${d} association${d > 1 ? "s" : ""} prévenue${d > 1 ? "s" : ""} sur ${rr.length}</b></p><div class="as-bar" aria-hidden="true"><i style="width:${rr.length ? Math.round(d / rr.length * 100) : 0}%"></i></div>
     <div class="as-s"><span class="as-n" aria-hidden="true">1</span><div><b>Copiez le message</b>
       <div class="as-msg">${esc(m.txt)}</div>
@@ -2408,7 +2413,7 @@ function topicHTML(t) {
     ${t.rappel ? `<p class="rappel">${SVGL(CLOCKD)}<span>${esc(t.rappel)}</span></p>` : ""}
     ${MODE === "equipe" && t.masquable ? `<label class="pbsw tpb"><input type="checkbox" data-tpb="${t.id}" ${topicOff(t) ? "checked" : ""}><span>Pas besoin pour ce concert<small>La page disparaît pour l'organisateur.</small></span></label>` : ""}
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
-    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
+    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>${jumNote(t)}
     ${t.phases ? phasesHTML(t) : ""}${pre}${!PH ? topicResHTML(t) : ""}${body}</div></main>`;
 }
 
