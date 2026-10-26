@@ -53,6 +53,10 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
       puis `python3 -I tools/orga.py mail <fichier> <clé> /tmp/orga/mail-<fichier>.json`.
       La commande n'écrase JAMAIS une réponse existante : un point déjà rempli avec autre chose sort dans « conflits » → à signaler, ne tranche pas.
       Un mail déjà traité est ignoré tout seul. Pour un point commun d'événements jumeaux, lance aussi la commande sur l'autre espace.
+   d bis. **Hébergement (Airbnb, Booking, hôtel)** — décidé par Aurélie le 26/10/2026 : OUVRE toujours ces mails (confirmation, modification, message de l'hôte)
+      quand ils concernent un événement à venir (ville + dates). Reporte dans la FDR « 🛏️ HÉBERGEMENT » : nom du logement, adresse, dates, heure d'arrivée et de départ,
+      nombre de couchages, n° de réservation, consignes d'arrivée SANS les codes. Si l'organisateur a réservé (`heb-qui` = « orga ») : aussi les points `heb-…` via la commande `mail`.
+      Codes d'accès / digicode / boîte à clés : jamais dans l'espace organisateur, une notification, un résumé ou le dépôt (règle en attente de la décision d'Aurélie pour la FDR).
    e. Les « ajoutes » sont des nouveautés comme les autres : reporte-les dans la FDR (étape 4), source « Mail », statut « à vérifier ».
       Ne réponds à aucun mail, ne crée aucun brouillon, ne touche à aucun libellé Gmail.
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
