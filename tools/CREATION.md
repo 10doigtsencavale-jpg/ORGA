@@ -46,3 +46,11 @@ Téléphones : seulement ceux de l'équipe 10DEC (FDR) dans « chansigneurs » /
 `python3 -I tools/orga.py creer /tmp/orga/<nom>.json <code équipe>` → écrit `e/<fichier>.json` (chiffré) et affiche fichier, clé, lien, lien équipe.
 Le modèle est `tools/modele.json` (aucune donnée d'événement dedans). Le fichier d'infos reste HORS du dépôt (/tmp).
 Échéances calculées depuis la date : com et public sourd J-42, setlist J-21, technique / contacts / horaires J-14, accueil / run / presse / sécurité J-10, photos J+15.
+
+## Setlist d'un artiste déjà chansigné (décidé par Aurélie le 26/10/2026)
+- Artiste déjà chansigné : cherche dans le Drive les anciennes setlists (« SETLIST … » de ses événements passés, dossier « 6) PREPA - SETLIST & PAROLES »).
+  Les titres rejoués ont déjà paroles et audio : dans les infos, mets-les dans « setlist » et ajoute `"setlist_recus": true` pour ces titres (voir ci-dessous).
+  Si le nouveau dossier « 6) PREPA - SETLIST & PAROLES » n'a pas encore de doc SETLIST, crée-le avec les lignes des titres rejoués (mêmes liens texte / audio, même tableau).
+- Les Fils du Facteur : toujours la même setlist, rien à copier dans le Drive. Salle / théâtre : doc « 2-SETLIST THEATRE + PAROLES Facteurs »,
+  festival : « 1-SETLIST FESTIVAL + PAROLES Facteurs » (dossier Drive 1SsDoTPeeTZorOySslFkKQ6PfUpsJuMCR). Tous les titres : paroles et audio reçus.
+- Format dans les infos : `"setlist": [{"t": "Titre", "p": "r", "a": "r"}, …]` (« r » = ✓ Reçu) ou une simple liste de titres s'ils sont à recevoir.

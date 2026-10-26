@@ -578,7 +578,7 @@ def creer(infos_json, code):
         t["avant"] = "15 jours après le concert" if n < 0 else f"{JC[e.weekday()]} {e.day}/{e.month}"
         for it in t.get("items", []):
             i = it.get("id")
-            if i == "sl" and I.get("setlist"): it["chansons"] = [{"t": x} for x in I["setlist"]]
+            if i == "sl" and I.get("setlist"): it["chansons"] = [x if isinstance(x, dict) else {"t": x} for x in I["setlist"]]
             if i == "setlist-dress" and I.get("dress"): it.update({"type": "info", "statut": "ok", "valeur": I["dress"]})
             if i == "park-runs": it["valeur"] = I.get("transport", "")
             if i == "park": it["siDef"] = bool(I.get("voiture"))
