@@ -522,6 +522,12 @@ body.sujet .ct-ev{flex:1;color:#2e3bb2}
 body.sujet main .wrap.topic{gap:14px;padding-top:16px}
 .sh{background:#fff;border:2px solid var(--b);border-radius:22px;padding:16px;display:grid;gap:14px}
 .sh-top{display:flex;align-items:flex-start;gap:12px}
+.jd{flex:none;align-self:center;text-align:center}.jd-b{display:flex;align-items:center;gap:6px;border:2px solid #2e3bb2;border-radius:14px;padding:5px 7px;background:#fff}
+.jd-p{border:1.5px solid #d7daef;border-radius:10px;padding:4px 9px;text-align:center}.jd-p.on{background:#e6e8fb;border-color:#2e3bb2}.jd-p b{display:block;font-size:13.5px;white-space:nowrap}.jd-p small{display:block;font-size:11.5px;color:#555}
+.jd-p .dot{width:10px;height:10px;margin-right:4px}.jd-a{color:#2e3bb2;font-weight:800;font-size:11px;line-height:1.1}.jd-a i{display:block;font-style:normal;font-size:19px}
+.jd-1{margin:4px 0 0;font-size:13.5px}.jd-1 b{color:#2e3bb2}.jd-1 small{font-size:12px;color:#555}
+@media (max-width:700px){.sh-top{flex-wrap:wrap}.jd{order:3;width:100%}.jd-b{justify-content:center}.jd-p{flex:1}.jd-p small{white-space:nowrap}}
+
 .sh-ic{flex:none;width:48px;height:48px;border-radius:14px;background:var(--ib);display:grid;place-items:center}
 .sh-m{flex:1;min-width:0;display:grid;gap:8px;justify-items:start}
 .sh-t{margin:0;font-family:"Bebas Neue",var(--display);font-weight:400;font-size:34px;line-height:.95;letter-spacing:.01em;color:#000;overflow-wrap:anywhere;padding-top:4px}
@@ -1480,7 +1486,7 @@ function idsOfPoint(p) {
   if (p.type === "hebergement") ids.push("heb");
   if (p.type === "repas") inlineOf(p).forEach(x => ids.push(...idsOfPoint(x)));
   if (p.type === "tableau") (p.rows || []).forEach(r => ids.push(r.id));
-  if (p.type === "assos") ids.push("pub-asso-plus"), asRows(p).forEach(r => ids.push(r.id + "-env", r.id + "-rm", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
+  if (p.type === "assos") ids.push("pub-asso-plus", ...((p.msg && p.msg.prog) || [0]).map((x, i) => "pub-asso-h" + i)), asRows(p).forEach(r => ids.push(r.id + "-env", r.id + "-rm", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
   if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), p.ou || "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
@@ -1894,6 +1900,14 @@ document.addEventListener("change", e => { if (!(e.target.matches && e.target.ma
 /* Deux concerts au même endroit (espaces jumeaux) : sur une page commune, on prévient que tout se reporte sur l'autre page. */
 const jumNoms = () => ((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom).filter(Boolean).join(" et ");
 const jumPartage = t => !!(EVENT.jumeaux && (EVENT.jumeaux.sujets || []).includes(t.base || t.id) && jumNoms());
+/* En-tête d'une page commune : les 2 pages (« Vous êtes ici » ⇄ « Rempli tout seul ») + « Remplissez 1 seule fois ». */
+function jumDuo(t) { if (!jumPartage(t)) return "";
+  const moi = EVENT.artiste, autre = jumNoms(), noms = [moi, autre].sort(), col = n => n === noms[0] ? "#e85d75" : "#7a5af5";
+  const pr = (EVENT.jumeaux.propres || []), own = (t.items || []).filter(it => it.titre && pr.includes(it.id));
+  return `<div class="jd" role="note" aria-label="Page commune aux 2 concerts"><div class="jd-b"><div class="jd-p on"><b><i class="dot" style="background:${col(moi)}"></i>${esc(moi)}</b><small>Vous êtes ici</small></div>
+    <div class="jd-a" aria-hidden="true"><i>⇄</i>copié</div><div class="jd-p"><b><i class="dot" style="background:${col(autre)}"></i>${esc(autre)}</b><small>Rempli tout seul</small></div></div>
+    <p class="jd-1">✍️ Remplissez <b>1 seule fois</b>.${own.length ? `<br><small>Sauf ${own.map(it => `« ${esc(it.titre)} »`).join(", ")} : propre à ce concert.</small>` : ""}</p></div>`;
+}
 /* « propres » : blocs d'un sujet commun qui restent propres à chaque concert (ex. captation). */
 const jumNote = (t, txt) => { if (!jumPartage(t)) return "";
   const pr = (EVENT.jumeaux.propres || []), its = (t.items || []).filter(it => it.titre), own = its.filter(it => pr.includes(it.id)), com = its.filter(it => !pr.includes(it.id));
@@ -1909,15 +1923,18 @@ const asSent = r => !!r.deja || valOf(r.id + "-env") === "Envoyé";
 function asStatus(p) { const rr = asRows(p).filter(r => !r.rm); if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
 const asHeure = () => { const h = String(EVENT.heure || ""); return !h || /venir/i.test(h) ? "" : h; };
 function asMsg(p) {
-  const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), h = o.heure || asHeure();
+  const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), eq = MODE === "equipe";
   /* Deux artistes le même soir (espaces jumeaux) : un seul message pour les deux. */
-  const arts = o.artistes || [EVENT.artiste, ...((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom)].filter(Boolean);
-  const plu = [].concat(arts).length > 1, noms = [].concat(arts).join(" et ");
-  const plus = valOf("pub-asso-plus") || o.plus || ""; /* info importante en plus (ex. rencontre avant le concert) */
-  const lieu = [EVENT.lieu, EVENT.ville].filter(Boolean).join(", ");
-  const txt = `Bonjour !\nBonne nouvelle ! 🎉\n\n${plu ? `Les concerts de ${noms} seront chansignés (accessibles` : `Le concert de ${noms} sera chansigné (accessible`} en langue des signes -LSF) !\n\n📅 ${EVENT.date}\n🕗 ${h || "[heure]"}\n📍 ${lieu}\n🎬 La vidéo en LSF : ${lien || "[lien de la vidéo]"}\n${plus ? plus + "\n" : ""}🎟️ Pour réserver :\n${resa || "[mail / SMS]"}\nVenez nombreux ! 🙌\nPartagez à vos amis sourds 💛`;
-  const manque = [!h && "l'heure", !lien && "le lien de la vidéo (étape « La publication »)", !resa && "le contact pour réserver (« 2. La réservation »)"].filter(Boolean);
-  return { txt, manque };
+  const arts = [].concat(o.artistes || [EVENT.artiste, ...((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom)].filter(Boolean));
+  const plu = arts.length > 1, noms = arts.join(" et ");
+  const plus = valOf("pub-asso-plus") || o.plus || ""; /* info en plus (une ligne) */
+  /* Programme dans l'ordre de la journée. Heure : réponse « pub-asso-h<i> » (équipe), sinon donnée, sinon « [heure] ». */
+  const prog = (o.prog || [{ ic: "🎤", h: asHeure(), t: "Concert : " + EVENT.artiste }]).map((x, i) => ({ i, ic: x.ic || "🎤", t: x.t, h: valOf("pub-asso-h" + i) || x.h || "" }));
+  const lieu = [EVENT.lieu, o.adresse || EVENT.ville].filter(Boolean).join(", ");
+  const txt = `Bonjour !\nBonne nouvelle ! 🎉\n\n${plu ? `Les concerts de ${noms} seront chansignés (accessibles` : `Le concert de ${noms} sera chansigné (accessible`} en langue des signes -LSF) !\n\n📅 ${EVENT.date}\n📍 ${lieu}\n${prog.map(x => `${x.ic} ${x.h || "[heure]"} : ${x.t}`).join("\n")}\n${plus ? plus + "\n" : ""}\n🎬 La vidéo en LSF : ${lien || "[lien de la vidéo]"}\n\n🎟️ Pour réserver :\n${resa || "[mail / SMS]"}\n\nVenez nombreux ! 🙌\nPartagez à vos amis sourds 💛`;
+  const manque = [prog.some(x => !x.h) && "l'heure", !lien && "le lien de la vidéo (étape « La publication »)", !resa && "le contact pour réserver (« 2. La réservation »)"].filter(Boolean);
+  const heures = eq ? `<div class="as-plus">${prog.map(x => pcField("pub-asso-h" + x.i, `${x.ic} Heure : ${x.t}`, "ex. 17h00")).join("")}</div>` : "";
+  return { txt, manque, heures };
 }
 const asLink = (u, l) => u ? `<a class="as-lk" href="${esc(/^https?:/.test(u) ? u : "https://" + u)}" target="_blank" rel="noopener">${l}</a>` : `<span class="as-no" aria-label="Aucun">—</span>`;
 function asAddRow(r) {
@@ -1939,7 +1956,7 @@ function assosHTML(p) {
     <p class="as-p"><b>${d} association${d > 1 ? "s" : ""} prévenue${d > 1 ? "s" : ""} sur ${rr.length}</b></p><div class="as-bar" aria-hidden="true"><i style="width:${rr.length ? Math.round(d / rr.length * 100) : 0}%"></i></div>
     <div class="as-s"><span class="as-n" aria-hidden="true">1</span><div><b>Copiez le message</b>
       <div class="as-msg">${esc(m.txt)}</div>
-      ${MODE === "equipe" ? `<div class="as-plus">${pcField("pub-asso-plus", "➕ Info importante en plus (une ligne)", "ex. 🤝 Rencontre avec les chansigneurs avant le concert !")}</div>` : ""}
+      ${m.heures}      ${MODE === "equipe" ? `<div class="as-plus">${pcField("pub-asso-plus", "➕ Info importante en plus (une ligne)", "ex. 🤝 Rencontre avec les chansigneurs avant le concert !")}</div>` : ""}
       ${m.manque.length ? `<p class="as-w">⏳ Il manque ${esc(m.manque.join(", "))}. Le message se complète tout seul.</p>` : ""}
       <div class="as-acts"><button type="button" class="btn btn-ghost" data-copy="${esc(m.txt)}" data-msg="Message copié.">📋 Copier le message</button>
       ${mails.length ? `<button type="button" class="btn btn-ghost" data-copy="${esc(mails.join(", "))}" data-msg="${mails.length} mails copiés.">📋 Copier tous les mails</button>
@@ -2414,14 +2431,14 @@ function topicHTML(t) {
   return `<div class="stick">${multiArt() ? `<div class="afband"><div class="wrap">${filtreHTML()}</div></div>` : ""}${tabsHTML()}</div><main><div class="wrap topic">
     <section class="sh ${pr.full ? "ok" : ""}" style="--b:${f.bd};--f:${f.bar};--t:${f.fg};--ib:${f.bg}">
       <div class="sh-top"><span class="sh-ic" aria-hidden="true">${emo(roleOf(t.id).e, 32)}</span>
-        <div class="sh-m"><h1 class="sh-t">${esc(t.label)}</h1>${dlHTML(t, pr, f)}</div>
+        <div class="sh-m"><h1 class="sh-t">${esc(t.label)}</h1>${dlHTML(t, pr, f)}</div>${jumDuo(t)}
         <span class="rg sh-rg" style="--p:${pr.full ? 100 : pp}%" role="img" aria-label="${pr.full ? "Fait" : `${pr.d} sur ${pr.n}`}"><span>${pr.full ? "Fait" : `${pr.d}/${pr.n}`}</span></span></div>
       ${pts.length ? `<div class="tl-s sh-s" aria-hidden="true">${pts.map(x => `<i class="${isDone(x) ? "on" : ""}"></i>`).join("")}</div>` : ""}
     </section>
     ${t.rappel ? `<p class="rappel">${SVGL(CLOCKD)}<span>${esc(t.rappel)}</span></p>` : ""}
     ${MODE === "equipe" && t.masquable ? `<label class="pbsw tpb"><input type="checkbox" data-tpb="${t.id}" ${topicOff(t) ? "checked" : ""}><span>Pas besoin pour ce concert<small>La page disparaît pour l'organisateur.</small></span></label>` : ""}
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
-    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>${jumNote(t)}
+    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
     ${t.phases ? phasesHTML(t) : ""}${pre}${!PH ? topicResHTML(t) : ""}${body}</div></main>`;
 }
 
