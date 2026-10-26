@@ -80,8 +80,10 @@ def appliquer(fichier, cle, lignes_json, code=""):
     jum = data.get("jumeaux") or {}
     jf = {j["fichier"]: j.get("nom", "") for j in jum.get("fichiers", [])}
     ids = set(jum.get("contacts", []))
+    propres = set(jum.get("propres", []))  # blocs d'un sujet commun propres à chaque concert (ex. captation : scènes différentes)
     def collect(x):
         if isinstance(x, dict):
+            if x.get("id") in propres: return
             if isinstance(x.get("id"), str): ids.add(x["id"])
             if x.get("type") == "parcours": ids.update(PARCOURS_IDS)
             if x.get("type") == "passes": ids.update(["pass-" + c["k"] for c in x.get("choses", [])] + [x.get("ou", "pass-ou")])

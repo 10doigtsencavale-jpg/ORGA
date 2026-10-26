@@ -1894,7 +1894,11 @@ document.addEventListener("change", e => { if (!(e.target.matches && e.target.ma
 /* Deux concerts au même endroit (espaces jumeaux) : sur une page commune, on prévient que tout se reporte sur l'autre page. */
 const jumNoms = () => ((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom).filter(Boolean).join(" et ");
 const jumPartage = t => !!(EVENT.jumeaux && (EVENT.jumeaux.sujets || []).includes(t.base || t.id) && jumNoms());
-const jumNote = (t, txt) => jumPartage(t) ? `<p class="jum">🔗 <span>${txt || `Page commune aux 2 concerts. Ce que vous remplissez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`}</span></p>` : "";
+/* « propres » : blocs d'un sujet commun qui restent propres à chaque concert (ex. captation). */
+const jumNote = (t, txt) => { if (!jumPartage(t)) return "";
+  const pr = (EVENT.jumeaux.propres || []), its = (t.items || []).filter(it => it.titre), own = its.filter(it => pr.includes(it.id)), com = its.filter(it => !pr.includes(it.id));
+  if (!txt && own.length) txt = `${com.map(it => `« ${esc(it.titre)} »`).join(", ")} : commun aux 2 concerts, se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b><br>${own.map(it => `« ${esc(it.titre)} »`).join(", ")} : propre à ce concert.`;
+  return `<p class="jum">🔗 <span>${txt || `Page commune aux 2 concerts. Ce que vous remplissez ici se reporte sur la page de ${esc(jumNoms())}. <b>Pas besoin de le refaire.</b>`}</span></p>`; };
 function asRows(p) {
   const l = (p.liste || []).map(a => Object.assign({ id: p.id + "-" + a.k }, a));
   const x = extraRows(p).map(r => ({ id: r.id, nom: r.nom, extra: true, mail: valOf(r.id + "-mail"), site: valOf(r.id + "-site"), fb: valOf(r.id + "-fb") }));
