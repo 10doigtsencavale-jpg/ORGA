@@ -36,6 +36,25 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    Événements jumeaux (deux artistes le même soir, un espace chacun, champ `jumeaux` dans le fichier chiffré) : rien à faire de plus.
    `appliquer` lancé sur chaque espace reprend tout seul les réponses des sujets communs de l'autre espace (accueil, runs, pass, horaires, com, presse, photos, sécurité, contacts du festival),
    sauf si l'espace a déjà sa propre réponse. Ces reprises portent « repris de l'espace … » dans `auteur` : ne les reporte qu'une fois dans la FDR (même fiche FDR pour les deux espaces).
+3 ter. **Infos reçues par mail (Gmail)** — décidé par Aurélie le 26/10/2026 : ce qui arrive par mail remplit l'espace, pour ne rien reporter à la main.
+   Pour chaque événement à venir du tableau des liens (date ≥ aujourd'hui, statut sans « pause ») :
+   a. `python3 -I tools/orga.py points <fichier> <clé>` → tous les points (id, sujet, libellé, type, choix, réponse actuelle, commun_aux_2_concerts).
+   b. Gmail `search_threads` : mails REÇUS (pas les nôtres) depuis 2 jours (`newer_than:2d -from:me`) qui parlent de cet événement :
+      expéditeurs = contacts du festival/salle et de l'artiste (mails présents dans les réponses `c-…` et dans `points`), ou nom de la salle, du festival, de l'artiste dans l'objet.
+      Lis chaque fil (`get_thread`, PLAIN_TEXT). Ignore newsletters, billetteries automatiques, notifications.
+   c. Ne garde que les infos CLAIRES qui répondent à un point précis (heure, lieu, nom, tél., mail, oui/non, nombre, tarif, setlist…).
+      - FLOU (« on verra », « probablement », « vers 18h ? », « à confirmer ») → ne remplis pas, liste-le dans la notification.
+      - SENSIBLE → jamais recopié : codes d'accès / boîte à clés / digicode / Airbnb, santé, coordonnées bancaires, pièces d'identité.
+        Un numéro de téléphone va seulement dans un point de type contact, jamais dans une notification ni dans le résumé.
+      - Point de type choix / ouinon / pass : utilise exactement une des valeurs de « choix ».
+      - Un mail qui parle de deux concerts (espaces jumeaux) : point commun (commun_aux_2_concerts = true) → les deux espaces ;
+        point propre à un concert (setlist, son, captation…) → seulement si le mail dit clairement de quel artiste il s'agit, sinon signale-le.
+   d. Écris un fichier `/tmp/orga/mail-<fichier>.json` (hors du dépôt) : `[{"point", "texte", "auteur": "<Prénom> · par mail", "date": "<date ISO du mail>", "mail": "<id du message>"}]`
+      puis `python3 -I tools/orga.py mail <fichier> <clé> /tmp/orga/mail-<fichier>.json`.
+      La commande n'écrase JAMAIS une réponse existante : un point déjà rempli avec autre chose sort dans « conflits » → à signaler, ne tranche pas.
+      Un mail déjà traité est ignoré tout seul. Pour un point commun d'événements jumeaux, lance aussi la commande sur l'autre espace.
+   e. Les « ajoutes » sont des nouveautés comme les autres : reporte-les dans la FDR (étape 4), source « Mail », statut « à vérifier ».
+      Ne réponds à aucun mail, ne crée aucun brouillon, ne touche à aucun libellé Gmail.
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
@@ -78,12 +97,13 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
 4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
-5. Si `appliquer` ou `recu` ou `accueil` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
+5. Si `appliquer`, `recu`, `mail` ou `accueil` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
    Vérifie avant le commit qu'aucune clé ni aucun code n'apparaît dans les fichiers modifiés (grep).
 6. Fin :
    - Rien de nouveau → écris seulement « ORGA : à jour ». Pas de notification.
    - Du nouveau → UNE notification push courte : « Espace orga : La Sirène a répondu (setlist, parking) · 1 question (son). »
-     Les questions sont toujours signalées. Puis un résumé de 3 lignes max.
+     Les questions sont toujours signalées. Infos par mail : « 📧 3 infos reprises des mails (La Sirène) ». Toujours signalés aussi :
+     les conflits (« ⚠️ Mail ≠ appli : horaire ouverture 19h30 / 19h00 ») et les infos floues laissées de côté. Puis un résumé de 3 lignes max.
    - Erreur (GitHub, Sheet, clé) → dis-le et envoie une notification.
 
 ## Associations locales (« Prévenir le public sourd », item type `assos`)

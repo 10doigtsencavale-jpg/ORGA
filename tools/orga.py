@@ -481,6 +481,68 @@ def trajets(fichier, cle, values_json):
     out["mis_a_jour"] = change
     print(json.dumps(out, ensure_ascii=False))
 
+def points(fichier, cle):
+    """Tous les points à remplir d'un événement (id, sujet, libellé, type, choix possibles, réponse actuelle).
+    Sert à placer une info reçue par mail sur le bon point."""
+    d = lire(fichier, cle); rep = d.get("reponses", {}); out = []
+    jum = d.get("jumeaux") or {}; communs = set(jum.get("sujets", [])); propres = set(jum.get("propres", []))
+    def add(t, pid, label, typ="", opts=None, item=None):
+        r = rep.get(pid) or {}
+        out.append({"id": pid, "sujet": t.get("label", t.get("id")), "libelle": label, "type": typ, "choix": opts or [],
+                    "reponse": r.get("texte", ""), "commun_aux_2_concerts": t.get("id") in communs and (item or "") not in propres})
+    for t in d.get("topics", []):
+        for i, b in enumerate(t.get("besoins", [])):
+            add(t, f'{t["id"]}-b{i}', b["t"] if isinstance(b, dict) else b, "besoin (« ✓ Prévu » / « Non concerné »)")
+        for it in t.get("items", []):
+            iid = it.get("id") or it.get("contact")
+            if it.get("contact"):
+                c = d.get("contacts", {}).get(it["contact"], {}); add(t, it["contact"], "Contact : " + c.get("role", ""), "contact (Nom, téléphone, mail)", item=iid); continue
+            typ = it.get("type", "")
+            if typ in ("fiche", "tableau"):
+                for r in it.get("rows", []):
+                    add(t, r["id"], (it.get("titre", "") + " · " + str(r.get("label") or r.get("b") or "")).strip(" ·"), r.get("type", "texte"), r.get("options"), iid)
+            elif typ == "grille":
+                for r in it.get("rows", []):
+                    for c in it.get("cols", []):
+                        if isinstance(c, dict) and c.get("k"): add(t, f'{r["id"]}-{c["k"]}', f'{it.get("titre","")} · {r.get("nom","")} · {c.get("l","")}', "case de tableau", item=iid)
+            elif typ in ("ouinon", "choix", "texte", "court", "lien", "confirmer", "multi"):
+                add(t, it["id"], it.get("titre", ""), typ, [o.get("texte") for o in it.get("options", [])] if typ == "choix" else (["Oui.", "Non."] if typ == "ouinon" else None), iid)
+            elif typ == "passes":
+                for c in it.get("choses", []): add(t, "pass-" + c["k"], c.get("t", ""), "pass", ["non", "place", "imprimer"], iid)
+            elif typ == "hebergement":
+                for k, l in (("heb-nom", "Nom de l'hôtel"), ("heb-adr", "Adresse"), ("heb-dates", "Dates"), ("heb-twin", "Chambres twin"), ("heb-single", "Chambres single"), ("heb-pdj", "Petit-déjeuner"), ("heb-conf", "N° de confirmation")):
+                    add(t, k, "Hébergement · " + l, "texte", item=iid)
+    print(json.dumps(out, ensure_ascii=False, indent=1))
+
+def mail(fichier, cle, infos_json):
+    """Infos reçues par mail → réponses de l'espace organisateur, comme si l'organisateur les avait données.
+    infos_json : [{"point", "texte", "auteur" (ex. « Leila (par mail le 24/10) »), "date" (ISO du mail), "mail" (id du message)}].
+    Jamais d'écrasement : un point qui a déjà une réponse différente est renvoyé dans « conflits » (à signaler, pas à trancher).
+    Un mail déjà traité (id dans « mails ») est ignoré."""
+    from datetime import datetime, timezone
+    d = lire(fichier, cle); rep = d.setdefault("reponses", {}); vus = set(d.get("mails", []))
+    ok, conflits, deja = [], [], []
+    for x in json.load(open(infos_json, encoding="utf-8")):
+        pt, tx = str(x.get("point", "")).strip(), str(x.get("texte", "")).strip()[:500]
+        if not pt or not tx: continue
+        if x.get("mail") and (x["mail"] + "|" + pt) in vus: deja.append(pt); continue
+        cur = rep.get(pt)
+        if cur and not str(cur.get("texte", "")).startswith("✗") and not cur.get("miroir"):
+            if cur.get("texte", "").strip().lower() != tx.lower(): conflits.append({"point": pt, "dans_l_appli": cur.get("texte", ""), "dans_le_mail": tx})
+            else: deja.append(pt)
+            continue
+        r = {"texte": tx, "date": x.get("date") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "source": "orga", "auteur": str(x.get("auteur", "par mail"))[:80], "mail": True}
+        rep[pt] = r
+        d.setdefault("journal", []).append({k: r[k] for k in ("date", "texte", "source", "auteur")} | {"point": pt})
+        ok.append({"point": pt, "texte": tx, "auteur": r["auteur"]})
+        if x.get("mail"): vus.add(x["mail"] + "|" + pt)
+    d["mails"] = sorted(vus)[-400:]
+    if ok:
+        d["journal"] = sorted(d["journal"], key=lambda e: e["date"])[-60:]
+        d["maj"] = datetime.now(timezone.utc).astimezone().strftime("%d/%m/%Y")
+    if ok or vus: ecrire(fichier, cle, d)
+    print(json.dumps({"evenement": d.get("artiste", "") + " - " + d.get("lieu", ""), "ajoutes": ok, "conflits": conflits, "deja": deja}, ensure_ascii=False, indent=1))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -491,4 +553,4 @@ if __name__ == "__main__":
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
      "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
      "accueil": lambda: accueil(*a[1:5]),
-     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4]), "trajets": lambda: trajets(*a[1:4])}[a[0]]()
+     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4]), "trajets": lambda: trajets(*a[1:4]), "points": lambda: points(*a[1:3]), "mail": lambda: mail(*a[1:4])}[a[0]]()
