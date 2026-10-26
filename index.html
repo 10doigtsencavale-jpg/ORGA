@@ -1947,7 +1947,7 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
   const k = "orga-maj", last = +(sessionStorage.getItem(k) || 0); if (Date.now() - last < 60000) return;
   const cur = [...document.scripts].reduce((a, x) => x.textContent.length > a.length ? x.textContent : a, "");
   const txt = await fetch(location.pathname + "?maj=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "");
-  if (txt && cur && !txt.includes(cur.slice(0, 4000)) || (txt && !txt.includes(cur.slice(-4000)))) { sessionStorage.setItem(k, Date.now()); location.reload(); }
+  if (txt && cur && !txt.includes(cur.slice(0, 4000)) || (txt && !txt.includes(cur.slice(-4000)))) { sessionStorage.setItem(k, Date.now()); location.replace(location.pathname + "?v=" + Date.now() + location.hash); }
 } catch (e) {} })();
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
