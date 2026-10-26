@@ -1,0 +1,958 @@
+{
+ "contacts": {
+  "c-regisseur": {
+   "role": "Régisseur de {ARTISTE}",
+   "statut": "todo",
+   "equipe": "artiste"
+  },
+  "c-dt": {
+   "role": "Directeur technique (DT) du festival/salle",
+   "statut": "todo"
+  },
+  "c-accueil": {
+   "role": "Accueil artiste / loge",
+   "statut": "todo",
+   "bas": true
+  },
+  "c-son-art": {
+   "role": "Ingé son de {ARTISTE}",
+   "statut": "todo",
+   "equipe": "artiste"
+  },
+  "c-lumiere-art": {
+   "role": "Ingé lumière de {ARTISTE}",
+   "statut": "todo",
+   "equipe": "artiste"
+  },
+  "c-referent": {
+   "role": "Contact référent",
+   "statut": "todo"
+  },
+  "c-run": {
+   "role": "Contact run",
+   "statut": "todo",
+   "bas": true
+  },
+  "c-regie": {
+   "role": "Régisseur plateau",
+   "statut": "todo"
+  },
+  "c-son-pockets": {
+   "role": "Ingé son (pockets)",
+   "statut": "todo"
+  },
+  "c-son-mix": {
+   "role": "Ingé son (mix des chansigneurs)",
+   "statut": "todo"
+  },
+  "c-lumiere": {
+   "role": "Ingé lumière",
+   "statut": "todo"
+  },
+  "c-video": {
+   "role": "Réalisateur (retransmission sur écrans)",
+   "statut": "todo"
+  },
+  "c-talkback": {
+   "role": "Ingé son (retour talkback)",
+   "statut": "todo"
+  },
+  "c-plateau": {
+   "role": "Régisseur plateau",
+   "statut": "todo"
+  }
+ },
+ "groups": {
+  "son": {
+   "titre": "Qui gère les retours son ?",
+   "court": "Retours son",
+   "roles": [
+    {
+     "c": "c-son-pockets",
+     "q": "Qui prévoit les pockets ?"
+    },
+    {
+     "c": "c-son-mix",
+     "q": "Qui gère le mix des chansigneurs ?"
+    }
+   ]
+  },
+  "lumiere": {
+   "titre": "Qui gère la lumière ?",
+   "court": "Lumière",
+   "roles": [
+    {
+     "c": "c-lumiere",
+     "q": "Qui gère l'éclairage des chansigneurs ?"
+    }
+   ]
+  },
+  "video": {
+   "titre": "Qui gère la retransmission sur écrans ?",
+   "court": "Retransmission sur écrans",
+   "roles": [
+    {
+     "c": "c-video",
+     "q": "Qui réalise la retransmission sur écrans ?"
+    }
+   ]
+  },
+  "talkback": {
+   "titre": "Qui gère le retour talkback ?",
+   "court": "Talkback",
+   "roles": [
+    {
+     "c": "c-talkback",
+     "q": "Qui gère le retour talkback ?"
+    }
+   ]
+  }
+ },
+ "topics": [
+  {
+   "id": "setlist",
+   "label": "Setlist, paroles et dresscode",
+   "icon": "note",
+   "g": "logi",
+   "pour": "l'équipe de {ARTISTE}",
+   "items": [
+    {
+     "id": "sl",
+     "titre": "Setlist du concert",
+     "type": "setlist",
+     "statut": "todo",
+     "base": "Devis",
+     "chansons": []
+    },
+    {
+     "id": "setlist-fichiers",
+     "titre": "Sons et paroles manquants",
+     "statut": "todo",
+     "type": "fichier",
+     "detail": "À transmettre seulement si l'artiste joue des titres qui ne sont pas encore sortis.\nCes fichiers restent strictement confidentiels. Ils sont indispensables pour que les chansigneurs puissent préparer la traduction en langue des signes.",
+     "dans": "sl"
+    },
+    {
+     "id": "setlist-show",
+     "titre": "Enregistrement récent du show",
+     "statut": "todo",
+     "type": "lienfichier",
+     "detail": "Audio ou vidéo. Il permet aux chansigneurs de s'entraîner au plus près des conditions réelles.",
+     "aide": "Lien de téléchargement (WeTransfer, Drive, YouTube non répertorié…)."
+    },
+    {
+     "id": "setlist-dress",
+     "titre": "Dresscode",
+     "statut": "todo",
+     "type": "texte",
+     "detail": "Une couleur ou un style à respecter ? Sinon, les chansigneurs viennent en noir.",
+     "aide": "ex. tout en noir, éviter le blanc…"
+    }
+   ]
+  },
+  {
+   "id": "son",
+   "label": "Retours son",
+   "icon": "son",
+   "g": "tech",
+   "pour": "l'ingé son du festival/salle",
+   "besoins": [
+    {
+     "t": "2 pockets",
+     "d": "Indispensable : sans pockets, nous ne pouvons pas chansigner."
+    },
+    {
+     "t": "Liaison HF in-ear monitor professionnelle",
+     "d": "Type PSM 1000, PSM 900 ou équivalent, sur une fréquence fiable et dédiée."
+    }
+   ],
+   "important": {
+    "t": "Mix dédié sur un départ AUX mono",
+    "d": "Unique pour les 2 interprètes, sans matrice du L/R. Voix lead au max, puis chœurs ; instruments et voix off en retrait."
+   },
+   "confirm": {
+    "id": "son-ok"
+   },
+   "qui": "son",
+   "items": [
+    {
+     "id": "son-iem",
+     "titre": "Écouteurs in-ear (IEM)",
+     "statut": "todo",
+     "type": "choix",
+     "detail": "La plupart des chansigneurs ont déjà leurs propres ears.",
+     "options": [
+      {
+       "label": "Les chansigneurs ont leurs ears",
+       "texte": "Les chansigneurs viennent avec leurs propres ears."
+      },
+      {
+       "label": "IEM à prévoir",
+       "texte": "IEM à prévoir :",
+       "champ": "Nombre d'IEM à prévoir"
+      }
+     ]
+    }
+   ],
+   "impPos": 1
+  },
+  {
+   "id": "lumiere",
+   "label": "Lumière",
+   "icon": "lum",
+   "g": "tech",
+   "pour": "l'ingé lumière du festival/salle",
+   "besoins": [],
+   "important": {
+    "t": "Lumière façade en continu, sans éclairage en douche",
+    "d": "Pour la visibilité des interprètes pendant les chansons et les discours de l'artiste. L'éclairage en douche crée des ombres sur les mains et le visage, et nuit à la lisibilité des signes."
+   },
+   "confirm": {
+    "id": "lum-ok"
+   },
+   "qui": "lumiere"
+  },
+  {
+   "id": "emplacement",
+   "label": "Emplacement sur scène",
+   "icon": "scene",
+   "g": "tech",
+   "pour": "la régie générale du festival/salle et l'équipe technique de l'artiste",
+   "besoins": [
+    {
+     "t": "Espace dédié côté cour ou côté jardin",
+     "d": "Pour que les chansigneurs sortent de scène rapidement et se relaient facilement.",
+     "sous": {
+      "id": "emp-cote",
+      "options": [
+       "Côté cour",
+       "Côté jardin"
+      ]
+     }
+    },
+    {
+     "t": "Zone d'au moins 2 m × 1 m",
+     "d": "2 m de large sur 1 m de profondeur."
+    },
+    {
+     "t": "Aucun équipement sonore gênant à proximité",
+     "d": "Aucun système de diffusion ne doit perturber le travail des chansigneurs ni nuire à leur audition."
+    },
+    {
+     "t": "Champ de vision dégagé",
+     "d": "Le public sourd doit voir les chansigneurs pendant tout le concert. Si des caméras, une grue ou des effets (SFX, sparkulars…) sont prévus près de leur zone, on cherche ensemble le meilleur placement."
+    }
+   ],
+   "important": {
+    "t": "Espace et accès rapide en coulisse",
+    "d": "Pour patienter et se relayer rapidement entre chansigneurs."
+   },
+   "items": [
+    {
+     "id": "emp-plan",
+     "titre": "Plan de scène de {ARTISTE}",
+     "statut": "todo",
+     "type": "fichier",
+     "detail": "Le plan de scène permet aux chansigneurs d'ajuster leur placement par rapport aux musiciens."
+    }
+   ],
+   "docs": [
+    {
+     "titre": "Placement des chansigneurs sur scène",
+     "type": "PDF",
+     "url": "https://drive.google.com/file/d/1FuMhXrC1Gl2EiKYl__2wjZEnzbXAgCvi/view"
+    }
+   ],
+   "confirm": {
+    "id": "emp-ok"
+   },
+   "impPos": 1
+  },
+  {
+   "id": "ecran",
+   "label": "Retransmission sur écrans",
+   "icon": "ecran",
+   "g": "tech",
+   "pour": "la régie vidéo du festival/salle",
+   "besoins": [
+    {
+     "t": "Caméra dédiée",
+     "d": "Pour la retransmission des chansigneurs sur écran géant."
+    },
+    {
+     "t": "Champ de vision dégagé",
+     "d": "Le public sourd doit voir les chansigneurs pendant tout le concert. Si des caméras, une grue ou des effets (SFX, sparkulars…) sont prévus près de leur zone, on cherche ensemble le meilleur placement."
+    }
+   ],
+   "items": [
+    {
+     "id": "cap-ecran",
+     "titre": "Retransmission sur écran",
+     "statut": "todo",
+     "type": "ouinon",
+     "detail": "Une retransmission sur écran est-elle prévue pendant le concert ?",
+     "gate": true,
+     "siNon": "Pas de retransmission : rien d'autre à remplir sur cette page."
+    }
+   ],
+   "confirm": {
+    "id": "cap-ok",
+    "nonConcerne": true
+   },
+   "qui": "video"
+  },
+  {
+   "id": "talkback",
+   "label": "Micro talkback en coulisse",
+   "icon": "mic",
+   "g": "tech",
+   "pour": "l'ingé son du festival/salle",
+   "besoins": [
+    {
+     "t": "Micro de talkback en coulisse",
+     "d": "Filaire ou HF, côté jardin ou cour selon le placement des chansigneurs."
+    },
+    {
+     "t": "Petit espace avec support en coulisse",
+     "d": "Une table ou un flycase, pour poser le micro et les documents (traductions des paroles)."
+    },
+    {
+     "t": "Signal dans les retours des interprètes",
+     "d": "Envoyé exclusivement dans leurs circuits de retour."
+    }
+   ],
+   "important": "Indispensable pour les concerts non francophones.",
+   "importantTop": true,
+   "confirm": {
+    "id": "talk-ok",
+    "nonConcerne": true
+   },
+   "qui": "talkback",
+   "masquable": true
+  },
+  {
+   "id": "contacts",
+   "label": "Tous les contacts",
+   "icon": "tel",
+   "g": "tech",
+   "pour": "la production du festival/salle",
+   "intro": "Merci de transmettre ces contacts, pour faciliter l'organisation en amont et sur place le jour J.",
+   "contactsList": [
+    "c-referent",
+    "c-dt",
+    "c-regie",
+    "c-accueil",
+    "c-run",
+    "c-regisseur",
+    "c-son-art",
+    "c-lumiere-art",
+    "g:son",
+    "g:talkback",
+    "g:lumiere",
+    "g:video"
+   ]
+  },
+  {
+   "id": "accueil",
+   "label": "Loge & Catering",
+   "icon": "porte",
+   "g": "logi",
+   "pour": "l'accueil artistes",
+   "items": [
+    {
+     "contact": "c-accueil",
+     "detail": "La personne à contacter à l'arrivée des chansigneurs.",
+     "titre": "🙋 Qui accueille les chansigneurs ?"
+    },
+    {
+     "id": "acc-pers",
+     "type": "grille",
+     "avec": "c-accueil",
+     "titre": "Autres personnes de l'accueil",
+     "cols": [],
+     "rows": []
+    },
+    {
+     "id": "acc-loge-el",
+     "titre": "🚪 La loge",
+     "type": "tuiles",
+     "statut": "todo",
+     "detail": "Touchez ce qui est prévu.",
+     "options": [
+      {
+       "texte": "Propre, fermée à clé, proche de la scène et nommée « 10 DOIGTS EN CAVALE »",
+       "ic": "🔑",
+       "t": "Loge",
+       "d": "Propre, fermée à clé, proche de la scène et nommée « 10 DOIGTS EN CAVALE ».",
+       "l": [
+        "Propre",
+        "Fermée à clé",
+        "Proche de la scène",
+        "Nommée « 10 DOIGTS EN CAVALE »"
+       ]
+      },
+      {
+       "texte": "Mobilier : tables, chaises, miroir, portant avec cintres, poubelle, sèche-cheveux, table et fer à repasser, lumière, prises électriques et multiprises",
+       "ic": "🪑",
+       "t": "Mobilier",
+       "d": "Tables, chaises, miroir, portant avec cintres, poubelle, sèche-cheveux, table et fer à repasser, lumière, prises électriques et multiprises.",
+       "l": [
+        "Tables et chaises",
+        "Miroir",
+        "Portant + cintres",
+        "Poubelle",
+        "Sèche-cheveux",
+        "Table + fer à repasser",
+        "Lumière",
+        "Prises + multiprises"
+       ]
+      },
+      {
+       "texte": "Informations affichées : horaires des balances et des concerts, code Wi-Fi",
+       "ic": "📋",
+       "t": "Infos affichées",
+       "d": "Horaires des balances et des concerts, code Wi-Fi.",
+       "l": [
+        "Horaires des balances",
+        "Horaires des concerts",
+        "Code Wi-Fi"
+       ]
+      },
+      {
+       "texte": "Sanitaires : WC non publics, et douche ou espace de toilette",
+       "ic": "🚻",
+       "t": "Sanitaires",
+       "d": "WC non publics, et douche ou espace de toilette.",
+       "l": [
+        "WC non publics",
+        "Douche ou espace de toilette"
+       ]
+      },
+      {
+       "texte": "Snacks : boissons chaudes et froides, fruits frais et secs",
+       "ic": "🍎",
+       "t": "Snacks",
+       "d": "Boissons chaudes et froides, fruits frais et secs.",
+       "l": [
+        "Boissons chaudes",
+        "Boissons froides",
+        "Fruits frais et secs"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "acc-repas",
+     "titre": "🍽️ Les repas",
+     "statut": "info",
+     "type": "repas",
+     "rows": [],
+     "compo": "Un repas chaud le midi et le soir, selon l'heure d'arrivée : entrée, plat chaud, fromage, dessert, café et boissons.\nMerci d'éviter les produits industriels : privilégier les produits frais, bio et locaux, et de la vaisselle non jetable.",
+     "equipe": true
+    },
+    {
+     "id": "acc-catering",
+     "titre": "Horaires et lieu du catering",
+     "statut": "todo",
+     "type": "tableau",
+     "colA": "Horaire",
+     "colB": "Repas",
+     "rows": [
+      {
+       "id": "cat-midi",
+       "a": "",
+       "b": "Déjeuner (midi)",
+       "ph": "ex. 12h30",
+       "repas": "midi"
+      },
+      {
+       "id": "cat-soir",
+       "a": "",
+       "b": "Dîner (soir)",
+       "ph": "ex. 19h",
+       "repas": "soir"
+      },
+      {
+       "id": "cat-lieu",
+       "a": "",
+       "b": "Lieu du catering",
+       "ph": "ex. salle du bas"
+      }
+     ],
+     "inline": "acc-repas"
+    },
+    {
+     "id": "acc-tickets",
+     "titre": "Tickets repas",
+     "type": "passes",
+     "statut": "todo",
+     "detail": "",
+     "ou": "cat-ou",
+     "choses": [
+      {
+       "k": "cat",
+       "ic": "🎫",
+       "t": "Tickets repas ?",
+       "s": ""
+      }
+     ],
+     "inline": "acc-repas"
+    }
+   ]
+  },
+  {
+   "id": "pass",
+   "label": "Accueil et logistique",
+   "icon": "pass",
+   "g": "logi",
+   "pour": "l'accueil artistes",
+   "items": [
+    {
+     "id": "park-runs",
+     "titre": "Arrivée et départ des chansigneurs",
+     "statut": "ok",
+     "type": "info",
+     "equipe": true,
+     "valeur": ""
+    },
+    {
+     "id": "runs",
+     "titre": "Les runs",
+     "type": "grille",
+     "statut": "todo",
+     "cols": [
+      {
+       "k": "date",
+       "l": "Date"
+      },
+      {
+       "k": "heure",
+       "l": "Heure"
+      },
+      {
+       "k": "nb",
+       "l": "Nb pers."
+      },
+      {
+       "k": "qui",
+       "l": "Qui (équipe 10DEC)"
+      },
+      {
+       "k": "a",
+       "l": "Point A (départ)"
+      },
+      {
+       "k": "b",
+       "l": "Point B (arrivée)"
+      },
+      {
+       "k": "chauf",
+       "l": "Chauffeur (nom, tél.)",
+       "ph": "Nom, téléphone"
+      }
+     ],
+     "rows": [
+      {
+       "id": "run-aller",
+       "nom": "Run aller",
+       "cells": {
+        "date": "",
+        "heure": "",
+        "nb": "",
+        "a": "",
+        "b": "",
+        "qui": ""
+       }
+      },
+      {
+       "id": "run-retour",
+       "nom": "Run retour",
+       "cells": {
+        "date": "",
+        "nb": "",
+        "a": "",
+        "b": "",
+        "qui": ""
+       }
+      }
+     ],
+     "ajout": "Ajouter un run",
+     "ajoutNom": "Run"
+    },
+    {
+     "id": "heb",
+     "type": "hebergement",
+     "titre": "Hébergement des chansigneurs",
+     "statut": "todo",
+     "qui": "10dec",
+     "auto": {}
+    },
+    {
+     "id": "pass-acc",
+     "titre": "Bracelet et accréditation",
+     "type": "passes",
+     "statut": "todo",
+     "detail": "Pour les chansigneurs : {CHANSIGNEURS}.",
+     "choses": [
+      {
+       "k": "brac",
+       "ic": "🎟️",
+       "t": "Bracelet / pass",
+       "s": "Pour circuler sur le site"
+      },
+      {
+       "k": "accr",
+       "ic": "🪪",
+       "t": "Accréditation",
+       "s": "Ex. feuille avec QR code"
+      }
+     ]
+    },
+    {
+     "id": "park",
+     "titre": "Accès voiture",
+     "statut": "todo",
+     "type": "fiche",
+     "fichier": "Déposer le pass ou le plan",
+     "rows": [
+      {
+       "id": "park-pass",
+       "label": "Lieu de stationnement et entrée à utiliser",
+       "type": "texte",
+       "ph": "ex. parking artistes, entrée rue …"
+      },
+      {
+       "id": "park-gps",
+       "label": "Lien GPS (Google Maps ou Waze)",
+       "type": "texte",
+       "ph": "https://…"
+      }
+     ],
+     "detail": "Les chansigneurs viennent en voiture. Merci d'indiquer où se garer, et de transmettre le pass ou le plan.",
+     "si": "park-voiture",
+     "siDef": false,
+     "siLabel": "Les chansigneurs viennent en voiture"
+    }
+   ]
+  },
+  {
+   "id": "horaires",
+   "label": "Horaires",
+   "icon": "horloge",
+   "g": "logi",
+   "pour": "la régie et l'accueil artistes",
+   "items": [
+    {
+     "id": "hor-tab",
+     "titre": "Planning du jour J",
+     "statut": "todo",
+     "type": "tableau",
+     "colA": "Horaire",
+     "colB": "Étape",
+     "rows": [
+      {
+       "id": "hor-r1",
+       "a": "",
+       "b": "Arrivée des chansigneurs",
+       "equipe": true
+      },
+      {
+       "id": "hor-r2",
+       "a": "",
+       "b": "Balances de {ARTISTE}"
+      },
+      {
+       "id": "hor-bal",
+       "a": "",
+       "b": "Balances des chansigneurs"
+      },
+      {
+       "id": "hor-r4",
+       "a": "",
+       "b": "Ouverture des portes"
+      },
+      {
+       "id": "hor-r6",
+       "a": "",
+       "b": "Début du concert de {ARTISTE}"
+      },
+      {
+       "id": "hor-fin",
+       "a": "",
+       "b": "Fin du concert de {ARTISTE}"
+      }
+     ]
+    },
+    {
+     "id": "acc-fdr",
+     "titre": "Feuille de route de la salle",
+     "statut": "todo",
+     "type": "fichier",
+     "detail": "La feuille de route du festival, dès qu'elle est prête."
+    }
+   ],
+   "rappel": "À compléter rapidement, pour préparer la journée et la rencontre avec le public."
+  },
+  {
+   "id": "public",
+   "label": "Communication et public sourd",
+   "icon": "public",
+   "g": "pub",
+   "alerte": {
+    "titre": "Avant d'annoncer : bloquez un stock de places PSH",
+    "texte": "Le public sourd est souvent prévenu tard. Il doit pouvoir réserver quand il découvre la vidéo, et pas trouver une billetterie complète.",
+    "phase": "info",
+    "apres": "com-parcours"
+   },
+   "pour": "la communication et la billetterie",
+   "items": [
+    {
+     "id": "com-parcours",
+     "titre": "Vidéo d'annonce en LSF",
+     "type": "parcours",
+     "statut": "todo",
+     "phase": "info"
+    },
+    {
+     "id": "pub-asso",
+     "titre": "Prévenir le public sourd",
+     "type": "assos",
+     "phase": "info",
+     "si": "pub-asso-ok",
+     "siLabel": "Liste vérifiée : visible pour l'organisateur",
+     "liste": []
+    },
+    {
+     "id": "pub-places",
+     "titre": "Places PSH réservées au public sourd",
+     "statut": "todo",
+     "type": "fiche",
+     "detail": "Le public sourd doit voir à la fois les chansigneurs et la scène.",
+     "rows": [
+      {
+       "id": "pub-emp",
+       "label": "Emplacement",
+       "type": "multi",
+       "options": [
+        "Assis",
+        "Debout",
+        "Plateforme PMR possible",
+        "Face aux chansigneurs"
+       ]
+      },
+      {
+       "id": "pub-nb",
+       "label": "Nombre de places PSH prévues",
+       "type": "texte",
+       "ph": "ex. 20"
+      }
+     ],
+     "phase": "res"
+    },
+    {
+     "id": "pub-infos",
+     "titre": "Réservation par mail ou SMS, et tarifs",
+     "statut": "todo",
+     "type": "fiche",
+     "detail": "Les personnes sourdes doivent pouvoir réserver par mail ou par SMS, et pas uniquement par téléphone.",
+     "rows": [
+      {
+       "id": "pub-contact",
+       "label": "Contact pour réserver (mail ou SMS)",
+       "type": "texte",
+       "ph": "ex. billetterie@salle.fr"
+      },
+      {
+       "id": "pub-tarifs",
+       "label": "Tarif PSH",
+       "type": "texte",
+       "ph": "ex. 12 €"
+      },
+      {
+       "id": "pub-tarif-acc",
+       "label": "Tarif accompagnateur",
+       "type": "texte",
+       "ph": "ex. gratuit"
+      }
+     ],
+     "phase": "res"
+    },
+    {
+     "id": "pub-accueil",
+     "titre": "Accueil à l'entrée",
+     "statut": "todo",
+     "type": "fiche",
+     "detail": "Une personne référente, et si possible une signalétique LSF.",
+     "rows": [
+      {
+       "id": "pub-entree",
+       "label": "Qui accueille le public sourd à l'entrée ?",
+       "type": "texte",
+       "ph": "Personne référente, signalétique LSF…"
+      }
+     ],
+     "phase": "vient"
+    }
+   ],
+   "docs": [
+    {
+     "titre": "Guide : accueillir le public sourd",
+     "type": "PDF",
+     "url": "https://drive.google.com/file/d/1fNo1y9MbwYkTArcis8TMRrCKtrxKztik/view"
+    },
+    {
+     "titre": "Logos 10 Doigts en Cavale",
+     "type": "dossier",
+     "url": "https://drive.google.com/drive/folders/1pLmzdgr9UEsLB3VlwyD2-jqLV-uzWFnO"
+    }
+   ],
+   "phases": [
+    {
+     "k": "info",
+     "ic": "📣",
+     "t": "L'annonce",
+     "s": "Communication"
+    },
+    {
+     "k": "res",
+     "ic": "🎟️",
+     "t": "La réservation",
+     "s": "Billetterie"
+    },
+    {
+     "k": "vient",
+     "ic": "🙌",
+     "t": "L'accueil",
+     "s": "Jour J"
+    }
+   ]
+  },
+  {
+   "id": "presse",
+   "label": "Presse et captation",
+   "icon": "cam",
+   "g": "pub",
+   "pour": "la communication",
+   "items": [
+    {
+     "id": "cap-captation",
+     "titre": "Captation du concert",
+     "statut": "todo",
+     "type": "fiche",
+     "detail": "Toute captation ou diffusion, même partielle, nécessite un accord écrit avec cession de droits.",
+     "rows": [
+      {
+       "id": "cap-oui",
+       "label": "Une captation est-elle prévue ?",
+       "type": "ouinon",
+       "gate": true
+      },
+      {
+       "id": "cap-qui",
+       "label": "Qui filme ?",
+       "type": "texte",
+       "ph": "ex. ARTE, média local…"
+      },
+      {
+       "id": "cap-media",
+       "label": "Pour quel média et quelle diffusion ?",
+       "type": "texte",
+       "ph": "ex. TV, web, écran"
+      }
+     ]
+    },
+    {
+     "id": "com-interview",
+     "titre": "Interviews des chansigneurs",
+     "statut": "todo",
+     "type": "fiche",
+     "detail": "Toute interview doit être validée par la référente 10 Doigts en Cavale.",
+     "rows": [
+      {
+       "id": "itw-oui",
+       "label": "Des interviews sont-elles prévues ?",
+       "type": "ouinon",
+       "gate": true
+      },
+      {
+       "id": "itw-quand",
+       "label": "Horaire et lieu",
+       "type": "texte",
+       "ph": "ex. 18h, loge"
+      },
+      {
+       "id": "itw-qui",
+       "label": "Interlocuteur",
+       "type": "texte",
+       "ph": "Média, nom, téléphone"
+      }
+     ]
+    }
+   ],
+   "docs": [
+    {
+     "titre": "Dossier de présentation de 10 Doigts en Cavale",
+     "type": "PDF",
+     "url": "https://drive.google.com/file/d/1myCwKhQyppEYk_HJ3XWM6SKB7ZC9DfTB/view"
+    }
+   ]
+  },
+  {
+   "id": "photos",
+   "label": "Photos et vidéos",
+   "icon": "photo",
+   "g": "pub",
+   "pour": "la communication",
+   "intro": "Après le concert : les chansigneurs seraient ravis de communiquer sur l'accessibilité de cet événement. N'hésitez pas à nous transmettre vos photos et vidéos, avec le crédit à mentionner.",
+   "items": [
+    {
+     "id": "ph-medias",
+     "titre": "Auriez-vous des photos ou vidéos à nous transmettre ?",
+     "statut": "todo",
+     "type": "lienfichier",
+     "detail": "Déposez les fichiers directement, ou collez un lien de téléchargement.",
+     "aide": "Lien de téléchargement (WeTransfer, SwissTransfer, Drive…)."
+    },
+    {
+     "id": "ph-credit",
+     "titre": "Crédit à mentionner",
+     "statut": "todo",
+     "type": "texte",
+     "aide": "@ du photographe. À défaut, @ de la salle ou du festival."
+    }
+   ]
+  },
+  {
+   "id": "securite",
+   "label": "Sécurité et assurances",
+   "icon": "bouclier",
+   "g": "pub",
+   "pour": "la direction du festival/salle",
+   "besoins": [
+    {
+     "t": "Assurance responsabilité civile",
+     "d": "Fournie par l'organisateur."
+    },
+    {
+     "t": "Incidents pendant le travail",
+     "d": "L'organisateur est responsable de tout incident concernant l'équipe."
+    },
+    {
+     "t": "Vols et dommages",
+     "d": "L'organisateur est responsable des vols ou dommages sur le matériel."
+    },
+    {
+     "t": "Matériel en hébergement et transport",
+     "d": "L'organisateur est responsable de sa sécurité pendant l'hébergement ou les transports organisés."
+    },
+    {
+     "t": "Lieux de stockage sécurisés",
+     "d": "Loges, hébergements, véhicules, etc."
+    }
+   ],
+   "confirm": {
+    "id": "secu-ok"
+   }
+  }
+ ]
+}

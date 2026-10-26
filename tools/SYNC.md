@@ -61,6 +61,18 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
       Si l'organisateur a réservé (`heb-qui` = « orga ») : aussi les points `heb-…` via la commande `mail` (sans les codes).
    e. Les « ajoutes » sont des nouveautés comme les autres : reporte-les dans la FDR (étape 4), source « Mail », statut « à vérifier ».
       Ne réponds à aucun mail, ne crée aucun brouillon, ne touche à aucun libellé Gmail.
+3 quater. **Nouveaux concerts ✅ → espace organisateur** — décidé par Aurélie le 26/10/2026.
+   Google Agenda (calendrier principal, `list_events` d'aujourd'hui à +18 mois, titre contenant « ✅ »).
+   - SEULEMENT les concerts chansignés (« ✅✉️ » = concert des Fils du Facteur). JAMAIS : atelier, team building, interprétation, conférence, cérémonie, trophée,
+     H'up, KLESIA, Malakoff, Total, collège, ni ces événements écartés par Aurélie : « Charitable Metal Fest » (pas sûr qu'il se fasse : attendre qu'elle le demande),
+     « Mlle&co » (Opéra Garnier), « picnic » (Cherbourg), « gloria ». Doute sur la nature → ne crée rien, pose la question dans la notification.
+   - Déjà créé si le tableau des liens a une ligne avec la même date (colonne B) et le même artiste → rien à faire.
+   - Plusieurs artistes chansignés le même soir → ne crée rien, demande d'abord (un espace par artiste, espaces jumeaux).
+   - Sinon : prépare `/tmp/orga/<nom>.json` en suivant `tools/CREATION.md` (Agenda, fiche FDR, Drive, Gmail, Web, associations sourdes),
+     puis `python3 -I tools/orga.py creer /tmp/orga/<nom>.json <code équipe>`.
+     Ajoute une ligne au tableau des liens : A « <Artiste> - <Lieu> (<Ville>) », B date JJ/MM/AAAA, C fichier, D clé, E lien, F « À vérifier (créé par la synchro) »,
+     G lien équipe, H lien de la fiche FDR, J mail du contact principal. Puis relance l'étape `accueil` si elle existe, et commit.
+   - Notification : « Espace ORGA prêt : <Artiste> (<Ville>). À vérifier avant d'envoyer le lien. » La liste d'associations reste masquée (« Liste vérifiée » à cocher par l'équipe).
 4. Pour chaque nouveauté, reporte l'info au bon endroit (une seule fois) :
    - **Fiche FDR de l'événement** (Google Sheet « FDR - … », colonne H du tableau des liens, sinon cherche-la dans le Drive) :
      ajoute une ligne juste sous l'en-tête de la bonne partie (insert_dimension puis update_values), statut « à vérifier », source « Espace orga » :
@@ -103,7 +115,7 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
 4 bis. **Accueil équipe** (equipe.html) : lis aussi `O2:Q2` du tableau des liens (fichier, clé, code de l'accueil équipe) et `A1:M60`
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
-5. Si `appliquer`, `recu`, `mail` ou `accueil` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
+5. Si `appliquer`, `recu`, `mail`, `creer` ou `accueil` a écrit quelque chose : `git status --porcelain` ; commit « Synchro AAAA-MM-JJ HHhMM » et push sur main.
    Vérifie avant le commit qu'aucune clé ni aucun code n'apparaît dans les fichiers modifiés (grep).
 6. Fin :
    - Rien de nouveau → écris seulement « ORGA : à jour ». Pas de notification.

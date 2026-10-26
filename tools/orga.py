@@ -543,6 +543,62 @@ def mail(fichier, cle, infos_json):
     if ok or vus: ecrire(fichier, cle, d)
     print(json.dumps({"evenement": d.get("artiste", "") + " - " + d.get("lieu", ""), "ajoutes": ok, "conflits": conflits, "deja": deja}, ensure_ascii=False, indent=1))
 
+JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+JC = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
+# Échéances par sujet, en jours avant le concert (négatif = après).
+ECHEANCES = {"public": 42, "setlist": 21, "son": 14, "lumiere": 14, "emplacement": 14, "ecran": 14, "talkback": 14, "contacts": 14,
+             "horaires": 14, "accueil": 10, "pass": 10, "presse": 10, "securite": 10, "photos": -15}
+
+def creer(infos_json, code):
+    """Nouvel espace organisateur à partir de tools/modele.json et d'un fichier d'infos (voir tools/CREATION.md).
+    Écrit le fichier chiffré et affiche {fichier, cle, lien, lien_equipe}."""
+    import copy, hashlib
+    from datetime import date, timedelta
+    I = json.load(open(infos_json, encoding="utf-8"))
+    M = json.load(open(os.path.join(ROOT, "tools", "modele.json"), encoding="utf-8"))
+    j = date.fromisoformat(I["iso"])
+    ch = I.get("chansigneurs", [])
+    noms = [c["nom"].split()[0] for c in ch]
+    chs = " et ".join([", ".join(noms[:-1]), noms[-1]] if len(noms) > 1 else noms)
+    txt = json.dumps(M, ensure_ascii=False).replace("{ARTISTE}", I["artiste"]).replace("{CHANSIGNEURS}", chs or "l'équipe")
+    d = json.loads(txt)
+    ref = I.get("referente") or (ch[0] if ch else {"nom": "", "tel": ""})
+    d.update({"id": I.get("id") or f'{I["iso"]}-{I["artiste"]}'.lower().replace(" ", "-"), "artiste": I["artiste"], "lieu": I["lieu"], "ville": I.get("ville", ""),
+              "date": f"{JOURS[j.weekday()]} {j.day} {MOIS[j.month - 1]} {j.year}", "iso": I["iso"], "heure": I.get("heure") or "horaire à venir",
+              "premiere": I.get("premiere", ""), "premiereChansignee": bool(I.get("premiereChansignee")),
+              "referente": {"nom": ref["nom"], "role": "chansigneuse, votre contact", "tel": ref.get("tel", ""), "mail": "10doigtsencavale@gmail.com"},
+              "chansigneurs": chs, "equipe": [{"nom": c["nom"], "tel": c.get("tel", "")} for c in ch], "arrivees": I.get("arrivees", []),
+              "depotFichiers": "", "envoi": "", "reponses": {}, "questions": {}, "journal": [], "vus": [],
+              "adminHash": hashlib.sha256(code.encode()).hexdigest()})
+    for cid, v in (I.get("contacts") or {}).items():
+        if cid in d["contacts"] and v: d["contacts"][cid].update({"statut": "ok", "valeur": v})
+    for t in d["topics"]:
+        n = ECHEANCES.get(t["id"], 14); e = j - timedelta(days=n); t["iso"] = e.isoformat()
+        t["avant"] = "15 jours après le concert" if n < 0 else f"{JC[e.weekday()]} {e.day}/{e.month}"
+        for it in t.get("items", []):
+            i = it.get("id")
+            if i == "sl" and I.get("setlist"): it["chansons"] = [{"t": x} for x in I["setlist"]]
+            if i == "setlist-dress" and I.get("dress"): it.update({"type": "info", "statut": "ok", "valeur": I["dress"]})
+            if i == "park-runs": it["valeur"] = I.get("transport", "")
+            if i == "park": it["siDef"] = bool(I.get("voiture"))
+            if i == "heb":
+                if I.get("heb") is None: it["qui"] = "10dec"
+                else: it["auto"] = I["heb"]
+            if i == "runs" and I.get("runs"): it["rows"] = I["runs"]
+            if i == "acc-repas": it["rows"] = I.get("repas") or [{"nom": x, "date": "", "midi": True, "soir": True, "regime": ""} for x in noms]
+            if i == "hor-tab":
+                for r in it["rows"]:
+                    if (I.get("horaires") or {}).get(r["id"]): r["a"] = I["horaires"][r["id"]]
+                for r in I.get("horaires_plus", []): it["rows"].append(r)
+            if i == "pub-asso":
+                it["liste"] = I.get("assos", [])
+                it["msg"] = {"adresse": I.get("adresse", ""), "prog": I.get("prog") or [{"ic": "🎤", "h": I.get("heure", ""), "t": "Concert de " + I["artiste"]}]}
+    fichier, cle = b64(os.urandom(12)), b64(os.urandom(32))
+    ecrire(fichier, cle, d)
+    base = "https://10doigtsencavale-jpg.github.io/ORGA/#" + fichier + "." + cle
+    print(json.dumps({"fichier": fichier, "cle": cle, "lien": base, "lien_equipe": base + "!" + code, "date": j.strftime("%d/%m/%Y")}, ensure_ascii=False))
+
 def dechiffrer(fichier, cle):
     box = json.load(open(os.path.join(ROOT, "e", fichier + ".json")))
     print(AESGCM(unb64(cle)).decrypt(unb64(box["iv"]), unb64(box["ct"]), None).decode())
@@ -553,4 +609,4 @@ if __name__ == "__main__":
      "appliquer": lambda: appliquer(*a[1:5]), "manquants": lambda: manquants(*a[1:3]),
      "depots": lambda: depots(*a[1:3]), "recu": lambda: recu(*a[1:5]),
      "accueil": lambda: accueil(*a[1:5]),
-     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4]), "trajets": lambda: trajets(*a[1:4]), "points": lambda: points(*a[1:3]), "mail": lambda: mail(*a[1:4])}[a[0]]()
+     "profils": lambda: profils(*a[1:4]), "equipe": lambda: equipe(*a[1:4]), "trajets": lambda: trajets(*a[1:4]), "points": lambda: points(*a[1:3]), "mail": lambda: mail(*a[1:4]), "creer": lambda: creer(*a[1:3])}[a[0]]()
