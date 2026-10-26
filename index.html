@@ -872,6 +872,12 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .rp-i{margin-top:10px;background:#f3f4f8;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#555}.rp-i summary{cursor:pointer}.rp-i p{margin:8px 0 0}
 @media (max-width:759px){.lg-t{grid-template-columns:repeat(2,1fr)}.rp-g{grid-template-columns:1fr}.rp-c .pc-f{grid-template-columns:1fr}}
 body.eqv .rp :is(.rp-g,.rp-x){filter:grayscale(1);opacity:.55}
+.lg-t{display:grid;grid-template-columns:1fr !important;gap:8px}
+.lg-c{flex-direction:row !important;align-items:center;text-align:left !important;gap:12px !important;padding:10px 12px !important}
+.lg-k{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid #9aa0bd;display:flex;align-items:center;justify-content:center;font-weight:800;color:#2e3bb2;background:#fff}
+.lg-c.on .lg-k{border-color:#2e3bb2;background:#fff}
+.lg-c b{width:150px;flex:none;font-size:15px}.lg-l{display:flex;flex-wrap:wrap;gap:5px;flex:1}.lg-l span{font-size:12.5px;font-weight:600;border-radius:999px;padding:3px 9px;background:#f3f4f8;color:#333}.lg-c.on .lg-l span{background:#fff;color:#2e3bb2}
+@media (max-width:759px){.lg-c{flex-wrap:wrap}.lg-c b{width:auto;flex:1}.lg-l{flex-basis:100%}}
 </style>
 </head>
 <body>
@@ -1892,7 +1898,7 @@ function tuilesHTML(p) {
   const on = tuilesOn(p), all = on.length === p.options.length;
   return `<div class="item lg" id="it-${p.id}"><div class="lg-h"><p class="det">${esc(p.detail || "Touchez ce qui est prévu.")}</p><button type="button" class="btn btn-ghost ${all ? "sel" : ""}" data-tuall="${p.id}" aria-pressed="${all}">${all ? "✓ " : ""}Tout est prévu</button></div>
     <div class="lg-t">${p.options.map((o, i) => { const s = on.includes(o.texte);
-      return `<button type="button" class="lg-c ${s ? "on" : ""}" aria-pressed="${s}" data-tu="${p.id}" data-i="${i}"><span class="lg-e" aria-hidden="true">${o.ic}</span><b>${s ? "✓ " : ""}${esc(o.t)}</b><small>${esc(o.d)}</small></button>`; }).join("")}</div></div>`;
+      return `<button type="button" class="lg-c ${s ? "on" : ""}" aria-pressed="${s}" data-tu="${p.id}" data-i="${i}"><span class="lg-k" aria-hidden="true">${s ? "✓" : ""}</span><span class="lg-e" aria-hidden="true">${o.ic}</span><b>${esc(o.t)}</b><span class="lg-l">${(o.l || [o.d]).map(x => `<span>${esc(x)}</span>`).join("")}</span></button>`; }).join("")}</div></div>`;
 }
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-tu],[data-tuall]"); if (!b) return;
   const p = allItems().find(x => x.id === (b.dataset.tu || b.dataset.tuall)); let on = tuilesOn(p);
