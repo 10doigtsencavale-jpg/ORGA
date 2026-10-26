@@ -855,6 +855,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .pa-b.on{background:#e6e8fb;border:2px solid #2e3bb2}
 .pa-x{margin-top:12px}
 @media (max-width:759px){.pa-g{grid-template-columns:1fr}.pa-c{flex-direction:row;flex-wrap:wrap;text-align:left;gap:4px 10px}.pa-e{font-size:28px}.pa-c b{margin:0;flex:1}.pa-c small{width:100%;margin:0}.pa-ch{flex-direction:row}.pa-b{flex:1;padding:8px 4px;font-size:12.5px}}
+.btn.sel,body.sujet .btn.sel,body.sujet .btn.btn-ghost.sel{background:#e6e8fb;border:2px solid #2e3bb2;color:#2e3bb2}.btn.sel .box{background:#2e3bb2;color:#fff;border-color:#2e3bb2;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 </style>
 </head>
 <body>
@@ -1000,6 +1001,7 @@ function loadLocal() {
 /* Les réponses déjà synchronisées (dans le fichier de l'événement) priment sur l'appareil, sauf saisie plus récente ici. */
 function mergeServer() {
   Object.entries(EVENT.reponses || {}).forEach(([id, r]) => {
+    if (String(r.source || "").startsWith("10DEC") && String(r.texte || "").startsWith("✗")) { const cur = sent["team-" + id]; if (!cur || (cur.date || "") < r.date) delete sent["team-" + id]; return; }
     if (String(r.source || "").startsWith("10DEC")) {
       const cur = sent["team-" + id]; if (!cur || (cur.date || "") < r.date) sent["team-" + id] = { texte: r.texte || "", statut: r.statut || "ok", date: r.date, srv: true };
     } else {
@@ -1471,7 +1473,7 @@ function fw(ctl, val, label, ta) {
   return `<div class="fwrap ${ta ? "ta" : ""} ${String(val || "").trim() ? "has" : ""}">${ctl}<button class="send" type="submit">${label || "Envoyer →"}</button></div>`;
 }
 /* Repas (rempli par l'équipe 10DEC) : midi / soir par intervenant + régime alimentaire. */
-const valOf = id => { const t = sent["team-" + id], r = sent[id]; return (t && t.texte) || (r && r.texte) || ""; };
+const valOf = id => { const t = sent["team-" + id], r = sent[id], ok = x => x && x.texte && !String(x.texte).startsWith("✗") ? x.texte : ""; return ok(t) || ok(r) || ""; };
 function repasRows(p) { return [...p.rows.map((r, i) => Object.assign({ k: `${p.id}-${i}` }, r)), ...extraRows(p).map(x => ({ k: x.id, nom: x.nom, extra: true }))].map(r => {
   const g = k => { const v = valOf(`${r.k}-${k}`); return v ? v === "oui" : !!r[k]; };
   return { nom: r.nom, date: valOf(`${r.k}-date`) || r.date || "", midi: g("midi"), soir: g("soir"), regime: valOf(`${r.k}-regime`) || r.regime || "", k: r.k, extra: r.extra };
@@ -1820,6 +1822,20 @@ const itemOn = it => !it.si || (valOf(it.si) || (it.siDef ? "oui" : "non")) === 
 document.addEventListener("change", e => { if (!(e.target.matches && e.target.matches("[data-sitog]"))) return;
   const id = e.target.dataset.sitog, v = e.target.checked ? "oui" : "non";
   sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Visible pour l'organisateur." : "Masqué pour l'organisateur."); });
+
+/* Partout : recliquer sur le choix déjà sélectionné le retire (réponse « ✗ Retiré »). */
+function unsetAns(id) { delete sent[id]; delete sent["team-" + id]; delete sent["draft-" + id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Choix retiré."); }
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("button"); if (!b) return;
+  const pt = id => allPoints().find(p => p.id === id) || allItems().find(p => p.id === id);
+  let id = "", v = "";
+  if (b.dataset.pass) { id = b.dataset.pass; v = b.dataset.v; }
+  else if (b.dataset.yes) { id = b.dataset.yes; v = b.dataset.label || "Confirmé."; }
+  else if (b.dataset.oui) { const p = pt(b.dataset.oui); if (p) { id = p.id; v = p.oui || "Oui."; } }
+  else if (b.dataset.non) { const p = pt(b.dataset.non); if (p) { id = p.id; v = p.non || "Non."; } }
+  else if (b.dataset.choix) { const p = pt(b.dataset.choix), o = p && p.options[+b.dataset.i]; if (o && !o.champ) { id = p.id; v = o.texte; } }
+  if (id && v && valOf(id) === v) { e.stopImmediatePropagation(); e.preventDefault(); unsetAns(id); }
+}, true);
 /* Tableau à compléter (horaires) : une case vide est orangée tant qu'elle n'est pas remplie. */
 const rowsOf = p => p.rows.filter(r => !r.repas || repasHas(r.repas));
 const rowVal = r => valOf(r.id) || r.a || "";
@@ -1931,7 +1947,15 @@ function itemHTML(p) {
   body += answerHTML(p);
   if (p.docs && MODE === "orga") body += docsHTML(p.docs);
   if (MODE === "equipe") body += teamHTML(p);
-  else if (st === "sent") {
+  else if (st === "sent" && (p.type === "ouinon" || (p.type === "choix" && p.options.some(o => !o.champ && o.texte === valOf(p.id))) || (p.type === "confirmer" && valOf(p.id) === "Confirmé."))) {
+    /* Le choix reste affiché, sélectionné : recliquer dessus le retire. */
+    const v = valOf(p.id), on = x => x ? " sel" : "", pr = x => ` aria-pressed="${!!x}"`;
+    if (p.type === "ouinon") body += `<div class="actions"><button class="btn btn-ghost${on(v === (p.oui || "Oui."))}"${pr(v === (p.oui || "Oui."))} type="button" data-oui="${p.id}">${v === (p.oui || "Oui.") ? "✓ " : ""}Oui</button><button class="btn btn-ghost${on(v === (p.non || "Non."))}"${pr(v === (p.non || "Non."))} type="button" data-non="${p.id}">${v === (p.non || "Non.") ? "✓ " : ""}Non</button></div>` + (sent[p.id] && sent[p.id].oui ? fileButtons(p) : "");
+    if (p.type === "choix") { body += `<div class="actions" role="group" aria-label="${esc(p.titre)}">${p.options.map((o, i) => `<button class="btn btn-ghost choice${on(o.texte === v)}"${pr(o.texte === v)} type="button" data-choix="${p.id}" data-i="${i}"><span class="box" aria-hidden="true">${o.texte === v ? "✓" : ""}</span>${esc(o.label)}</button>`).join("")}</div>`;
+      if (sent[p.id] && sent[p.id].fichier) body += fileButtons(p, sent[p.id].fichier); }
+    if (p.type === "confirmer") body += `<div class="actions"><button class="btn btn-ghost sel" aria-pressed="true" type="button" data-yes="${p.id}">✓ C'est confirmé</button></div>`;
+    body = body.replace(answerHTML(p), "");
+  } else if (st === "sent") {
     if (p.type === "ouinon" && sent[p.id].oui) body += fileButtons(p);
     if (p.type === "choix" && sent[p.id].fichier) body += fileButtons(p, sent[p.id].fichier);
     body += `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${p.id}">Modifier ma réponse</button></div>`;
