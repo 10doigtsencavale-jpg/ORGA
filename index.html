@@ -877,7 +877,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .as-s{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;margin-bottom:14px}.as-s>div{min-width:0}.as-s>div>b{display:block;font-size:16px;margin:3px 0 6px}
 .as-n{width:28px;height:28px;border-radius:50%;background:#f7a42b;color:#10153d;display:flex;align-items:center;justify-content:center;font-weight:800}
 .as-msg{border:1.5px dashed #c9cde6;border-radius:12px;padding:10px 12px;background:#fafbff;white-space:pre-line;font-size:15px;line-height:1.45}
-.jum{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 12px}.jum b{color:#2e3bb2}.ttab.hor td.hj{white-space:nowrap;color:#2e3bb2;font-weight:700;text-transform:capitalize}.ttab.hor input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:7px 9px}.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
+.jum{display:flex;gap:8px;align-items:flex-start;background:#eef0fa;border:1.5px solid #c9cde6;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 12px}.jum b{color:#2e3bb2}.ttab.hor td.hj{white-space:nowrap;color:#2e3bb2;font-weight:700;text-transform:capitalize}.ttab.hor input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:7px 9px}.w-org{color:#6b3a1e!important}.w-dec{color:#4b4b52!important}.wleg{font-size:12.5px;color:#666;margin:2px 2px 10px}.wleg b.o{color:#6b3a1e}.wleg b.d{color:#4b4b52}.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
 .as-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.as-acts .btn{text-decoration:none}
 .as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
 .as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;white-space:nowrap}.as-no{color:#bbb}
@@ -1544,6 +1544,8 @@ function fw(ctl, val, label, ta) {
   return `<div class="fwrap ${ta ? "ta" : ""} ${String(val || "").trim() ? "has" : ""}">${ctl}<button class="send" type="submit">${label || "Envoyer →"}</button></div>`;
 }
 /* Repas (rempli par l'équipe 10DEC) : midi / soir par intervenant + régime alimentaire. */
+/* Qui a écrit ? Texte marron foncé = festival / salle (ou artiste), gris foncé = 10 Doigts en Cavale (choix d'Aurélie, 26/10/2026). */
+const W = id => { const ok = x => x && x.texte && !String(x.texte).startsWith("✗"); return ok(sent["team-" + id]) ? "w-dec" : ok(sent[id]) ? "w-org" : "w-dec"; };
 const valOf = id => { const t = sent["team-" + id], r = sent[id], ok = x => x && x.texte && !String(x.texte).startsWith("✗") ? x.texte : ""; return ok(t) || ok(r) || ""; };
 function repasRows(p) { return [...p.rows.map((r, i) => Object.assign({ k: `${p.id}-${i}` }, r)), ...extraRows(p).map(x => ({ k: x.id, nom: x.nom, extra: true }))].map(r => {
   const g = k => { const v = valOf(`${r.k}-${k}`); return v ? v === "oui" : !!r[k]; };
@@ -1590,7 +1592,7 @@ function hebHTML(p) {
   if (isPB(p) && MODE !== "equipe") return pbBlockHTML(p);
   const team = MODE === "equipe", qui = hebQui(p), v = k => hebVal(p, k);
   const field = (k, ph) => { const id = "heb-" + k, val = v(k);
-    if (!team && val) return `<span class="tv">${esc(val)}</span>${sent[id] ? ` <button type="button" class="linkbtn" data-edit="${id}">Modifier</button>` : ""}`;
+    if (!team && val) return `<span class="tv ${W(id)}">${esc(val)}</span>${sent[id] ? ` <button type="button" class="linkbtn" data-edit="${id}">Modifier</button>` : ""}`;
     if (!team && qui === "10dec") return `<span class="det">À venir</span>`;
     return `<form class="form" data-form="${id}">${fw(`<input type="text" id="f-${id}" name="${id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + id] || (team ? val : ""))}" aria-label="${esc(ph)}">`, sent["draft-" + id] || (team ? val : ""), "OK")}</form>`; };
   const cnt = (k, l) => { const n = +v(k) || 0;
@@ -1630,8 +1632,8 @@ function grilleHTML(p) {
   const cell = x => {
     if (x.c.k === "qui" && team) { const on = x.v.split(/\s*,\s*/).filter(Boolean), extra = on.filter(n => !prenoms.includes(n));
       return `<div class="quis">${[...prenoms, ...extra].map(n => `<button type="button" class="qb ${on.includes(n) ? "on" : ""}" data-quitog="${x.id}" data-n="${esc(n)}" aria-pressed="${on.includes(n)}">${esc(n)}</button>`).join("")}</div>`; }
-    if (!team && x.v && (x.fixe || !sent[x.id])) return `<span class="tv">${esc(x.v)}</span>`;
-    if (!team && x.v) return `<span class="tv">${esc(x.v)}</span> <button type="button" class="linkbtn" data-edit="${x.id}">Modifier</button>`;
+    if (!team && x.v && (x.fixe || !sent[x.id])) return `<span class="tv ${W(x.id)}">${esc(x.v)}</span>`;
+    if (!team && x.v) return `<span class="tv ${W(x.id)}">${esc(x.v)}</span> <button type="button" class="linkbtn" data-edit="${x.id}">Modifier</button>`;
     const ph = x.c.k === "heure" ? "??h?? - ??h??" : (x.c.ph || { date: "jj/mm", nb: "?", a: "Lieu", b: "Lieu", qui: "Prénoms" }[x.c.k] || "À compléter");
     return `<form class="form" data-form="${x.id}">${fw(`<input type="text" id="f-${x.id}" name="${x.id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + x.id] || (team ? x.v : ""))}" aria-label="${esc(x.c.l)}${x.r.nom ? " · " + esc(x.r.nom) : ""}">`, sent["draft-" + x.id] || (team ? x.v : ""), "OK")}</form>`;
   };
@@ -1814,14 +1816,14 @@ function pcStatus(p) { const i = pcCur(p); if (i < 0) return "ok";
   if (PC[i].k === "video" || (PC[i].k === "texte" && valOf("com-texte"))) return "sent"; return "todo"; }
 function pcField(id, label, ph) {
   const v = valOf(id), mine = sent[id] || sent["team-" + id];
-  if (v && mine && !sent["draft-" + id]) return `<div class="pc-f"><b>${esc(label)}</b><span><span class="tv">${esc(v)}</span> <button type="button" class="linkbtn" data-edit="${id}">Modifier</button></span></div>`;
+  if (v && mine && !sent["draft-" + id]) return `<div class="pc-f"><b>${esc(label)}</b><span><span class="tv ${W(id)}">${esc(v)}</span> <button type="button" class="linkbtn" data-edit="${id}">Modifier</button></span></div>`;
   return `<form class="form pc-f" data-form="${id}"><label for="f-${id}"><b>${esc(label)}</b></label>${fw(`<input type="text" id="f-${id}" name="${id}" placeholder="${esc(ph)}" value="${esc(sent["draft-" + id] || "")}">`, sent["draft-" + id], "OK")}</form>`;
 }
 function pcBody(p, k) {
   const eq = MODE === "equipe";
   if (k === "texte") { const v = valOf("com-texte");
     const form = `<form class="form" data-form="com-texte"><label class="small" for="f-com-texte">Écrivez le texte à traduire en LSF.</label>${fw(`<textarea id="f-com-texte" name="com-texte" placeholder="Votre texte d'annonce.">${esc(sent["draft-com-texte"] || "")}</textarea>`, sent["draft-com-texte"], "Envoyer →", true)}</form>`;
-    return (v && !sent["draft-com-texte"] ? `<p class="val">${esc(v)}</p><p class="pc-wait">⏳ En attente de validation par 10 Doigts en Cavale. <button type="button" class="linkbtn" data-edit="com-texte">Modifier</button></p>` : form)
+    return (v && !sent["draft-com-texte"] ? `<p class="val ${W("com-texte")}">${esc(v)}</p><p class="pc-wait">⏳ En attente de validation par 10 Doigts en Cavale. <button type="button" class="linkbtn" data-edit="com-texte">Modifier</button></p>` : form)
       + (eq ? `<button type="button" class="btn btn-ok" data-yes="com-texte-ok" data-label="Texte validé">✓ Valider le texte</button>` : ""); }
   if (k === "video") return `<p class="pc-wait">⏳ 10 Doigts en Cavale prépare la vidéo en LSF, avec la voix off. Vous la recevrez par mail.</p>`
     + (eq ? `<button type="button" class="btn btn-ok" data-yes="com-video-ok" data-label="Vidéo envoyée">✓ Vidéo envoyée</button>` : "");
@@ -2083,15 +2085,15 @@ function tableauHTML(p) {
   const all = [...base, ...xs].sort((a, b) => J ? (a.j || "~").localeCompare(b.j || "~") || a.k - b.k || a.i - b.i : 0);
   const jc = o => J ? `<td data-l="Jour" class="hj">${esc(jd(o.j))}</td>` : "";
   const xrow = o => { const r = o.x, done = o.h && !sent["draft-" + r.id + "__edit"];
-    if (done) return `<tr>${jc(o)}<td><span class="tv">${esc(o.h)}</span></td><td>${esc(r.nom)} <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
+    if (done) return `<tr>${jc(o)}<td><span class="tv ${W(r.id + "-h")}">${esc(o.h)}</span></td><td>${esc(r.nom)} <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
     return `<tr class="vide"><td data-l="Jour"><input type="date" form="fx-${r.id}" name="j" value="${esc(o.j || EVENT.iso || "")}" aria-label="Jour"></td>
       <td><input type="text" form="fx-${r.id}" name="h" placeholder="??h?? - ??h??" value="${esc(o.h)}" aria-label="Horaire"></td>
       <td><input type="text" form="fx-${r.id}" name="nom" placeholder="ex. Atelier avec une classe" value="${esc(/^Ligne \d+$/.test(r.nom) ? "" : r.nom)}" aria-label="Étape">
       <form id="fx-${r.id}" data-horx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`; };
   const row = o => { if (o.x) return xrow(o); const r = o.r, v = rowVal(r), mine = sent[r.id];
-      if (r.equipe && MODE !== "equipe") return `<tr class="fourni">${jc(o)}<td>${v ? `<span class="tv">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
+      if (r.equipe && MODE !== "equipe") return `<tr class="fourni">${jc(o)}<td>${v ? `<span class="tv w-dec">${esc(v)}</span>` : `<span class="det">À venir</span>`}</td><td>${esc(r.b)} <span class="pill p-eq">10 Doigts en Cavale</span></td></tr>`;
       return `<tr class="${v ? "" : "vide"}">${jc(o)}<td>${v
-        ? `<span class="tv">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
+        ? `<span class="tv ${W(r.id)}">${esc(v)}</span>${mine ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`
         : `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(phHeure(r.ph) || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.b)}">`, sent["draft-" + r.id], "OK")}</form>`}</td>
         <td>${esc(r.b)}</td></tr>`; };
   return `<div class="item ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div>
@@ -2118,7 +2120,7 @@ function ficheCell(r) {
     return `<div class="yn">${opts.map(o => `<button type="button" class="ynb ${v === o ? "on" : ""}" data-rowset="${r.id}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div>`; }
   if (r.type === "multi") { const on = v.split(" · ");
     return `<div class="subs in">${r.options.map(o => `<label class="sub"><input type="checkbox" data-rowmulti="${r.id}" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div>`; }
-  if (v) return `<span class="tv">${esc(v)}</span>${sent[r.id] ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`;
+  if (v) return `<span class="tv ${W(r.id)}">${esc(v)}</span>${sent[r.id] ? ` <button type="button" class="linkbtn" data-edit="${r.id}">Modifier</button>` : ""}`;
   return `<form class="form" data-form="${r.id}">${fw(`<input type="text" id="f-${r.id}" name="${r.id}" placeholder="${esc(phHeure(r.ph) || "À compléter")}" value="${esc(sent["draft-" + r.id] || "")}" aria-label="${esc(r.label)}">`, sent["draft-" + r.id], "OK")}</form>`;
 }
 function ficheHTML(p) {
@@ -2168,15 +2170,15 @@ function pillHTML(p) {
 const byHTML = r => { const a = r && (r.auteur || (!r.srv && AUTEUR)); return a ? `<span class="byteam">par ${esc(a)}${r.date ? " · " + esc(fmt(r.date)) : ""}</span>` : ""; };
 function answerHTML(p) {
   const team = sent["team-" + p.id]; let h = "";
-  if (team && team.texte) h += `<p class="val">${esc(team.texte)}</p><span class="byteam">Complété par 10 Doigts en Cavale</span>`;
-  if (sent[p.id] && (MODE === "equipe" || statusOf(p) === "sent")) h += `<p class="val">${esc(sent[p.id].texte)}</p>${byHTML(sent[p.id])}`;
+  if (team && team.texte) h += `<p class="val w-dec">${esc(team.texte)}</p><span class="byteam">Complété par 10 Doigts en Cavale</span>`;
+  if (sent[p.id] && (MODE === "equipe" || statusOf(p) === "sent")) h += `<p class="val ${W(p.id)}">${esc(sent[p.id].texte)}</p>${byHTML(sent[p.id])}`;
   return h;
 }
 /* Zone remplie par 10 Doigts en Cavale : grisée et non modifiable côté organisateur. */
 function equipeHTML(p) {
   const v = valOf(p.id) || p.valeur || "";
   return `<div class="item fourni" id="it-${p.id}"><div class="item-h"><span class="lbl">${esc(p.titre)}</span><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
-    ${v ? `<p class="val">${esc(v)}</p>` : `<p class="det">À venir : complété par 10 Doigts en Cavale.</p>`}</div>`;
+    ${v ? `<p class="val w-dec">${esc(v)}</p>` : `<p class="det">À venir : complété par 10 Doigts en Cavale.</p>`}</div>`;
 }
 function itemHTML(p) {
   if (p.equipe && MODE !== "equipe" && p.type !== "repas") return equipeHTML(p);
@@ -2194,7 +2196,7 @@ function itemHTML(p) {
   const st = statusOf(p);
   let body = "";
   if (p.detail && (st === "todo" || MODE === "equipe")) body += `<p class="det">${esc(p.detail)}</p>`;
-  if (p.valeur) body += `<p class="val">${esc(p.valeur)}</p>`;
+  if (p.valeur) body += `<p class="val w-dec">${esc(p.valeur)}</p>`;
   body += answerHTML(p);
   if (p.docs && MODE === "orga") body += docsHTML(p.docs);
   if (MODE === "equipe") body += teamHTML(p);
@@ -2234,7 +2236,7 @@ function contactFieldHTML(cid, off, offMsg, where) {
   const p = contactItem(cid), st = statusOf(p), team = sent["team-" + cid], rep = sent[cid];
   const v = (team && team.texte) || (rep && rep.texte) || p.valeur || "";
   if (MODE === "equipe") return itemHTML(p);
-  if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div><p class="val">${esc(v)}</p>
+  if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(p.titre)}</span>${pillHTML(p)}</div><p class="val ${W(p.id)}">${esc(v)}</p>
       ${where ? `<span class="hint">Aussi visible dans « ${esc(where)} ».</span>` : ""}
       ${rep ? `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${cid}">Modifier</button></div>` : ""}</div>`;
   if (off) return `<div class="cf off"><span class="lbl">${esc(p.titre)}</span><input type="text" disabled aria-label="${esc(p.titre)}" placeholder="Pas nécessaire"><span class="hint">${esc(offMsg)}</span></div>`;
@@ -2246,7 +2248,7 @@ function contactFieldHTML(cid, off, offMsg, where) {
 function roleFieldHTML(r) {
   const p = contactItem(r.c, { titre: r.q }), st = statusOf(p), rep = sent[r.c];
   if (MODE === "equipe") return itemHTML(p);
-  if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(r.q)}</span>${pillHTML(p)}</div><p class="val">${esc(contactValue(r.c))}</p>
+  if (st !== "todo") return `<div class="cf done"><div class="item-h"><span class="lbl">${esc(r.q)}</span>${pillHTML(p)}</div><p class="val ${W(r.c)}">${esc(contactValue(r.c))}</p>
       ${rep ? `<div class="actions"><button class="btn btn-ghost" type="button" data-edit="${r.c}">Modifier</button></div>` : ""}</div>`;
   const draft = sent["draft-" + r.c] || "", side = sent["side-" + r.c] || "";
   return `<form class="cf form" data-form="${r.c}" data-role="1"><span class="lbl">${esc(r.q)}</span>${sameSonHTML(r.c) ? `<div class="sames">${sameSonHTML(r.c)}</div>` : ""}
@@ -2472,7 +2474,7 @@ function topicHTML(t) {
     ${MODE === "equipe" && t.masquable ? `<label class="pbsw tpb"><input type="checkbox" data-tpb="${t.id}" ${topicOff(t) ? "checked" : ""}><span>Pas besoin pour ce concert<small>La page disparaît pour l'organisateur.</small></span></label>` : ""}
     ${MODE === "equipe" && topicOff(t) ? `<p class="hebline">🙈 <span>Cette page est masquée pour l'organisateur.</span></p>` : ""}
     ${MODE === "equipe" && t.memo ? `<p class="hebline">📝 <span><b>Mémo équipe :</b> ${esc(t.memo)}</span></p>` : ""}
-    <p class="pour"><span>Pour ${esc(t.pour)}</span></p>
+    <p class="pour"><span>Pour ${esc(t.pour)}</span></p><p class="wleg">Texte <b class="o">marron</b> : écrit par le festival / la salle · <b class="d">gris</b> : écrit par 10 Doigts en Cavale.</p>
     ${t.phases ? phasesHTML(t) : ""}${pre}${!PH ? topicResHTML(t) : ""}${body}</div></main>`;
 }
 
