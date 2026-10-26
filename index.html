@@ -1931,12 +1931,13 @@ function asMsg(p) {
   const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), eq = MODE === "equipe";
   /* Deux artistes le même soir (espaces jumeaux) : un seul message pour les deux. */
   const arts = [].concat(o.artistes || [EVENT.artiste, ...((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom)].filter(Boolean));
-  const plu = arts.length > 1, noms = arts.join(" et ");
+  const de = n => /^Les /.test(n) ? "des " + n.slice(4) : /^Le /.test(n) ? "du " + n.slice(3) : (/^[AEIOUYÉÈH]/i.test(n) ? "d'" : "de ") + n;
+  const plu = arts.length > 1, noms = arts.join(" et "), nomsDe = arts.map(de).join(" et ");
   const plus = valOf("pub-asso-plus") || o.plus || ""; /* info en plus (une ligne) */
   /* Programme dans l'ordre de la journée. Heure : réponse « pub-asso-h<i> » (équipe), sinon donnée, sinon « [heure] ». */
   const prog = (o.prog || [{ ic: "🎤", h: asHeure(), t: "Concert : " + EVENT.artiste }]).map((x, i) => ({ i, ic: x.ic || "🎤", t: x.t, h: valOf("pub-asso-h" + i) || x.h || "" }));
   const lieu = [EVENT.lieu, o.adresse || EVENT.ville].filter(Boolean).join(", ");
-  const txt = `Bonjour !\nBonne nouvelle ! 🎉\n\n${plu ? `Les concerts de ${noms} seront chansignés (accessibles` : `Le concert de ${noms} sera chansigné (accessible`} en langue des signes -LSF) !\n\n📅 ${EVENT.date}\n📍 ${lieu}\n${prog.map(x => `${x.ic} ${x.h || "[heure]"} : ${x.t}`).join("\n")}\n${plus ? plus + "\n" : ""}\n🎬 La vidéo en LSF : ${lien || "[lien de la vidéo]"}\n\n🎟️ Pour réserver :\n${resa || "[mail / SMS]"}\n\nVenez nombreux ! 🙌\nPartagez à vos amis sourds 💛`;
+  const txt = `Bonjour !\nBonne nouvelle ! 🎉\n\n${plu ? `Les concerts ${nomsDe} seront chansignés (accessibles` : `Le concert ${nomsDe} sera chansigné (accessible`} en langue des signes -LSF) !\n\n📅 ${EVENT.date}\n📍 ${lieu}\n${prog.map(x => `${x.ic} ${x.h || "[heure]"} : ${x.t}`).join("\n")}\n${plus ? plus + "\n" : ""}\n🎬 La vidéo en LSF : ${lien || "[lien de la vidéo]"}\n\n🎟️ Pour réserver :\n${resa || "[mail / SMS]"}\n\nVenez nombreux ! 🙌\nPartagez à vos amis sourds 💛`;
   const manque = [prog.some(x => !x.h) && "l'heure", !lien && "le lien de la vidéo (étape « La publication »)", !resa && "le contact pour réserver (« 2. La réservation »)"].filter(Boolean);
   const heures = eq ? `<div class="as-plus">${prog.map(x => pcField("pub-asso-h" + x.i, `${x.ic} Heure : ${x.t}`, "ex. 17h00")).join("")}</div>` : "";
   return { txt, manque, heures };
