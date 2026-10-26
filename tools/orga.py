@@ -13,7 +13,7 @@ La clé de chaque événement n'existe que dans le lien envoyé à l'organisateu
   python3 tools/orga.py equipe <fichier> <clé> <fdr.json>     -> tableau de l'équipe (noms + téléphones) depuis la fiche FDR
   python3 tools/orga.py trajets <fichier> <clé> <fdr.json>    -> heure du run aller (train), hébergement ; alerte si ça change
 """
-import base64, json, os, sys
+import base64, json, os, re, sys
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -205,6 +205,12 @@ def manquants(fichier, cle):
                 manque = [c["t"] for c in it.get("choses", []) if not vals[c["k"]]]
                 if manque: reste.append(it.get("titre", "Pass") + " : " + ", ".join(manque))
                 elif "place" in vals.values() and it.get("ou", "pass-ou") not in rep: reste.append(it.get("titre", "Pass") + " sur place : où et auprès de qui")
+                continue
+            if it.get("type") == "assos":
+                lignes = [it["id"] + "-" + a["k"] for a in it.get("liste", []) if not a.get("deja")]
+                lignes += sorted({k for k in rep if re.match("^" + re.escape(it["id"]) + r"-x[a-z0-9]{4,10}$", k) and not str((rep.get(k) or {}).get("texte", "")).startswith("✗")})
+                faits = sum(1 for l in lignes if (rep.get(l + "-env") or {}).get("texte") == "Envoyé")
+                if faits < len(lignes): reste.append(f"Prévenir les associations sourdes ({faits}/{len(lignes)})")
                 continue
             if it.get("type") == "parcours":
                 lib = parcours_reste(it, rep)

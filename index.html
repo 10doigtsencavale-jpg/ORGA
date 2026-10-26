@@ -867,6 +867,18 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 .lg-t{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .lg-c{font:inherit;cursor:pointer;border:2px solid #d7daef;border-radius:14px;padding:10px 8px;text-align:center;background:#fff;color:#10153d;display:flex;flex-direction:column;align-items:center;gap:4px}
 .lg-c.on{border-color:#2e3bb2;background:#e6e8fb}.lg-c.on b{color:#2e3bb2}.lg-e{font-size:28px}.lg-c b{font-size:13.5px}.lg-c small{font-size:12px;color:#555;line-height:1.35}
+.as-p{margin:0 0 4px;font-size:15px}.as-bar{height:12px;border-radius:6px;background:#eef0fa;overflow:hidden;margin:0 0 14px}.as-bar i{display:block;height:100%;background:#87cabe;border-radius:6px}
+.as-s{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;margin-bottom:14px}.as-s>div{min-width:0}.as-s>div>b{display:block;font-size:16px;margin:3px 0 6px}
+.as-n{width:28px;height:28px;border-radius:50%;background:#f7a42b;color:#10153d;display:flex;align-items:center;justify-content:center;font-weight:800}
+.as-msg{border:1.5px dashed #c9cde6;border-radius:12px;padding:10px 12px;background:#fafbff;white-space:pre-line;font-size:15px;line-height:1.45}
+.as-plus{margin-top:8px}.as-w{font-size:13px;color:#7a4300;background:#fff4dd;border-radius:10px;padding:6px 10px;margin:6px 0 0}
+.as-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.as-acts .btn{text-decoration:none}
+.as-t td small{display:block;font-size:12.5px;color:#666;font-weight:400}.as-t td,.as-t th{text-align:center;vertical-align:middle}.as-t td:first-child,.as-t th:first-child{text-align:left}
+.as-lk{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:4px 8px;background:#eef0fa;color:#2e3bb2;text-decoration:none;white-space:nowrap}.as-m{color:#10153d;font-size:13.5px;word-break:break-all}.as-no{color:#bbb}
+.as-b{font:inherit;font-weight:700;font-size:13px;cursor:pointer;border-radius:10px;padding:6px 10px;border:1.5px solid #c9cde6;color:#2e3bb2;background:#fff;white-space:nowrap}.as-b.on{background:#e6e8fb;border:2px solid #2e3bb2}
+.as-t input{font:inherit;font-size:14px;width:100%;box-sizing:border-box;border:1.5px dashed #f7a42b;background:#fff7ea;border-radius:10px;padding:8px 10px}.as-t td>*{justify-self:start}.as-t tr.as-on td{background:#f7f8fc}.as-deja{font-size:13px;font-weight:700;color:#2e3bb2}
+@media (max-width:640px){.as-t thead{display:none}.as-t,.as-t tbody,.as-t tr,.as-t td{display:block;width:100%}.as-t tr{border:1.5px solid #d7daef;border-radius:14px;padding:8px 10px;margin-bottom:8px}.as-t td{border:0!important;padding:3px 0;text-align:left!important;display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center}
+.as-t td:first-child{display:block}.as-t td[data-l]:not(:first-child)::before{content:attr(data-l);font-size:12.5px;font-weight:700;color:#6b718f}.as-t td.act{display:block}.as-t input{width:100%}.as-s{grid-template-columns:1fr}.as-n{display:none}}
 .rp-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rp-c{border:2px solid #d7daef;border-radius:16px;padding:12px}.rp-c h4{margin:0 0 4px;font:400 22px "Bebas Neue",sans-serif}
 .rp-w{margin:0 0 8px;font-size:13.5px;color:#555}.rp-x{margin-top:10px}.rp-c .pc-f{grid-template-columns:135px 1fr}.rp-x .item.pa{border:0;padding:0;background:none;box-shadow:none}.rp-x .pa-1 .pa-c small{display:none}
 .rp-i{margin-top:10px;background:#f3f4f8;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#555}.rp-i summary{cursor:pointer}.rp-i p{margin:8px 0 0}
@@ -1136,6 +1148,7 @@ function statusOf(p) {
   if (p.type === "parcours") return pcStatus(p);
   if (p.type === "passes") return passStatus(p);
   if (p.type === "tuiles") return tuilesStatus(p);
+  if (p.type === "assos") return asStatus(p);
   if (p.type === "repas" && inlineOf(p).length) { const ss = inlineOf(p).map(statusOf); return ss.includes("todo") ? "todo" : ss.includes("sent") ? "sent" : "ok"; }
   if (p.type === "fiche") return ficheDone(p) ? (p.rows.some(r => sent[r.id]) ? "sent" : "ok") : "todo";
   if ((p.type === "grille" || p.type === "hebergement") && isPB(p)) return "ok";
@@ -1467,6 +1480,7 @@ function idsOfPoint(p) {
   if (p.type === "hebergement") ids.push("heb");
   if (p.type === "repas") inlineOf(p).forEach(x => ids.push(...idsOfPoint(x)));
   if (p.type === "tableau") (p.rows || []).forEach(r => ids.push(r.id));
+  if (p.type === "assos") ids.push("pub-asso-plus"), asRows(p).forEach(r => ids.push(r.id + "-env", ...(r.extra ? [r.id, r.id + "-mail", r.id + "-site", r.id + "-fb"] : [])));
   if (p.type === "passes") ids.push(...(p.choses || []).map(c => "pass-" + c.k), p.ou || "pass-ou");
   if (p.type === "parcours") ids.push("com-texte", "com-montage", "com-quand", "com-heure", "com-collab");
   return ids.filter(Boolean);
@@ -1807,7 +1821,7 @@ function pcBody(p, k) {
     return `<p class="det">Ajoutez les sous-titres et votre charte graphique à la vidéo.</p>
       ${pr ? `<p class="pc-wait">✓ ${esc(pr === "Prévu par nos équipes" ? "Prévu par les équipes du festival/salle" : pr)}</p>` : `<button type="button" class="btn btn-ghost" data-yes="com-montage" data-label="Prévu par les équipes du festival/salle">Prévu par les équipes du festival/salle</button>`}
       <button type="button" class="btn btn-ok" data-yes="com-montage-fait" data-label="Montage terminé">✓ Le montage est terminé</button>`; }
-  return pcField("com-quand", "Jour", "jj/mm") + pcField("com-heure", "Heure", "??h??") + pcField("com-collab", "Comptes à identifier", "ex. @10doigtsencavale");
+  return pcField("com-quand", "Jour", "jj/mm") + pcField("com-heure", "Heure", "??h??") + pcField("com-collab", "Comptes à identifier", "ex. @10doigtsencavale") + pcField("com-lien", "Lien de la vidéo publiée", "https://…");
 }
 function parcoursHTML(p) {
   const cur = pcCur(p), nDone = PC.filter(s => pcDone(p, s.k)).length;
@@ -1874,6 +1888,65 @@ document.addEventListener("change", e => { if (!(e.target.matches && e.target.ma
   const id = e.target.dataset.sitog, v = e.target.checked ? "oui" : "non";
   sent["team-" + id] = { texte: v, statut: "ok", date: new Date().toISOString() }; save(); post(id, v, "10DEC:ok"); render(false); toast(v === "oui" ? "Visible pour l'organisateur." : "Masqué pour l'organisateur."); });
 
+/* ===== Prévenir le public sourd : associations locales (trouvées et vérifiées par 10DEC) =====
+   Données : item { type: "assos", liste: [{ k, nom, ty, ville, mail, site, fb, deja }] }. Ajouts : « pub-asso-x… » (+ -mail, -site, -fb).
+   Envoyé : réponse « <ligne>-env » = « Envoyé ». Le message se remplit avec l'événement, le lien vidéo (com-lien) et le contact de réservation (pub-contact). */
+function asRows(p) {
+  const l = (p.liste || []).map(a => Object.assign({ id: p.id + "-" + a.k }, a));
+  const x = extraRows(p).map(r => ({ id: r.id, nom: r.nom, extra: true, mail: valOf(r.id + "-mail"), site: valOf(r.id + "-site"), fb: valOf(r.id + "-fb") }));
+  return [...l, ...x];
+}
+const asSent = r => !!r.deja || valOf(r.id + "-env") === "Envoyé";
+function asStatus(p) { const rr = asRows(p); if (!rr.length || !rr.every(asSent)) return "todo"; return rr.some(r => sent[r.id + "-env"]) ? "sent" : "ok"; }
+const asHeure = () => { const h = String(EVENT.heure || ""); return !h || /venir/i.test(h) ? "" : h; };
+function asMsg(p) {
+  const o = (p && p.msg) || {}, lien = valOf("com-lien"), resa = valOf("pub-contact"), h = o.heure || asHeure();
+  /* Deux artistes le même soir (espaces jumeaux) : un seul message pour les deux. */
+  const arts = o.artistes || [EVENT.artiste, ...((EVENT.jumeaux && EVENT.jumeaux.fichiers) || []).map(j => j.nom)].filter(Boolean);
+  const plu = [].concat(arts).length > 1, noms = [].concat(arts).join(" et ");
+  const plus = valOf("pub-asso-plus") || o.plus || ""; /* info importante en plus (ex. rencontre avant le concert) */
+  const lieu = [EVENT.lieu, EVENT.ville].filter(Boolean).join(", ");
+  const txt = `Bonjour !\nBonne nouvelle ! 🎉\n\n${plu ? `Les concerts de ${noms} seront chansignés (accessibles` : `Le concert de ${noms} sera chansigné (accessible`} en langue des signes -LSF) !\n\n📅 ${EVENT.date}\n🕗 ${h || "[heure]"}\n📍 ${lieu}\n🎬 La vidéo en LSF : ${lien || "[lien de la vidéo]"}\n${plus ? plus + "\n" : ""}🎟️ Pour réserver :\n${resa || "[mail / SMS]"}\nVenez nombreux ! 🙌\nPartagez à vos amis sourds 💛`;
+  const manque = [!h && "l'heure", !lien && "le lien de la vidéo (étape « La publication »)", !resa && "le contact pour réserver (« 2. La réservation »)"].filter(Boolean);
+  return { txt, manque };
+}
+const asLink = (u, l) => u ? `<a class="as-lk" href="${esc(/^https?:/.test(u) ? u : "https://" + u)}" target="_blank" rel="noopener">${l}</a>` : `<span class="as-no" aria-label="Aucun">—</span>`;
+function asAddRow(r) {
+  const inp = (k, ph, type, v) => `<input type="${type || "text"}" form="fx-${r.id}" name="${k}" placeholder="${ph}" value="${esc(v)}" aria-label="${ph}">`;
+  return `<tr class="vide"><td data-l="Association">${inp("nom", "Nom de l'association", "text", /^Association \d+$/.test(r.nom) ? "" : r.nom)}</td><td data-l="Mail">${inp("mail", "Mail", "email", r.mail)}</td><td data-l="Site">${inp("site", "Site", "url", r.site)}</td><td data-l="Facebook">${inp("fb", "Page Facebook", "url", r.fb)}</td>
+    <td class="act"><form id="fx-${r.id}" data-asx="${r.id}"></form><button class="send ok-row" type="submit" form="fx-${r.id}">OK</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button></td></tr>`;
+}
+function assosHTML(p) {
+  const rr = asRows(p), d = rr.filter(asSent).length, m = asMsg(p), mails = rr.map(r => r.mail).filter(Boolean);
+  const subj = "🎉 Concert chansigné en LSF";
+  const row = r => { if (r.extra && (!(r.mail || r.site || r.fb) || sent["draft-" + r.id + "__edit"])) return asAddRow(r);
+    const on = asSent(r);
+    return `<tr class="${on ? "as-on" : ""}"><td data-l="Association"><b>${esc(r.nom)}</b>${r.ty || r.ville ? `<small>${esc([r.ty, r.ville].filter(Boolean).join(" · "))}</small>` : ""}${r.extra ? ` <button type="button" class="linkbtn" data-accedit="${r.id}">Modifier</button> <button type="button" class="linkbtn rm" data-rmrow="${r.id}">Retirer</button>` : ""}</td>
+      <td data-l="Mail">${r.mail ? `<a class="as-m" href="mailto:${esc(r.mail)}">✉️ ${esc(r.mail)}</a>` : `<span class="as-no">—</span>`}</td><td data-l="Site">${asLink(r.site, "🔗 Site")}</td><td data-l="Facebook">${asLink(r.fb, "📘 Facebook")}</td>
+      <td data-l="Prévenue">${r.deja ? `<span class="as-deja">✓ ${esc(r.deja)}</span>` : `<button type="button" class="as-b ${on ? "on" : ""}" aria-pressed="${on}" data-asenv="${r.id}-env">${on ? "✓ Envoyé" : "Marquer envoyé"}</button>`}</td></tr>`; };
+  return `<div class="item as" id="it-${p.id}">
+    <p class="as-p"><b>${d} association${d > 1 ? "s" : ""} prévenue${d > 1 ? "s" : ""} sur ${rr.length}</b></p><div class="as-bar" aria-hidden="true"><i style="width:${rr.length ? Math.round(d / rr.length * 100) : 0}%"></i></div>
+    <div class="as-s"><span class="as-n" aria-hidden="true">1</span><div><b>Copiez le message</b>
+      <div class="as-msg">${esc(m.txt)}</div>
+      ${MODE === "equipe" ? `<div class="as-plus">${pcField("pub-asso-plus", "➕ Info importante en plus (une ligne)", "ex. 🤝 Rencontre avec les chansigneurs avant le concert !")}</div>` : ""}
+      ${m.manque.length ? `<p class="as-w">⏳ Il manque ${esc(m.manque.join(", "))}. Le message se complète tout seul.</p>` : ""}
+      <div class="as-acts"><button type="button" class="btn btn-ghost" data-copy="${esc(m.txt)}" data-msg="Message copié.">📋 Copier le message</button>
+      ${mails.length ? `<button type="button" class="btn btn-ghost" data-copy="${esc(mails.join(", "))}" data-msg="${mails.length} mails copiés.">📋 Copier tous les mails</button>
+      <a class="btn btn-ghost" href="mailto:?bcc=${encodeURIComponent(mails.join(","))}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(m.txt)}">✉️ Ouvrir ma messagerie</a>` : ""}</div></div></div>
+    <div class="as-s"><span class="as-n" aria-hidden="true">2</span><div><b>Envoyez-le, puis cochez</b>
+      <p class="det">Pas de mail ? Envoyez le message sur leur page Facebook.</p>
+      <div class="tab-w"><table class="ttab as-t"><thead><tr><th>Association</th><th>Mail</th><th>Site</th><th>Facebook</th><th>Prévenue</th></tr></thead><tbody>${rr.map(row).join("")}</tbody></table></div>
+      <button type="button" class="addb" data-addrow2="${p.id}" data-nom="Association ${rr.length + 1}">+ Ajouter une association</button></div></div></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-asenv]"); if (!b) return; const id = b.dataset.asenv;
+  if (valOf(id) === "Envoyé") unsetAns(id); else submit(id, "Envoyé", null, b); });
+document.addEventListener("submit", e => { const f = e.target.closest && e.target.closest("[data-asx]"); if (!f) return; e.preventDefault(); e.stopImmediatePropagation();
+  const id = f.dataset.asx, el = n => ((document.querySelector(`[form="fx-${id}"][name="${n}"]`) || {}).value || "").trim(), nom = el("nom");
+  if (!nom) { toast("Merci d'indiquer le nom."); return; } if (!el("mail") && !el("site") && !el("fb")) { toast("Merci d'indiquer un mail, un site ou une page Facebook."); return; }
+  const now = new Date().toISOString(), team = ADMIN && MODE === "equipe";
+  [[id, nom], [id + "-mail", el("mail")], [id + "-site", el("site")], [id + "-fb", el("fb")]].forEach(([k, v]) => { if (!v) return; if (team) sent["team-" + k] = { texte: v, statut: "ok", date: now }; else sent[k] = { texte: v, date: now }; post(k, v, SOURCE()); });
+  delete sent["draft-" + id + "__edit"]; save(); render(false); toast("Merci ! Association ajoutée.");
+}, true);
 /* Partout : recliquer sur le choix déjà sélectionné le retire (réponse « ✗ Retiré »). */
 function unsetAns(id) { delete sent[id]; delete sent["team-" + id]; delete sent["draft-" + id]; save(); post(id, "✗ Retiré", SOURCE()); render(false); toast("Choix retiré."); }
 document.addEventListener("click", e => {
@@ -2051,6 +2124,7 @@ function itemHTML(p) {
   if (p.type === "parcours") return parcoursHTML(p);
   if (p.type === "passes") return passesHTML(p);
   if (p.type === "tuiles") return tuilesHTML(p);
+  if (p.type === "assos") return assosHTML(p);
   if (p.type === "hebergement") return hebHTML(p);
   if (p.type === "fiche") return ficheHTML(p);
   if (p.type === "multi") { const h = multiHTML(p); if (h) return h; }
@@ -2304,7 +2378,7 @@ function topicHTML(t) {
     const tog = it.si && MODE === "equipe" ? `<label class="pbsw tpb"><input type="checkbox" data-sitog="${it.si}" ${itemOn(it) ? "checked" : ""}><span>${esc(it.siLabel || "Visible pour l'organisateur")}<small>${itemOn(it) ? "L'organisateur voit ce bloc." : "Bloc masqué pour l'organisateur."}</small></span></label>` : "";
     const avec = (t.items || []).find(x => x.avec === (it.contact || it.id));
     const h = (t.alerte && t.alerte.apres === p.id ? alerteH : "") + tog + (it.contact ? (avec ? accueilHTML(avec, it.contact) : contactFieldHTML(it.contact, false, "", "Contacts régie et production")) : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
-    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" || p.type === "repas" ? " co" : ""), pillHTML(p));
+    body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" || p.type === "repas" || p.type === "assos" ? " co" : ""), pillHTML(p));
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
