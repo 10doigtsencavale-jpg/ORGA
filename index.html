@@ -884,6 +884,7 @@ body.eqv .rp :is(.rp-g,.rp-x){filter:grayscale(1);opacity:.55}
 .ctb-e{font-size:24px}.ctb b{display:block;font-size:14.5px}.ctb small{font-size:12px;font-weight:700;color:#6b718f}
 .st-dec .eqb{margin:0}.st-dec .eqb-h{display:none}
 @media (max-width:759px){.ctabs{grid-template-columns:1fr;gap:6px}.ctb{padding:8px 12px}}
+.alerte.rappel{background:#fff4dd;color:#10153d;border:1.5px solid #f7c66b;margin:0 0 12px}.alerte.rappel strong{font-size:17px}.alerte.rappel .al-ic{background:#f7a42b;color:#000;width:32px;height:32px;font-size:20px}
 </style>
 </head>
 <body>
@@ -1301,7 +1302,7 @@ function teamList() {
 let EQNAISS = false;
 const naissOf = nom => { const n = EVENT.naissances || {}, k = String(nom || "").trim().split(/\s+/)[0].toLowerCase(); return n[k] || ""; };
 function teamTableHTML() {
-  const r = EVENT.referente || {}, list = teamList();
+  const r = EVENT.referente || {}, isRef = x => x.nom && r.nom && nomAff(x.nom) === nomAff(r.nom), list = [...teamList()].sort((a, b) => isRef(b) - isRef(a));
   if (!list.length) return "";
   const hasN = list.some(x => naissOf(x.nom)), showN = hasN && EQNAISS;
   return `<section class="eqb" aria-labelledby="eqbT"><div class="eqb-h"><h2 class="eqb-t" id="eqbT">👥 L'équipe 10 Doigts en Cavale</h2><span class="pill p-eq">Rempli par 10 Doigts en Cavale</span></div>
@@ -2255,8 +2256,8 @@ function topicHTML(t) {
   const step = (titre, inner, cls, extra) => `<section class="step ${cls || ""}"><h2 class="st-h"><span class="st-n" style="background:${f.tab};color:${f.tabFg}" aria-hidden="true">${++n}</span><span class="st-t"><span class="vh">Étape ${n} : </span>${titre}</span>${extra || ""}</h2>${inner}</section>`;
   let pre = "", body = "";
   const PH = t.phases ? phaseCur(t) : null;
-  const alerteH = t.alerte ? `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>` : "";
-  if (t.alerte && !t.alerte.apres && (!PH || PH === (t.alerte.phase || t.phases[0].k))) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
+  const alerteH = t.alerte ? `<div class="alerte rappel" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>` : "";
+  if (t.alerte && !t.alerte.apres && (!PH || PH === (t.alerte.phase || t.phases[0].k))) pre += `<div class="alerte rappel" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); pre += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
   if (t.setlist && !(t.items || []).some(it => it.type === "setlist")) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
