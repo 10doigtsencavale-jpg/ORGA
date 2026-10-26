@@ -85,3 +85,9 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    - Du nouveau → UNE notification push courte : « Espace orga : La Sirène a répondu (setlist, parking) · 1 question (son). »
      Les questions sont toujours signalées. Puis un résumé de 3 lignes max.
    - Erreur (GitHub, Sheet, clé) → dis-le et envoie une notification.
+
+## Associations locales (« Prévenir le public sourd », item type `assos`)
+- `pub-asso-ok` = « oui » : liste vérifiée par 10DEC, visible pour l'organisateur (sinon masquée).
+- `pub-asso-<k>-env` = « Envoyé » : association prévenue (« ✗ Retiré » si décoché).
+- `pub-asso-x…` (+ `-mail`, `-site`, `-fb`) : association ajoutée ; `pub-asso-plus` : ligne en plus dans le message.
+- Espaces jumeaux (RDV Soniques) : ces réponses commencent par `pub-asso`, elles sont recopiées dans l'autre espace.
