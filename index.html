@@ -2255,7 +2255,8 @@ function topicHTML(t) {
   const step = (titre, inner, cls, extra) => `<section class="step ${cls || ""}"><h2 class="st-h"><span class="st-n" style="background:${f.tab};color:${f.tabFg}" aria-hidden="true">${++n}</span><span class="st-t"><span class="vh">Étape ${n} : </span>${titre}</span>${extra || ""}</h2>${inner}</section>`;
   let pre = "", body = "";
   const PH = t.phases ? phaseCur(t) : null;
-  if (t.alerte && (!PH || PH === (t.alerte.phase || t.phases[0].k))) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
+  const alerteH = t.alerte ? `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>` : "";
+  if (t.alerte && !t.alerte.apres && (!PH || PH === (t.alerte.phase || t.phases[0].k))) pre += `<div class="alerte" role="note"><span class="al-ic" aria-hidden="true">!</span><div><strong>${esc(t.alerte.titre)}</strong><p>${esc(t.alerte.texte)}</p></div></div>`;
   if (t.important && t.importantTop) { const x = asB(t.important); pre += `<div class="important"><strong>Important</strong><span>${esc(x.t)}${x.d ? " " + esc(x.d) : ""}</span></div>`; }
   if (t.intro && !t.contactsList) pre += `<p class="intro">${esc(t.intro)}</p>`;
   if (t.setlist && !(t.items || []).some(it => it.type === "setlist")) pre += [].concat(t.setlist).filter(visible).map(sl => `<div class="setlist"><h2>${esc(sl.titre)}</h2>${sl.note ? `<p class="det">${esc(sl.note)}</p>` : ""}
@@ -2282,6 +2283,7 @@ function topicHTML(t) {
     const avec = (t.items || []).find(x => x.avec === (it.contact || it.id));
     const h = tog + (it.contact ? (avec ? accueilHTML(avec, it.contact) : contactFieldHTML(it.contact, false, "", "Contacts régie et production")) : itemHTML(it)) + vuHTML(p.id, idsOfPoint(p));
     body += step(esc(p.titre), h, "st-item" + (p.type === "grille" || p.type === "hebergement" || p.type === "setlist" || p.type === "parcours" || p.type === "repas" ? " co" : ""), pillHTML(p));
+    if (t.alerte && t.alerte.apres === p.id) body += alerteH;
     if ((t.base || t.id) === "horaires" && (p.id === "runs" || (p.id === "hor-tab" && !(t.items || []).some(x => x.id === "runs")))) { body += friseHTML(t); frDone = true; }
   });
   if (!its.length && t.items && !checks.length && !t.contactsList) body += `<p class="seg-note">Rien à afficher pour « ${esc(artName(FILTRE))} » dans ce sujet. <button type="button" class="linkbtn" data-filtre="tout">Tout voir</button></p>`;
