@@ -886,7 +886,7 @@ button.sl-st{cursor:pointer}.sl-st.chk{background:#fff;color:#14633a;border-colo
 @media (max-width:640px){.as-t thead{display:none}.as-t,.as-t tbody,.as-t tr,.as-t td{display:block;width:100%}.as-t tr{border:1.5px solid #d7daef;border-radius:14px;padding:8px 10px;margin-bottom:8px}.as-t td{border:0!important;padding:3px 0;text-align:left!important;display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center}
 .as-t td:first-child{display:block}.as-t td[data-l]:not(:first-child)::before{content:attr(data-l);font-size:12.5px;font-weight:700;color:#6b718f}.as-t td.act{display:block}.as-t .as-m{white-space:normal;word-break:break-all}.as-t input{width:100%}.as-s{grid-template-columns:1fr}.as-n{display:none}}
 .rp-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rp-c{border:2px solid #d7daef;border-radius:16px;padding:12px}.rp-c h4{margin:0 0 4px;font:400 22px "Bebas Neue",sans-serif}
-.rp-w{margin:0 0 8px;font-size:13.5px;color:#555}.rp-x{margin-top:10px}.rp-c .pc-f{grid-template-columns:135px 1fr}.rp-x .item.pa{border:0;padding:0;background:none;box-shadow:none}.rp-x .pa-1 .pa-c small{display:none}
+.rp-m{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}.rp-w{margin:0 0 8px;font-size:13.5px;color:#555}.rp-x{margin-top:10px}.rp-c .pc-f{grid-template-columns:135px 1fr}.rp-x .item.pa{border:0;padding:0;background:none;box-shadow:none}.rp-x .pa-1 .pa-c small{display:none}
 .rp-i{margin-top:10px;background:#f3f4f8;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#555}.rp-i summary{cursor:pointer}.rp-i p{margin:8px 0 0}
 @media (max-width:759px){.lg-t{grid-template-columns:repeat(2,1fr)}.rp-g{grid-template-columns:1fr}.rp-c .pc-f{grid-template-columns:1fr}}
 body.eqv .rp :is(.rp-g,.rp-x){filter:grayscale(1);opacity:.55}
@@ -1883,12 +1883,12 @@ const passVals = p => (p.choses || []).map(c => valOf("pass-" + c.k)), passOu = 
 function passStatus(p) { const v = passVals(p); if (v.some(x => !x)) return "todo";
   if (v.includes("place") && !valOf(passOu(p))) return "todo";
   return (p.choses || []).some(c => sent["pass-" + c.k]) || sent[passOu(p)] ? "sent" : "ok"; }
-function passesHTML(p) {
+function passesHTML(p, OPT = PASS_OPT, ouLabel = "📍 Sur place : où et auprès de qui ?") {
   const v = passVals(p), st = statusOf(p);
   const cards = (p.choses || []).map((c, i) => `<div class="pa-c ${v[i] && v[i] !== "non" ? "on" : v[i] === "non" ? "off" : ""}"><span class="pa-e" aria-hidden="true">${c.ic}</span><b>${esc(c.t)}</b><small>${esc(c.s || "")}</small>
-    <div class="pa-ch" role="group" aria-label="${esc(c.t)}">${PASS_OPT.map(([k, l]) => `<button type="button" class="pa-b ${v[i] === k ? "on" : ""}" aria-pressed="${v[i] === k}" data-pass="pass-${c.k}" data-v="${k}">${v[i] === k ? "✓ " : ""}${l}</button>`).join("")}</div></div>`).join("");
+    <div class="pa-ch" role="group" aria-label="${esc(c.t)}">${OPT.map(([k, l]) => `<button type="button" class="pa-b ${v[i] === k ? "on" : ""}" aria-pressed="${v[i] === k}" data-pass="pass-${c.k}" data-v="${k}">${v[i] === k ? "✓ " : ""}${l}</button>`).join("")}</div></div>`).join("");
   return `<div class="item pa ${st !== "todo" ? "is-done" : ""}" id="it-${p.id}">${p.detail ? `<p class="det">${esc(p.detail)}</p>` : ""}<div class="pa-g ${(p.choses || []).length === 1 ? "pa-1" : (p.choses || []).length === 2 ? "pa-2" : ""}">${cards}</div>
-    ${v.includes("place") ? `<div class="pa-x">${pcField(passOu(p), "📍 Sur place : où et auprès de qui ?", "Lieu et personne à contacter")}</div>` : ""}
+    ${v.includes("place") ? `<div class="pa-x">${pcField(passOu(p), ouLabel, "Lieu et personne à contacter")}</div>` : ""}
     ${v.includes("imprimer") ? `<div class="pa-x">${fileButtons(p, "À imprimer : déposez le fichier ici")}</div>` : ""}</div>`;
 }
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-pass]"); if (!b) return; submit(b.dataset.pass, b.dataset.v, null, b); });
@@ -2047,6 +2047,9 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
   else { const t = p.options[+b.dataset.i].texte; on = on.includes(t) ? on.filter(x => x !== t) : [...on, t]; }
   on = p.options.map(o => o.texte).filter(t => on.includes(t));
   if (!on.length) { unsetAns(p.id); return; } submit(p.id, on.join(" · "), null, b); });
+/* Repas sur place ou à emporter (panier repas), pour le midi et le soir. Réponse « rp-mode-midi » / « rp-mode-soir » = « place » | « panier ». Festival et équipe peuvent cocher (choix d'Aurélie, 27/10/2026). */
+const RP_MODE = [["place", "🍽️ Sur place"], ["panier", "🥡 À emporter - Panier repas"]];
+const rpMode = k => { const v = valOf("rp-mode-" + k); return `<div class="rp-m" role="group" aria-label="Sur place ou à emporter">${RP_MODE.map(([x, l]) => `<button type="button" class="pa-b ${v === x ? "on" : ""}" aria-pressed="${v === x}" data-pass="rp-mode-${k}" data-v="${x}">${v === x ? "✓ " : ""}${l}</button>`).join("")}</div>`; };
 /* Les repas : l'équipe coche midi / soir et les régimes ; l'organisateur voit Midi et Soir avec une tranche horaire, le lieu et les tickets. */
 const inlineOf = p => allItems().filter(x => x.inline === p.id);
 function repasOrgaHTML(p) {
@@ -2054,11 +2057,11 @@ function repasOrgaHTML(p) {
   const field = (id, label, ph) => { if (!cat || !cat.rows.some(r => r.id === id)) return ""; return pcField(id, label, ph); };
   const card = (k, ic, l) => { const who = rr.filter(r => r[k]); if (!who.length) return "";
     const dates = [...new Set(who.map(r => r.date).filter(Boolean))].join(", ");
-    return `<div class="rp-c"><h4>${ic} ${l}</h4><p class="rp-w">${esc(who.map(r => r.nom).join(", "))}${dates ? " · " + esc(dates) : ""}</p>${field(k === "midi" ? "cat-midi" : "cat-soir", "Tranche horaire", "??h?? - ??h??")}</div>`; };
+    return `<div class="rp-c"><h4>${ic} ${l}</h4><p class="rp-w">${esc(who.map(r => r.nom).join(", "))}${dates ? " · " + esc(dates) : ""}</p>${rpMode(k)}${field(k === "midi" ? "cat-midi" : "cat-soir", valOf("rp-mode-" + k) === "panier" ? "Heure de récupération" : "Tranche horaire", "??h?? - ??h??")}</div>`; };
   const reg = rr.filter(r => r.regime && !/^(aucun|ras|non|-)$/i.test(r.regime.trim())).map(r => r.nom + " : " + r.regime);
   return `<div class="item rp" id="it-${p.id}"><div class="rp-g">${card("midi", "☀️", "Midi")}${card("soir", "🌙", "Soir")}</div>
     <div class="rp-x">${field("cat-lieu", "📍 Lieu du catering", "ex. salle du bas")}</div>
-    ${tk ? `<div class="rp-x">${passesHTML(tk)}</div>` : ""}
+    ${tk ? `<div class="rp-x">${passesHTML(tk, PASS_OPT.map(([k, l]) => [k, k === "place" ? "À récupérer sur place" : l]), "📍 À récupérer où et auprès de qui ?")}</div>` : ""}
     <details class="rp-i"><summary>Régimes : ${esc(reg.length ? reg.join(" · ") : "aucun")}${p.compo ? " · Le repas idéal (voir)" : ""}</summary>${p.compo ? `<p>${esc(p.compo).replace(/\n/g, "<br>")}</p>` : ""}</details></div>`;
 }
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-ctab]"); if (!b) return; CTAB[b.dataset.ctab] = +b.dataset.i; render(false); });
