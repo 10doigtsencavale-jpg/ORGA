@@ -33,6 +33,13 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    `python3 -I tools/orga.py recu <fichier> <clé> <point> "<noms des fichiers, séparés par des virgules>"` → le point passe à « Reçu » sur la page.
    Puis compte-le comme une nouveauté : dans la FDR, une ligne « 📎 <titre> reçu : <noms> » (dossiers « Documents organisateur » :
    partie « 📝 INFOS & REMARQUES » ; dossier « Visuels » : idem). Ne déplace, ne renomme, ne supprime rien dans Dropbox.
+   **Feuille de route / fiche du festival ou de la salle** (dossier « Documents organisateur », décidé par Aurélie le 27/10/2026) :
+   lis chaque nouveau fichier avec `mcp__Dropbox__fetch` et remplis l'espace exactement comme pour un mail (étape 3 ter, mêmes règles) :
+   `python3 -I tools/orga.py points …` puis `mail` avec `"auteur": "<festival> · feuille de route"`, `"mail": "dropbox:<file_id>"` (évite de relire le même fichier).
+   Horaires du planning, runs (date, heure, nb, départ, arrivée, chauffeur), repas (`cat-midi`, `cat-soir`, `cat-lieu`,
+   `rp-mode-midi` / `rp-mode-soir` = « place » ou « panier »), contacts (`c-…` : « Nom · mail · tél. »).
+   Jamais d'écrasement : une case déjà remplie, ou une heure pré-remplie par l'équipe dans le planning, qui diffère → conflit à signaler, pas à trancher.
+   Fais-le pour les deux espaces si l'événement a des jumeaux. Ce qui ne rentre dans aucune case (loges, douches, jauge…) : FDR « 📝 INFOS & REMARQUES ».
    Événements jumeaux (deux artistes le même soir, un espace chacun, champ `jumeaux` dans le fichier chiffré) : rien à faire de plus.
    `appliquer` lancé sur chaque espace reprend tout seul les réponses des sujets communs de l'autre espace (accueil, runs, pass, horaires, com, presse, photos, sécurité, contacts du festival),
    sauf si l'espace a déjà sa propre réponse. Ces reprises portent « repris de l'espace … » dans `auteur` : ne les reporte qu'une fois dans la FDR (même fiche FDR pour les deux espaces).
