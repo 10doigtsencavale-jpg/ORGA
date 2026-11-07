@@ -123,6 +123,8 @@ Utilisatrice : Aurélie (dys) → messages très courts, en français.
    (écris `values` tel quel dans `/tmp/orga/liens.json`, hors du dépôt), puis `python3 -I tools/orga.py accueil /tmp/orga/liens.json <fichier> <clé> <code>`.
    Il ne réécrit la liste que si un événement a changé (`{"inchange": true}` sinon). Ne mets jamais la clé ni le code dans un message ou un commit.
 4 ter. **Encart « ⚠️ CHANGEMENTS » de la FDR : court** — décidé par Aurélie le 07/11/2026. L'équipe ne doit pas être noyée d'infos.
+   - Seulement un VRAI changement (quelque chose qui était prévu et qui change : horaire, train, lieu, équipe, date).
+     Une info nouvelle de la feuille de route, une réservation faite, un lieu ou un hôtel connu → RIEN dans CHANGEMENTS (ça va seulement dans sa partie).
    - Une ligne par changement, quelques mots, sans horaires détaillés, références, sources ni historique. Ex. : « Changement train : départ plus tôt pour arriver plus tôt. »
    - Le détail va dans la bonne partie (TRAJETS, PLANNING…), pas dans CHANGEMENTS.
    - Changement fait (billet importé, horaire mis à jour) → statut « ✓ OK » et on remplace les anciennes lignes du même sujet (demande, validation, « à changer ») par cette seule ligne.
