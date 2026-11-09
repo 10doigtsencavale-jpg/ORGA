@@ -597,7 +597,7 @@ def creer(infos_json, code):
                 it["msg"] = {"adresse": I.get("adresse", ""), "prog": I.get("prog") or [{"ic": "🎤", "h": I.get("heure", ""), "t": "Concert de " + I["artiste"]}]}
     fichier, cle = b64(os.urandom(12)), b64(os.urandom(32))
     ecrire(fichier, cle, d)
-    base = "https://10doigtsencavale-jpg.github.io/ORGA/#" + fichier + "." + cle
+    base = "https://orga.10doigtsencavale.com/#" + fichier + "." + cle
     print(json.dumps({"fichier": fichier, "cle": cle, "lien": base, "lien_equipe": base + "!" + code, "date": j.strftime("%d/%m/%Y")}, ensure_ascii=False))
 
 def dechiffrer(fichier, cle):

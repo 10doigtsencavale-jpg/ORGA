@@ -1,6 +1,6 @@
 # Synchro de l'espace organisateur (toutes les heures, 8h-23h)
 
-Espace organisateur 10 Doigts en Cavale : https://10doigtsencavale-jpg.github.io/ORGA/
+Espace organisateur 10 Doigts en Cavale : https://orga.10doigtsencavale.com/
 Utilisatrice : Aurélie (dys) → messages très courts, en français.
 
 ## Règles absolues

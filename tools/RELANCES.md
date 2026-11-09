@@ -1,6 +1,6 @@
 # Relances des organisateurs (tous les jours à 9h)
 
-Espace organisateur 10 Doigts en Cavale : https://10doigtsencavale-jpg.github.io/ORGA/
+Espace organisateur 10 Doigts en Cavale : https://orga.10doigtsencavale.com/
 Utilisatrice : Aurélie (dys) → messages très courts, en français.
 
 ## Règles absolues
