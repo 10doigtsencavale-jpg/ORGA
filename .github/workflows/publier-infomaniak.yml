@@ -1,0 +1,31 @@
+# Publie ORGA sur Infomaniak (https://orga.10doigtsencavale.com) à chaque envoi sur main.
+name: Publier sur Infomaniak
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency: publier-infomaniak
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Envoyer les fichiers
+        env:
+          HOTE: ${{ secrets.INFOMANIAK_HOTE }}
+          UTILISATEUR: ${{ secrets.INFOMANIAK_UTILISATEUR }}
+          LFTP_PASSWORD: ${{ secrets.INFOMANIAK_MOT_DE_PASSE }}
+        run: |
+          set -u
+          EXCLU="--exclude-glob .* --exclude-glob tools/ --exclude-glob res/ --exclude-glob README.md"
+          COMMUN="set net:max-retries 2; set net:timeout 30; set sftp:auto-confirm yes; set mirror:parallel-transfer-count 4"
+          ACTIONS="mirror -R --delete $EXCLU ./ ./; mirror -R --ignore-time res res"
+          if lftp -c "$COMMUN; open -u $UTILISATEUR --env-password sftp://$HOTE; $ACTIONS"; then
+            echo "Publication réussie en SFTP"
+          else
+            echo "SFTP refusé, essai en FTP chiffré"
+            lftp -c "$COMMUN; set ftp:ssl-force true; set ftp:ssl-protect-data true; open -u $UTILISATEUR --env-password ftp://$HOTE; $ACTIONS"
+            echo "Publication réussie en FTP chiffré"
+          fi
