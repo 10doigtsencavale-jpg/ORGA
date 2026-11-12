@@ -724,6 +724,14 @@
      "liste": []
     },
     {
+     "id": "pub-lien-site",
+     "titre": "Lien vers notre site",
+     "statut": "todo",
+     "type": "ouinon",
+     "phase": "info",
+     "detail": "Sur votre page accessibilité ou la page du concert, ajoutez un lien vers www.10doigtsencavale.com."
+    },
+    {
      "id": "pub-places",
      "titre": "Places PSH réservées au public sourd",
      "statut": "todo",
